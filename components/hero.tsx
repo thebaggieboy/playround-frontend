@@ -90,7 +90,7 @@ export function Hero() {
             className="relative h-96 md:h-full min-h-96"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-tertiary/5 to-primary/5 rounded-2xl overflow-hidden border border-primary/30 shadow-2xl hover:shadow-3xl transition-shadow duration-500 hover:border-primary/50">
-              <img src="/financial-dashboard-analytics-charts.jpg" alt="Playground Dashboard" className="w-full h-full object-cover" />
+              <img src="/fn.jpg" alt="Playground Dashboard" className="w-full h-full object-cover" />
             </div>
           </motion.div>
         </div>
