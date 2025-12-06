@@ -6,11 +6,60 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 
 export function Hero() {
+  // Color system: Primary (#FF1B6D), Secondary (#1A2654), Tertiary (#7C3AED)
+  const colors = {
+    primary: "#FF1B6D",
+    primaryLight: "rgba(255, 27, 109, 0.15)",
+    primaryMuted: "rgba(255, 27, 109, 0.08)",
+    secondary: "#1A2654",
+    tertiary: "#7C3AED",
+    tertiaryMuted: "rgba(124, 58, 237, 0.1)",
+  }
+
+  const gradientBlurStyle = {
+    position: "absolute" as const,
+    borderRadius: "9999px",
+    filter: "blur(80px)",
+    pointerEvents: "none" as const,
+  }
+
   return (
-    <section className="relative py-20 md:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden bg-gradient-to-br from-secondary via-secondary to-secondary/95">
-      <div className="absolute top-20 right-10 w-96 h-96 bg-primary/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-tertiary/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-32 right-1/3 w-72 h-72 bg-primary/8 rounded-full blur-2xl pointer-events-none" />
+    <section
+      className="relative py-20 md:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden"
+      style={{
+        background: `linear-gradient(to bottom right, ${colors.secondary}, ${colors.secondary})`,
+      }}
+    >
+      <div
+        style={{
+          ...gradientBlurStyle,
+          top: "80px",
+          right: "40px",
+          width: "384px",
+          height: "384px",
+          background: colors.primaryLight,
+        }}
+      />
+      <div
+        style={{
+          ...gradientBlurStyle,
+          bottom: "-80px",
+          left: "-80px",
+          width: "384px",
+          height: "384px",
+          background: colors.tertiaryMuted,
+        }}
+      />
+      <div
+        style={{
+          ...gradientBlurStyle,
+          bottom: "128px",
+          right: "33%",
+          width: "288px",
+          height: "288px",
+          background: colors.primaryMuted,
+        }}
+      />
 
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -21,7 +70,22 @@ export function Hero() {
               transition={{ duration: 0.6 }}
               className="inline-block"
             >
-              <span className="inline-flex items-center gap-3 px-4 py-2.5 rounded-full bg-primary/20 text-primary font-semibold text-sm border border-primary/40 hover:border-primary/60 transition-smooth hover:shadow-lg hover:shadow-primary/25 backdrop-blur-sm">
+              <span
+                className="inline-flex items-center gap-3 px-4 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 hover:shadow-lg backdrop-blur-sm border"
+                style={{
+                  backgroundColor: colors.primaryLight,
+                  color: colors.primary,
+                  borderColor: `rgba(255, 27, 109, 0.4)`,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = `rgba(255, 27, 109, 0.6)`
+                  e.currentTarget.style.boxShadow = `0 0 30px ${colors.primary}40`
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = `rgba(255, 27, 109, 0.4)`
+                  e.currentTarget.style.boxShadow = "none"
+                }}
+              >
                 <Sparkles className="w-4 h-4" />
                 Financial modeling made simple
               </span>
@@ -34,7 +98,14 @@ export function Hero() {
               className="text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight text-balance tracking-tight"
             >
               Financial Analysis for{" "}
-              <span className="bg-gradient-to-r from-primary via-primary to-tertiary bg-clip-text text-transparent">
+              <span
+                style={{
+                  backgroundImage: `linear-gradient(to right, ${colors.primary}, ${colors.primary}, ${colors.tertiary})`,
+                  backgroundClip: "text",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
+              >
                 Everyone
               </span>
             </motion.h1>
@@ -58,7 +129,19 @@ export function Hero() {
               <Link href="/signup">
                 <Button
                   size="lg"
-                  className="bg-primary hover:bg-primary/90 text-white rounded-lg px-8 h-12 text-base font-semibold transition-all duration-300 hover:shadow-2xl hover:shadow-primary/40 hover:-translate-y-1 hover:scale-105 w-full sm:w-auto"
+                  className="rounded-lg px-8 h-12 text-base font-semibold transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:scale-105 w-full sm:w-auto text-white"
+                  style={{
+                    backgroundColor: colors.primary,
+                    boxShadow: `0 0 30px ${colors.primary}40`,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = `${colors.primary}E6`
+                    e.currentTarget.style.boxShadow = `0 0 40px ${colors.primary}60`
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = colors.primary
+                    e.currentTarget.style.boxShadow = `0 0 30px ${colors.primary}40`
+                  }}
                 >
                   Get Started Free
                   <ArrowRight className="w-4 h-4 ml-2" />
@@ -66,8 +149,20 @@ export function Hero() {
               </Link>
               <Button
                 size="lg"
-                variant="outline"
-                className="rounded-lg px-8 h-12 text-base font-semibold border-2 border-white/30 text-white hover:border-primary/80 hover:bg-primary/10 transition-all duration-300 hover:shadow-lg w-full sm:w-auto backdrop-blur-sm hover:scale-105 bg-transparent"
+                className="rounded-lg px-8 h-12 text-base font-semibold transition-all duration-300 hover:shadow-lg hover:scale-105 w-full sm:w-auto text-white"
+                style={{
+                  backgroundColor: "rgba(255, 255, 255, 0.05)",
+                  border: "2px solid rgba(255, 255, 255, 0.3)",
+                  backdropFilter: "blur(10px)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = `rgba(255, 27, 109, 0.8)`
+                  e.currentTarget.style.backgroundColor = `${colors.primary}10`
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.3)"
+                  e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.05)"
+                }}
               >
                 View Demo
               </Button>
@@ -75,9 +170,27 @@ export function Hero() {
 
             <div className="pt-4 flex items-center gap-4 text-white/70 text-sm">
               <div className="flex -space-x-2">
-                <div className="w-8 h-8 rounded-full bg-primary/40 border-2 border-secondary"></div>
-                <div className="w-8 h-8 rounded-full bg-tertiary/40 border-2 border-secondary"></div>
-                <div className="w-8 h-8 rounded-full bg-primary/30 border-2 border-secondary"></div>
+                <div
+                  className="w-8 h-8 rounded-full border-2"
+                  style={{
+                    backgroundColor: `${colors.primary}66`,
+                    borderColor: colors.secondary,
+                  }}
+                />
+                <div
+                  className="w-8 h-8 rounded-full border-2"
+                  style={{
+                    backgroundColor: `${colors.tertiary}66`,
+                    borderColor: colors.secondary,
+                  }}
+                />
+                <div
+                  className="w-8 h-8 rounded-full border-2"
+                  style={{
+                    backgroundColor: `${colors.primary}4D`,
+                    borderColor: colors.secondary,
+                  }}
+                />
               </div>
               <span>Join 2,900+ companies already growing</span>
             </div>
@@ -89,8 +202,24 @@ export function Hero() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="relative h-96 md:h-full min-h-96"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-tertiary/5 to-primary/5 rounded-2xl overflow-hidden border border-primary/30 shadow-2xl hover:shadow-3xl transition-shadow duration-500 hover:border-primary/50">
-              <img src="/fn.jpg" alt="Playground Dashboard" className="w-full h-full object-cover" />
+            <div
+              className="absolute inset-0 rounded-2xl overflow-hidden shadow-2xl transition-shadow duration-500 hover:shadow-3xl border"
+              style={{
+                backgroundImage: `linear-gradient(to bottom right, ${colors.primary}10, ${colors.tertiary}05, ${colors.primary}05)`,
+                borderColor: `${colors.primary}4D`,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = `${colors.primary}80`
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = `${colors.primary}4D`
+              }}
+            >
+              <img
+                src="/financial-dashboard-analytics-charts.jpg"
+                alt="Playground Dashboard"
+                className="w-full h-full object-cover"
+              />
             </div>
           </motion.div>
         </div>
