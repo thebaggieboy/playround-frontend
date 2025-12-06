@@ -1,68 +1,280 @@
 "use client"
 
-import { TrendingUp, PieChart, BarChart3, Zap } from "lucide-react"
+import { TrendingUp, PieChart, BarChart3, Zap, ArrowRight } from "lucide-react"
+import { useState } from "react"
+
+const colors = {
+  primary: "#FF1B6D",
+  secondary: "#1A2654",
+  tertiary: "#7C3AED",
+  background: "#0F1419",
+  card: "#1A1F2E",
+  border: "#2D3748",
+  text: "#F5F7FA",
+  textMuted: "#A0AEC0",
+}
 
 export function UseCases() {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+
   const useCases = [
     {
-      icon: <TrendingUp className="w-6 h-6" />,
+      icon: <TrendingUp size={24} />,
       title: "Investment Analysis",
-      description: "Evaluate investment opportunities with DCF and NPV models",
-      color: "from-primary/30 to-accent/30",
+      description:
+        "Evaluate investment opportunities with DCF and NPV models. Compare multiple scenarios with real-time data integration.",
+      details: ["Automated DCF models", "Multi-scenario analysis", "Real-time data"],
+      gradient: `linear-gradient(135deg, ${colors.primary}20 0%, ${colors.tertiary}20 100%)`,
     },
     {
-      icon: <PieChart className="w-6 h-6" />,
+      icon: <PieChart size={24} />,
       title: "Portfolio Management",
-      description: "Track and analyze portfolio performance metrics",
-      color: "from-accent/30 to-primary/30",
+      description:
+        "Track and analyze portfolio performance metrics across multiple asset classes with advanced visualizations.",
+      details: ["Performance tracking", "Risk assessment", "Asset allocation"],
+      gradient: `linear-gradient(135deg, ${colors.tertiary}20 0%, ${colors.primary}20 100%)`,
     },
     {
-      icon: <BarChart3 className="w-6 h-6" />,
+      icon: <BarChart3 size={24} />,
       title: "Financial Forecasting",
-      description: "Create accurate forecasts with built-in templates",
-      color: "from-primary/25 to-accent/25",
+      description:
+        "Create accurate forecasts with built-in templates and historical data modeling for predictive analytics.",
+      details: ["Template library", "Trend analysis", "Predictive models"],
+      gradient: `linear-gradient(135deg, ${colors.primary}15 0%, ${colors.secondary}25 100%)`,
     },
     {
-      icon: <Zap className="w-6 h-6" />,
+      icon: <Zap size={24} />,
       title: "Quick Analysis",
-      description: "Get insights in minutes, not hours",
-      color: "from-accent/25 to-primary/25",
+      description: "Get insights in minutes, not hours. Transform raw data into actionable intelligence instantly.",
+      details: ["Instant calculations", "Auto-insights", "Export ready"],
+      gradient: `linear-gradient(135deg, ${colors.tertiary}15 0%, ${colors.primary}20 100%)`,
     },
   ]
 
   return (
-    <section className="py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-secondary/30 to-background relative overflow-hidden">
-      <div className="absolute top-1/2 left-0 w-96 h-96 bg-primary/8 rounded-full blur-3xl pointer-events-none" />
+    <section
+      style={{
+        padding: "80px 32px",
+        background: `linear-gradient(180deg, ${colors.background} 0%, ${colors.secondary}10 50%, ${colors.background} 100%)`,
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* Animated background elements */}
+      <div
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: 0,
+          width: "400px",
+          height: "400px",
+          background: colors.primary,
+          opacity: 0.07,
+          borderRadius: "50%",
+          filter: "blur(120px)",
+          pointerEvents: "none",
+          transform: "translateY(-50%)",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          bottom: "-100px",
+          right: "-100px",
+          width: "300px",
+          height: "300px",
+          background: colors.tertiary,
+          opacity: 0.05,
+          borderRadius: "50%",
+          filter: "blur(100px)",
+          pointerEvents: "none",
+        }}
+      />
 
-      <div className="max-w-7xl mx-auto relative z-10">
-        <div className="text-center mb-16 animate-slide-up">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Use Cases for{" "}
-            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Every Role</span>
+      <div style={{ maxWidth: "1280px", margin: "0 auto", position: "relative", zIndex: 10 }}>
+        {/* Header */}
+        <div style={{ textAlign: "center", marginBottom: "64px" }}>
+          <h2 style={{ fontSize: "48px", fontWeight: 700, marginBottom: "16px", color: colors.text }}>
+            Use Cases for <br />
+            <span
+              style={{
+                background: `linear-gradient(90deg, ${colors.primary} 0%, ${colors.tertiary} 100%)`,
+                backgroundClip: "text",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              Every Role
+            </span>
           </h2>
-          <p className="text-lg text-foreground/70 max-w-2xl mx-auto">
-            Whether you're a CFO, analyst, or finance novice, Playground adapts to your needs
+          <p
+            style={{
+              fontSize: "18px",
+              color: colors.textMuted,
+              maxWidth: "600px",
+              margin: "0 auto",
+              lineHeight: "1.6",
+            }}
+          >
+            Whether you're a CFO, analyst, or finance novice, our platform adapts to your needs and expertise level
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Use Cases Grid */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gap: "24px",
+          }}
+        >
           {useCases.map((useCase, index) => (
             <div
               key={index}
-              className="bg-card rounded-xl p-6 border border-border hover:border-accent/50 transition-smooth-lg hover:shadow-xl hover:shadow-accent/20 hover:-translate-y-1.5 animate-scale-in group"
-              style={{ animationDelay: `${index * 0.1}s` }}
+              style={{
+                background: colors.card,
+                borderRadius: "16px",
+                padding: "32px 24px",
+                border: `1px solid ${colors.border}`,
+                transition: "all 0.3s ease",
+                cursor: "pointer",
+                transform: hoveredIndex === index ? "translateY(-8px)" : "translateY(0)",
+                boxShadow:
+                  hoveredIndex === index
+                    ? `0 20px 40px ${colors.primary}25, inset 0 1px 0 ${colors.primary}20`
+                    : `0 10px 20px rgba(0,0,0,0.2)`,
+              }}
+              onMouseEnter={() => setHoveredIndex(index)}
+              onMouseLeave={() => setHoveredIndex(null)}
             >
+              {/* Icon */}
               <div
-                className={`w-12 h-12 bg-gradient-to-br ${useCase.color} rounded-lg flex items-center justify-center mb-4 text-accent group-hover:shadow-lg group-hover:shadow-accent/30 transition-smooth-lg group-hover:scale-110`}
+                style={{
+                  width: "56px",
+                  height: "56px",
+                  background: useCase.gradient,
+                  borderRadius: "12px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: "20px",
+                  color: colors.primary,
+                  transition: "all 0.3s ease",
+                  boxShadow: hoveredIndex === index ? `0 12px 24px ${colors.primary}30` : "none",
+                  transform: hoveredIndex === index ? "scale(1.1)" : "scale(1)",
+                }}
               >
                 {useCase.icon}
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-accent transition-smooth">
+
+              {/* Title */}
+              <h3
+                style={{
+                  fontSize: "18px",
+                  fontWeight: 600,
+                  color: colors.text,
+                  marginBottom: "12px",
+                  transition: "color 0.3s ease",
+                }}
+              >
                 {useCase.title}
               </h3>
-              <p className="text-sm text-foreground/70 group-hover:text-foreground/80 transition-smooth">
+
+              {/* Description */}
+              <p
+                style={{
+                  fontSize: "14px",
+                  color: colors.textMuted,
+                  marginBottom: "16px",
+                  lineHeight: "1.6",
+                  transition: "color 0.3s ease",
+                }}
+              >
                 {useCase.description}
               </p>
+
+              {/* Details List - CHANGE: Added feature details with tags */}
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "8px",
+                  marginBottom: "16px",
+                  paddingBottom: "16px",
+                  borderBottom: `1px solid ${colors.border}`,
+                }}
+              >
+                {useCase.details.map((detail, idx) => (
+                  <span
+                    key={idx}
+                    style={{
+                      fontSize: "12px",
+                      padding: "4px 12px",
+                      background: `${colors.primary}15`,
+                      color: colors.primary,
+                      borderRadius: "20px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {detail}
+                  </span>
+                ))}
+              </div>
+
+              {/* CTA - CHANGE: Added explore button with arrow */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  color: colors.primary,
+                  fontWeight: 600,
+                  fontSize: "14px",
+                  transition: "all 0.3s ease",
+                  transform: hoveredIndex === index ? "translateX(4px)" : "translateX(0)",
+                }}
+              >
+                Explore <ArrowRight size={16} />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Stats Section - CHANGE: Added bottom stats bar */}
+        <div
+          style={{
+            marginTop: "80px",
+            padding: "40px",
+            background: `linear-gradient(135deg, ${colors.primary}10 0%, ${colors.tertiary}10 100%)`,
+            borderRadius: "16px",
+            border: `1px solid ${colors.border}`,
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gap: "32px",
+            textAlign: "center",
+          }}
+        >
+          {[
+            { stat: "500K+", label: "Financial Models Created" },
+            { stat: "99.9%", label: "System Uptime" },
+            { stat: "<30s", label: "Model Generation Time" },
+            { stat: "50+", label: "Pre-built Templates" },
+          ].map((item, idx) => (
+            <div key={idx}>
+              <div
+                style={{
+                  fontSize: "32px",
+                  fontWeight: 700,
+                  background: `linear-gradient(90deg, ${colors.primary} 0%, ${colors.tertiary} 100%)`,
+                  backgroundClip: "text",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  marginBottom: "8px",
+                }}
+              >
+                {item.stat}
+              </div>
+              <div style={{ fontSize: "14px", color: colors.textMuted }}>{item.label}</div>
             </div>
           ))}
         </div>
