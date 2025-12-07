@@ -3,20 +3,35 @@
 import { motion } from "framer-motion"
 import { useInView } from "framer-motion"
 import { useRef, useState } from "react"
-import { BarChart3, Upload, PieChart, FileText, TrendingUp, Zap, Share2, CheckCircle2, Sparkles } from "lucide-react"
+import {
+  BarChart3,
+  Upload,
+  PieChart,
+  FileText,
+  TrendingUp,
+  Zap,
+  Share2,
+  CheckCircle2,
+  Sparkles,
+  Lightbulb,
+  Infinity,
+} from "lucide-react"
 
 export function Features() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: "-100px" })
   const [hoveredFeature, setHoveredFeature] = useState<number | null>(null)
+  const hoveredIndex = hoveredFeature // Declare hoveredIndex variable
 
   const colors = {
-    primary: "#FF1B6D",
-    secondary: "#1A2654",
-    tertiary: "#7C3AED",
-    dark: "#0f172a",
-    light: "#f8fafc",
-    lightGray: "#e2e8f0",
+    primary: "#1e40af",
+    lightBg: "#ffffff",
+    accent: "#0f172a",
+    border: "#e5e7eb",
+    lightGray: "#f9fafb",
+    mediumGray: "#6b7280",
+    darkText: "#111827",
+    accentColor: "#3b82f6",
   }
 
   const mvpFeatures = [
@@ -26,6 +41,7 @@ export function Features() {
       description:
         "Access pre-built financial models including DCF analysis, IRR calculations, NPV analysis, and custom scenario modeling for rapid analysis",
       badge: "Essential",
+      accentIcon: <Sparkles className="w-4 h-4" />,
     },
     {
       icon: <Upload className="w-6 h-6" />,
@@ -33,6 +49,7 @@ export function Features() {
       description:
         "Upload and parse CSV, XLSX, and JSON files instantly with intelligent data mapping and validation capabilities",
       badge: "Core",
+      accentIcon: <Infinity className="w-4 h-4" />,
     },
     {
       icon: <PieChart className="w-6 h-6" />,
@@ -40,12 +57,14 @@ export function Features() {
       description:
         "Create beautiful, interactive charts and visualizations with real-time data updates and export options",
       badge: "Analytics",
+      accentIcon: <Lightbulb className="w-4 h-4" />,
     },
     {
       icon: <FileText className="w-6 h-6" />,
       title: "Export PDF",
       description: "Generate professional reports with custom branding, charts, and executive summaries",
       badge: "Reports",
+      accentIcon: <CheckCircle2 className="w-4 h-4" />,
     },
   ]
 
@@ -59,53 +78,45 @@ export function Features() {
     <section
       ref={ref}
       id="features"
-      className="py-20 md:py-32 px-4 sm:px-6 lg:px-8 relative overflow-hidden"
-      style={{ background: `linear-gradient(135deg, ${colors.dark} 0%, ${colors.secondary}15 100%)` }}
+      className="py-16 md:py-24 lg:py-32 px-4 sm:px-6 lg:px-8 relative"
+      style={{ backgroundColor: colors.lightBg }}
     >
       <div
-        className="absolute top-1/2 left-0 w-96 h-96 rounded-full blur-3xl opacity-20 pointer-events-none"
-        style={{ background: `radial-gradient(circle, ${colors.primary}, transparent)` }}
-      />
-      <div
-        className="absolute bottom-0 right-1/4 w-80 h-80 rounded-full blur-3xl opacity-15 pointer-events-none"
-        style={{ background: `radial-gradient(circle, ${colors.tertiary}, transparent)` }}
+        className="absolute top-0 left-1/4 right-1/4 h-px"
+        style={{
+          background: `linear-gradient(90deg, transparent, ${colors.primary}30, transparent)`,
+          pointerEvents: "none",
+        }}
       />
 
-      <div className="max-w-7xl mx-auto relative z-10">
+      <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="text-center mb-12 md:mb-16"
         >
           <div
-            className="inline-flex items-center gap-2 mb-4 px-4 py-2 rounded-full"
-            style={{ background: `${colors.primary}15`, border: `1px solid ${colors.primary}30` }}
+            className="inline-flex items-center gap-2 mb-4 px-3 py-1.5 rounded-full border"
+            style={{
+              backgroundColor: `${colors.primary}10`,
+              borderColor: colors.primary,
+            }}
           >
             <Sparkles className="w-4 h-4" style={{ color: colors.primary }} />
-            <span style={{ color: colors.primary }} className="text-sm font-semibold">
+            <span style={{ color: colors.primary }} className="text-xs md:text-sm font-semibold">
               MVP Features
             </span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: colors.light }}>
-            Powerful Features{" "}
-            <span
-              style={{
-                background: `linear-gradient(135deg, ${colors.primary}, ${colors.tertiary})`,
-                backgroundClip: "text",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              Available Now
-            </span>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4" style={{ color: colors.darkText }}>
+            Powerful Features <span style={{ color: colors.primary }}>Available Now</span>
           </h2>
-          <p className="text-lg" style={{ color: `${colors.light}b3` }}>
+          <p className="text-base md:text-lg" style={{ color: colors.mediumGray, maxWidth: "600px", margin: "0 auto" }}>
             Everything you need for professional financial analysis and modeling
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-12 md:mb-16">
           {mvpFeatures.map((feature, index) => (
             <motion.div
               key={index}
@@ -117,52 +128,50 @@ export function Features() {
               className="relative group cursor-pointer"
             >
               <div
-                className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                style={{ background: `linear-gradient(135deg, ${colors.primary}30, ${colors.tertiary}30)` }}
-              />
-              <div
-                className="relative rounded-2xl p-6 border backdrop-blur-sm transition-all duration-300 group-hover:-translate-y-2"
+                className="relative rounded-xl p-6 border transition-all duration-300 group-hover:-translate-y-1"
                 style={{
-                  background: `linear-gradient(135deg, ${colors.secondary}40, ${colors.secondary}20)`,
-                  borderColor: hoveredFeature === index ? colors.primary : `${colors.primary}20`,
-                  boxShadow: hoveredFeature === index ? `0 20px 40px ${colors.primary}20` : "none",
+                  backgroundColor: colors.lightGray,
+                  borderColor: hoveredFeature === index ? colors.primary : colors.border,
+                  boxShadow: hoveredFeature === index ? `0 8px 24px ${colors.primary}15` : "0 1px 3px rgba(0,0,0,0.08)",
                 }}
               >
                 <div
-                  className="inline-block text-xs font-semibold px-3 py-1 rounded-full mb-4"
-                  style={{ background: `${colors.tertiary}20`, color: colors.tertiary }}
-                >
-                  {feature.badge}
+                  className="absolute top-0 left-6 right-6 h-0.5 rounded-full"
+                  style={{
+                    background: hoveredIndex === index ? colors.primary : `${colors.primary}20`,
+                    transition: "all 0.3s ease",
+                  }}
+                />
+
+                <div className="flex items-center justify-between mb-4">
+                  <div
+                    className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full"
+                    style={{
+                      backgroundColor: `${colors.primary}15`,
+                      color: colors.primary,
+                    }}
+                  >
+                    {feature.badge}
+                  </div>
+                  <div style={{ color: `${colors.primary}40` }}>{feature.accentIcon}</div>
                 </div>
 
                 <div
-                  className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 transition-all duration-300 group-hover:scale-110"
+                  className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110"
                   style={{
-                    background: `linear-gradient(135deg, ${colors.primary}30, ${colors.tertiary}20)`,
+                    backgroundColor: `${colors.primary}15`,
                     color: colors.primary,
-                    boxShadow: hoveredFeature === index ? `0 8px 20px ${colors.primary}30` : "none",
                   }}
                 >
                   {feature.icon}
                 </div>
 
-                <h3
-                  className="text-lg font-semibold mb-2 transition-colors duration-300"
-                  style={{ color: colors.light }}
-                >
+                <h3 className="text-lg font-semibold mb-2" style={{ color: colors.darkText }}>
                   {feature.title}
                 </h3>
-                <p className="text-sm transition-colors duration-300" style={{ color: `${colors.light}99` }}>
+                <p className="text-sm leading-relaxed" style={{ color: colors.mediumGray }}>
                   {feature.description}
                 </p>
-
-                <div
-                  className="absolute bottom-0 left-0 h-1 rounded-full transition-all duration-300"
-                  style={{
-                    width: hoveredFeature === index ? "100%" : "0%",
-                    background: `linear-gradient(90deg, ${colors.primary}, ${colors.tertiary})`,
-                  }}
-                />
               </div>
             </motion.div>
           ))}
@@ -172,27 +181,31 @@ export function Features() {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="relative group"
+          className="relative"
         >
           <div
-            className="absolute inset-0 rounded-3xl opacity-30 blur-xl"
-            style={{ background: `linear-gradient(135deg, ${colors.primary}40, ${colors.tertiary}40)` }}
-          />
-          <div
-            className="relative rounded-3xl p-8 md:p-12 border backdrop-blur-sm transition-all duration-300 hover:-translate-y-1"
+            className="relative rounded-2xl p-8 md:p-10 lg:p-12 border transition-all duration-300 hover:-translate-y-1"
             style={{
-              background: `linear-gradient(135deg, ${colors.secondary}50, ${colors.secondary}30)`,
-              borderColor: `${colors.primary}30`,
+              backgroundColor: colors.lightGray,
+              borderColor: colors.border,
+              boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
             }}
           >
+            <div
+              className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl"
+              style={{
+                background: `linear-gradient(90deg, ${colors.primary}, transparent)`,
+              }}
+            />
+
             <div className="flex items-center gap-3 mb-8">
               <Sparkles className="w-6 h-6" style={{ color: colors.primary }} />
-              <h3 className="text-2xl font-bold" style={{ color: colors.light }}>
+              <h3 className="text-2xl md:text-3xl font-bold" style={{ color: colors.darkText }}>
                 Coming Soon
               </h3>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
               {futureFeatures.map((feature, index) => (
                 <motion.div
                   key={index}
@@ -202,27 +215,27 @@ export function Features() {
                   className="group/item"
                 >
                   <div
-                    className="flex items-start gap-3 p-4 rounded-lg transition-all duration-300 group-hover/item:translate-x-2"
-                    style={{ background: `${colors.primary}10` }}
+                    className="flex items-start gap-3 p-4 rounded-lg transition-all duration-300 group-hover/item:translate-x-1"
+                    style={{
+                      backgroundColor: `${colors.primary}08`,
+                      borderLeft: `3px solid ${colors.primary}`,
+                    }}
                   >
                     <div
-                      className="mt-1 flex-shrink-0 transition-all duration-300 group-hover/item:scale-125"
+                      className="mt-0.5 flex-shrink-0 transition-transform duration-300 group-hover/item:scale-110"
                       style={{ color: colors.primary }}
                     >
                       {feature.icon}
                     </div>
-                    <div className="flex-1">
-                      <div className="font-semibold transition-colors duration-300" style={{ color: colors.light }}>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-sm md:text-base" style={{ color: colors.darkText }}>
                         {feature.text}
                       </div>
-                      <div
-                        className="text-xs mt-1 transition-colors duration-300"
-                        style={{ color: `${colors.light}80` }}
-                      >
+                      <div className="text-xs mt-1" style={{ color: colors.mediumGray }}>
                         {feature.detail}
                       </div>
                     </div>
-                    <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: `${colors.primary}60` }} />
+                    <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: colors.primary }} />
                   </div>
                 </motion.div>
               ))}

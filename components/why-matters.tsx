@@ -34,7 +34,7 @@ export function WhyMatters() {
       id="why"
       className="relative overflow-hidden"
       style={{
-        padding: "80px 32px",
+        padding: "clamp(40px, 8vw, 80px) clamp(16px, 5vw, 32px)",
         background: `linear-gradient(135deg, ${colors.background} 0%, ${colors.secondary}15 50%, ${colors.background} 100%)`,
       }}
     >
@@ -69,13 +69,25 @@ export function WhyMatters() {
       />
 
       <div style={{ maxWidth: "1280px", margin: "0 auto", position: "relative", zIndex: 10 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "48px", alignItems: "center" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "48px",
+            alignItems: "center",
+          }}
+          className="responsive-grid"
+        >
           {/* Image Section */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, x: -20 }}
             animate={isInView ? { opacity: 1, scale: 1, x: 0 } : { opacity: 0, scale: 0.95, x: -20 }}
             transition={{ duration: 0.8 }}
-            style={{ position: "relative", height: "400px" }}
+            style={{
+              position: "relative",
+              height: "clamp(250px, 60vw, 400px)",
+              order: "2",
+            }}
           >
             <div
               style={{
@@ -88,7 +100,7 @@ export function WhyMatters() {
               }}
             >
               <img
-                src="/team-collaboration-financial-analysis.jpg"
+                src="/visua.jpg"
                 alt="Team collaboration"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
@@ -100,10 +112,10 @@ export function WhyMatters() {
               transition={{ repeat: Number.POSITIVE_INFINITY, duration: 3 }}
               style={{
                 position: "absolute",
-                bottom: -20,
-                right: -30,
+                bottom: "clamp(-10px, -5vw, -20px)",
+                right: "clamp(-15px, -3vw, -30px)",
                 background: colors.card,
-                padding: "16px 24px",
+                padding: "clamp(12px 16px, 2vw, 16px 24px)",
                 borderRadius: "12px",
                 border: `1px solid ${colors.primary}40`,
                 boxShadow: `0 20px 40px ${colors.primary}20`,
@@ -111,7 +123,7 @@ export function WhyMatters() {
             >
               <div style={{ display: "flex", alignItems: "center", gap: "8px", color: colors.primary }}>
                 <Sparkles size={16} />
-                <span style={{ fontSize: "14px", fontWeight: 600 }}>AI-Powered Analysis</span>
+                <span style={{ fontSize: "clamp(12px, 2.5vw, 14px)", fontWeight: 600 }}>AI-Powered Analysis</span>
               </div>
             </motion.div>
           </motion.div>
@@ -121,8 +133,11 @@ export function WhyMatters() {
             initial={{ opacity: 0, x: 20 }}
             animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
             transition={{ duration: 0.8 }}
+            style={{
+              order: "1",
+            }}
           >
-            <h2 style={{ fontSize: "48px", fontWeight: 700, marginBottom: "24px", color: colors.text }}>
+            <h2 style={{ fontSize: "clamp(32px, 8vw, 48px)", fontWeight: 700, marginBottom: "clamp(16px, 4vw, 24px)", color: "black" }}>
               Why This <span style={{ color: colors.primary }}>Matters</span>
             </h2>
 
@@ -130,7 +145,7 @@ export function WhyMatters() {
               style={{
                 background: colors.card,
                 borderRadius: "20px",
-                padding: "40px",
+                padding: "clamp(24px, 5vw, 40px)",
                 border: `1px solid ${colors.border}`,
                 transition: "all 0.3s ease",
                 cursor: "pointer",
@@ -140,9 +155,9 @@ export function WhyMatters() {
             >
               <p
                 style={{
-                  fontSize: "18px",
+                  fontSize: "clamp(15px, 2.5vw, 18px)",
                   color: colors.textMuted,
-                  marginBottom: "32px",
+                  marginBottom: "clamp(20px, 5vw, 32px)",
                   lineHeight: "1.6",
                   fontWeight: 500,
                   transition: "color 0.3s ease",
@@ -152,8 +167,8 @@ export function WhyMatters() {
                 models easily. Transform your financial workflows with enterprise-grade modeling capabilities.
               </p>
 
-              <p style={{ color: colors.text, fontWeight: 600, marginBottom: "20px" }}>This improves:</p>
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <p style={{ color: colors.text, fontWeight: 600, marginBottom: "clamp(12px, 3vw, 20px)", fontSize: "clamp(14px, 2vw, 16px)" }}>This improves:</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "clamp(8px, 2vw, 12px)" }}>
                 {benefits.map((benefit, index) => (
                   <motion.div
                     key={index}
@@ -163,8 +178,8 @@ export function WhyMatters() {
                     style={{
                       display: "flex",
                       alignItems: "flex-start",
-                      gap: "12px",
-                      padding: "12px",
+                      gap: "clamp(8px, 2vw, 12px)",
+                      padding: "clamp(8px, 2vw, 12px)",
                       borderRadius: "8px",
                       background: hoveredIndex === index ? `${colors.primary}10` : "transparent",
                       transition: "all 0.3s ease",
@@ -181,6 +196,7 @@ export function WhyMatters() {
                         flexShrink: 0,
                         transition: "transform 0.3s ease",
                         transform: hoveredIndex === index ? "scale(1.2)" : "scale(1)",
+                        minWidth: "20px",
                       }}
                     />
                     <div>
@@ -188,13 +204,13 @@ export function WhyMatters() {
                         style={{
                           color: colors.text,
                           fontWeight: 600,
-                          fontSize: "15px",
+                          fontSize: "clamp(13px, 2vw, 15px)",
                           marginBottom: "2px",
                         }}
                       >
                         {benefit.title}
                       </div>
-                      <div style={{ color: colors.textMuted, fontSize: "13px" }}>{benefit.description}</div>
+                      <div style={{ color: colors.textMuted, fontSize: "clamp(12px, 1.8vw, 13px)" }}>{benefit.description}</div>
                     </div>
                   </motion.div>
                 ))}
@@ -203,6 +219,24 @@ export function WhyMatters() {
           </motion.div>
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 767px) {
+          .responsive-grid {
+            grid-template-columns: 1fr !important;
+            gap: clamp(24px, 6vw, 48px) !important;
+          }
+          
+          .responsive-grid > div:first-child {
+            order: 2;
+            height: clamp(250px, 60vw, 400px) !important;
+          }
+          
+          .responsive-grid > div:last-child {
+            order: 1;
+          }
+        }
+      `}</style>
     </section>
   )
 }

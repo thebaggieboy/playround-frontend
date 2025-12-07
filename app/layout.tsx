@@ -1,9 +1,12 @@
+"use client"
 import type React from "react"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
-
+import Providers from "../features/Providers"
+import { Provider } from 'react-redux'
+import store from "../features/store"
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
@@ -15,11 +18,7 @@ const poppins = Poppins({
   variable: "--font-poppins",
 })
 
-export const metadata: Metadata = {
-  title: "Playground - Financial Analysis",
-  description: "One-stop financial analysis platform",
-  generator: "v0.app",
-}
+
 
 export default function RootLayout({
   children,
@@ -29,7 +28,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${poppins.className} font-sans antialiased`}>
+        <Provider store={store}>
         {children}
+        </Provider>
+      
         <Analytics />
       </body>
     </html>

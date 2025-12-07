@@ -95,7 +95,7 @@ export function Hero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight text-balance tracking-tight"
+              className="text-3xl md:text-4xl lg:text-4xl font-bold text-white leading-tight text-balance tracking-tight"
             >
               Financial Analysis for{" "}
               <span
@@ -114,7 +114,7 @@ export function Hero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-lg md:text-xl text-white/80 max-w-xl text-balance leading-relaxed"
+              className="text-lg md:text-sm text-white/80 max-w-xl text-balance"
             >
               Playground is a one-stop financial analysis platform that makes complex financial modeling accessible to
               both experienced professionals and novices.
@@ -216,7 +216,7 @@ export function Hero() {
               }}
             >
               <img
-                src="/financial-dashboard-analytics-charts.jpg"
+                src="/financial-dashboard-with-charts-analytics-and-mode.jpg"
                 alt="Playground Dashboard"
                 className="w-full h-full object-cover"
               />

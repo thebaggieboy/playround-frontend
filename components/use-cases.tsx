@@ -1,17 +1,17 @@
 "use client"
 
-import { TrendingUp, PieChart, BarChart3, Zap, ArrowRight } from "lucide-react"
+import { TrendingUp, PieChart, BarChart3, Zap, ArrowRight, Sparkles } from "lucide-react"
 import { useState } from "react"
 
 const colors = {
-  primary: "#FF1B6D",
-  secondary: "#1A2654",
+  primary: "#1e40af",
+  secondary: "#1a2654",
   tertiary: "#7C3AED",
-  background: "#0F1419",
-  card: "#1A1F2E",
-  border: "#2D3748",
-  text: "#F5F7FA",
-  textMuted: "#A0AEC0",
+  background: "#ffffff",
+  card: "#f9fafb",
+  border: "#e5e7eb",
+  text: "#111827",
+  textMuted: "#6b7280",
 }
 
 export function UseCases() {
@@ -24,7 +24,8 @@ export function UseCases() {
       description:
         "Evaluate investment opportunities with DCF and NPV models. Compare multiple scenarios with real-time data integration.",
       details: ["Automated DCF models", "Multi-scenario analysis", "Real-time data"],
-      gradient: `linear-gradient(135deg, ${colors.primary}20 0%, ${colors.tertiary}20 100%)`,
+      bgColor: colors.primary,
+      accent: "🎯",
     },
     {
       icon: <PieChart size={24} />,
@@ -32,7 +33,8 @@ export function UseCases() {
       description:
         "Track and analyze portfolio performance metrics across multiple asset classes with advanced visualizations.",
       details: ["Performance tracking", "Risk assessment", "Asset allocation"],
-      gradient: `linear-gradient(135deg, ${colors.tertiary}20 0%, ${colors.primary}20 100%)`,
+      bgColor: colors.primary,
+      accent: "📊",
     },
     {
       icon: <BarChart3 size={24} />,
@@ -40,14 +42,16 @@ export function UseCases() {
       description:
         "Create accurate forecasts with built-in templates and historical data modeling for predictive analytics.",
       details: ["Template library", "Trend analysis", "Predictive models"],
-      gradient: `linear-gradient(135deg, ${colors.primary}15 0%, ${colors.secondary}25 100%)`,
+      bgColor: colors.primary,
+      accent: "📈",
     },
     {
       icon: <Zap size={24} />,
       title: "Quick Analysis",
       description: "Get insights in minutes, not hours. Transform raw data into actionable intelligence instantly.",
       details: ["Instant calculations", "Auto-insights", "Export ready"],
-      gradient: `linear-gradient(135deg, ${colors.tertiary}15 0%, ${colors.primary}20 100%)`,
+      bgColor: colors.primary,
+      accent: "⚡",
     },
   ]
 
@@ -55,38 +59,19 @@ export function UseCases() {
     <section
       style={{
         padding: "80px 32px",
-        background: `linear-gradient(180deg, ${colors.background} 0%, ${colors.secondary}10 50%, ${colors.background} 100%)`,
+        background: colors.background,
         position: "relative",
         overflow: "hidden",
       }}
     >
-      {/* Animated background elements */}
       <div
         style={{
           position: "absolute",
-          top: "50%",
+          top: 0,
           left: 0,
-          width: "400px",
-          height: "400px",
-          background: colors.primary,
-          opacity: 0.07,
-          borderRadius: "50%",
-          filter: "blur(120px)",
-          pointerEvents: "none",
-          transform: "translateY(-50%)",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          bottom: "-100px",
-          right: "-100px",
-          width: "300px",
-          height: "300px",
-          background: colors.tertiary,
-          opacity: 0.05,
-          borderRadius: "50%",
-          filter: "blur(100px)",
+          right: 0,
+          height: "1px",
+          background: `linear-gradient(90deg, transparent 0%, ${colors.primary}20 50%, transparent 100%)`,
           pointerEvents: "none",
         }}
       />
@@ -94,18 +79,24 @@ export function UseCases() {
       <div style={{ maxWidth: "1280px", margin: "0 auto", position: "relative", zIndex: 10 }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "64px" }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              marginBottom: "16px",
+              padding: "8px 16px",
+              backgroundColor: `${colors.primary}10`,
+              borderRadius: "8px",
+              borderLeft: `2px solid ${colors.primary}`,
+            }}
+          >
+            <Sparkles size={16} style={{ color: colors.primary }} />
+            <span style={{ color: colors.primary, fontSize: "12px", fontWeight: 600 }}>Multiple Solutions</span>
+          </div>
           <h2 style={{ fontSize: "48px", fontWeight: 700, marginBottom: "16px", color: colors.text }}>
             Use Cases for <br />
-            <span
-              style={{
-                background: `linear-gradient(90deg, ${colors.primary} 0%, ${colors.tertiary} 100%)`,
-                backgroundClip: "text",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              Every Role
-            </span>
+            <span style={{ color: colors.primary }}>Every Role</span>
           </h2>
           <p
             style={{
@@ -133,38 +124,64 @@ export function UseCases() {
               key={index}
               style={{
                 background: colors.card,
-                borderRadius: "16px",
+                borderRadius: "12px",
                 padding: "32px 24px",
                 border: `1px solid ${colors.border}`,
                 transition: "all 0.3s ease",
                 cursor: "pointer",
-                transform: hoveredIndex === index ? "translateY(-8px)" : "translateY(0)",
-                boxShadow:
-                  hoveredIndex === index
-                    ? `0 20px 40px ${colors.primary}25, inset 0 1px 0 ${colors.primary}20`
-                    : `0 10px 20px rgba(0,0,0,0.2)`,
+                transform: hoveredIndex === index ? "translateY(-4px)" : "translateY(0)",
+                boxShadow: hoveredIndex === index ? "0 12px 24px rgba(0,0,0,0.08)" : "0 2px 8px rgba(0,0,0,0.04)",
+                position: "relative",
               }}
               onMouseEnter={() => setHoveredIndex(index)}
               onMouseLeave={() => setHoveredIndex(null)}
             >
-              {/* Icon */}
               <div
                 style={{
-                  width: "56px",
-                  height: "56px",
-                  background: useCase.gradient,
-                  borderRadius: "12px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginBottom: "20px",
-                  color: colors.primary,
+                  position: "absolute",
+                  top: 0,
+                  left: "24px",
+                  right: "24px",
+                  height: "3px",
+                  background: hoveredIndex === index ? colors.primary : `${colors.primary}20`,
+                  borderRadius: "0 0 2px 2px",
                   transition: "all 0.3s ease",
-                  boxShadow: hoveredIndex === index ? `0 12px 24px ${colors.primary}30` : "none",
-                  transform: hoveredIndex === index ? "scale(1.1)" : "scale(1)",
+                }}
+              />
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  marginBottom: "20px",
                 }}
               >
-                {useCase.icon}
+                <div
+                  style={{
+                    width: "56px",
+                    height: "56px",
+                    background: `${useCase.bgColor}10`,
+                    borderRadius: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: useCase.bgColor,
+                    transition: "all 0.3s ease",
+                    boxShadow: hoveredIndex === index ? `0 4px 12px ${useCase.bgColor}15` : "none",
+                  }}
+                >
+                  {useCase.icon}
+                </div>
+                <div
+                  style={{
+                    fontSize: "24px",
+                    opacity: hoveredIndex === index ? 1 : 0.5,
+                    transition: "all 0.3s ease",
+                  }}
+                >
+                  {useCase.accent}
+                </div>
               </div>
 
               {/* Title */}
@@ -174,7 +191,6 @@ export function UseCases() {
                   fontWeight: 600,
                   color: colors.text,
                   marginBottom: "12px",
-                  transition: "color 0.3s ease",
                 }}
               >
                 {useCase.title}
@@ -187,13 +203,12 @@ export function UseCases() {
                   color: colors.textMuted,
                   marginBottom: "16px",
                   lineHeight: "1.6",
-                  transition: "color 0.3s ease",
                 }}
               >
                 {useCase.description}
               </p>
 
-              {/* Details List - CHANGE: Added feature details with tags */}
+              {/* Details List */}
               <div
                 style={{
                   display: "flex",
@@ -210,9 +225,9 @@ export function UseCases() {
                     style={{
                       fontSize: "12px",
                       padding: "4px 12px",
-                      background: `${colors.primary}15`,
+                      background: `${colors.primary}08`,
                       color: colors.primary,
-                      borderRadius: "20px",
+                      borderRadius: "16px",
                       fontWeight: 500,
                     }}
                   >
@@ -221,7 +236,7 @@ export function UseCases() {
                 ))}
               </div>
 
-              {/* CTA - CHANGE: Added explore button with arrow */}
+              {/* CTA */}
               <div
                 style={{
                   display: "flex",
@@ -240,20 +255,33 @@ export function UseCases() {
           ))}
         </div>
 
-        {/* Stats Section - CHANGE: Added bottom stats bar */}
+        {/* Stats Section */}
         <div
           style={{
             marginTop: "80px",
             padding: "40px",
-            background: `linear-gradient(135deg, ${colors.primary}10 0%, ${colors.tertiary}10 100%)`,
-            borderRadius: "16px",
+            background: colors.card,
+            borderRadius: "12px",
             border: `1px solid ${colors.border}`,
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
             gap: "32px",
             textAlign: "center",
+            position: "relative",
           }}
         >
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: "2px",
+              borderRadius: "12px 12px 0 0",
+              background: `linear-gradient(90deg, ${colors.primary}, transparent)`,
+            }}
+          />
+
           {[
             { stat: "500K+", label: "Financial Models Created" },
             { stat: "99.9%", label: "System Uptime" },
@@ -265,10 +293,7 @@ export function UseCases() {
                 style={{
                   fontSize: "32px",
                   fontWeight: 700,
-                  background: `linear-gradient(90deg, ${colors.primary} 0%, ${colors.tertiary} 100%)`,
-                  backgroundClip: "text",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
+                  color: colors.primary,
                   marginBottom: "8px",
                 }}
               >

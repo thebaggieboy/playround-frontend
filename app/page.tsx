@@ -19,7 +19,7 @@ export default function Home() {
       <WhyMatters />
       <UseCases />
       <Features />
-      <Testimonials />
+   
       <Pricing />
       <FAQ />
       <CTA />

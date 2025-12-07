@@ -7,7 +7,6 @@ import { useState } from "react"
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", active: true },
-  { icon: FileText, label: "Templates", href: "/dashboard/templates" },
   { icon: BarChart3, label: "Models", href: "/dashboard/models" },
   { icon: Settings, label: "Settings", href: "/dashboard/settings" },
 ]
