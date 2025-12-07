@@ -25,6 +25,7 @@ export function Hero() {
 
   return (
     <section
+    
       className="relative py-20 md:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden"
       style={{
         background: `linear-gradient(to bottom right, ${colors.secondary}, ${colors.secondary})`,
@@ -86,7 +87,7 @@ export function Hero() {
                   e.currentTarget.style.boxShadow = "none"
                 }}
               >
-                <Sparkles className="w-4 h-4" />
+                <Sparkles className="w-6 h-6" />
                 Financial modeling made simple
               </span>
             </motion.div>
@@ -95,7 +96,7 @@ export function Hero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-3xl md:text-4xl lg:text-4xl font-bold text-white leading-tight text-balance tracking-tight"
+              className="text-3xl md:text-5xl lg:text-5xl font-bold text-white leading-tight text-balance tracking-tight"
             >
               Financial Analysis for{" "}
               <span
@@ -114,7 +115,7 @@ export function Hero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-lg md:text-sm text-white/80 max-w-xl text-balance"
+              className="text-lg md:text-lg text-white/80 max-w-xl text-balance"
             >
               Playground is a one-stop financial analysis platform that makes complex financial modeling accessible to
               both experienced professionals and novices.
@@ -168,12 +169,12 @@ export function Hero() {
               </Button>
             </motion.div>
 
-            <div className="pt-4 flex items-center gap-4 text-white/70 text-sm">
+            <div className="pt-4 flex items-center gap-4 text-white/70 text-sm" style={{fontFamily:"Poppins, Sans-serif", backgroundColor:"linear-gradient(to right bottom, rgb(26, 38, 84), rgb(26, 38, 84))", borderRadius:"10px", padding:"10px"}}>
               <div className="flex -space-x-2">
                 <div
                   className="w-8 h-8 rounded-full border-2"
                   style={{
-                    backgroundColor: `${colors.primary}66`,
+                    backgroundColor: `linear-gradient(to right bottom, rgb(26, 38, 84), rgb(26, 38, 84))`,
                     borderColor: colors.secondary,
                   }}
                 />
@@ -205,8 +206,8 @@ export function Hero() {
             <div
               className="absolute inset-0 rounded-2xl overflow-hidden shadow-2xl transition-shadow duration-500 hover:shadow-3xl border"
               style={{
-                backgroundImage: `linear-gradient(to bottom right, ${colors.primary}10, ${colors.tertiary}05, ${colors.primary}05)`,
-                borderColor: `${colors.primary}4D`,
+                backgroundImage: ``,
+                borderColor: ``,
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = `${colors.primary}80`
@@ -216,9 +217,9 @@ export function Hero() {
               }}
             >
               <img
-                src="/financial-dashboard-with-charts-analytics-and-mode.jpg"
+                src="/emp.jpg"
                 alt="Playground Dashboard"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover bg-transparent"
               />
             </div>
           </motion.div>

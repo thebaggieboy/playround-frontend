@@ -1,8 +1,7 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+ 
+import { useState, React } from "react"
 import { SignUpForm } from "@/components/signup-form"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -12,20 +11,23 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { useDispatch, useSelector } from "react-redux";
 import { USER_TYPES, selectUser, setUser, setUserType } from "../../features/user/userSlice";
 import Head from "next/head"
-
+import { useRouter } from "next/navigation"
 import { useMutation } from "@tanstack/react-query";
 import useSignUp from "../../hooks/useSignUp";
 
 
 
-const user = useSelector(selectUser);
-const router = useRouter(); 
+
+
+export default function SignUpPage() {
+  const user = useSelector(selectUser);
+   const router = useRouter(); 
 const [spinner, setSpinner] = useState(false);
  const [isLoading, setIsLoading] = useState(false)
 
 const dispatch = useDispatch();
 
-  const { isIdle, isPending, error, mutateAsync: signUpFn } = useSignUp("https://avantrades-api.onrender.com/auth/users/", signUpSuccess, USER_TYPES.user)
+  const { isIdle, isPending, error, mutateAsync: signUpFn } = useSignUp("https://playground-api.onrender.com/auth/users/", signUpSuccess, USER_TYPES.user)
   //const { isIdle, isPending, error, mutateAsync: signUpFn } = useDjoserSignup("https://altclan-brands-api-1-1.onrender.com/auth/jwt/create", signUpSuccess, USER_TYPES.user)
 
   
@@ -52,11 +54,11 @@ const dispatch = useDispatch();
 
   }
   
- 
+ console.log("Form Data: ", formData)
 
   function signUpSuccess() {
     
-    router.push("/dashboard")
+    router.push("/onboard")
   }
   const submit = async (e) => {
     
@@ -66,7 +68,7 @@ const dispatch = useDispatch();
         throw { password: "Passwords do not match" }
       }
       setSpinner(true)
-      const url = "https://avantrades-api.onrender.com/auth/users/"
+      const url = "https://playground-api.onrender.com/auth/users/"
       const res = await fetch(url, {
                 method: "POST",
                 headers: {
@@ -103,7 +105,7 @@ const dispatch = useDispatch();
     }
   };
 
-export default function SignUpPage() {
+
   return (
     <main className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="w-full max-w-md">
@@ -126,6 +128,8 @@ export default function SignUpPage() {
               <Input
                 id="email"
                 type="email"
+                name="email"
+                onChange={inputChangeHandler}
                 placeholder="you@example.com"
                 required
                 className="bg-secondary border-border text-foreground placeholder:text-foreground/40"
@@ -140,6 +144,7 @@ export default function SignUpPage() {
                   id="password"
                   name="password1"
                   type="password"
+                  onChange={inputChangeHandler}
                   placeholder="••••••••"
                   required
                   className="bg-secondary border-border text-foreground placeholder:text-foreground/40"
@@ -154,6 +159,7 @@ export default function SignUpPage() {
                   id="password2"
                   name="password2"
                   type="password"
+                  onChange={inputChangeHandler}
                   placeholder="••••••••"
                   required
                   className="bg-secondary border-border text-foreground placeholder:text-foreground/40"

@@ -1,15 +1,13 @@
 "use client"
 import type React from "react"
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import Providers from "@/features/Providers"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
-import Providers from "../features/Providers"
-import { Provider } from 'react-redux'
+ 
+ 
 import store from "../features/store"
-const _geist = Geist({ subsets: ["latin"] })
-const _geistMono = Geist_Mono({ subsets: ["latin"] })
-
+ 
 import { Poppins } from "next/font/google"
 
 const poppins = Poppins({
@@ -28,9 +26,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${poppins.className} font-sans antialiased`}>
-        <Provider store={store}>
+        <Providers>
         {children}
-        </Provider>
+        
+        </Providers>
+     
       
         <Analytics />
       </body>

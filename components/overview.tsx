@@ -127,23 +127,16 @@ export function Overview() {
           </motion.div>
 
           <h2
-            className="text-5xl md:text-6xl font-bold mb-6"
-            style={{
-              background: `linear-gradient(to right, ${colors.primary}, ${colors.secondary}, ${colors.primary})`,
-              backgroundClip: "text",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
+            className="text-5xl text-white md:text-5xl font-bold mb-6"
+            
           >
             Powerful Features
           </h2>
-          <p className="text-xl max-w-3xl mx-auto leading-relaxed mb-2" style={{ color: colors.foregroundMuted }}>
+          <p className="text-lg max-w-3xl mx-auto leading-relaxed mb-2" style={{ color: colors.foregroundMuted }}>
             A comprehensive financial analysis platform designed for modern finance professionals who demand
             sophisticated tools without unnecessary complexity.
           </p>
-          <p className="text-base max-w-2xl mx-auto" style={{ color: `${colors.foregroundMuted}80` }}>
-            Streamline your financial workflows with enterprise-grade features built for speed, security, and precision.
-          </p>
+      
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
@@ -190,7 +183,7 @@ export function Overview() {
                 {feature.title}
               </h3>
               <p
-                className="leading-relaxed relative z-10 transition-colors duration-300"
+                className="leading-relaxed relative text-xs z-10 transition-colors duration-300"
                 style={{ color: colors.foregroundMuted }}
               >
                 {feature.description}
@@ -236,7 +229,7 @@ export function Overview() {
                 }}
               >
                 <Icon className="w-6 h-6 mx-auto mb-3" style={{ color: colors.primary, opacity: 0.8 }} />
-                <div className="text-3xl font-bold mb-1" style={{ color: colors.foreground }}>
+                <div className="text-2xl font-bold mb-1" style={{ color: colors.foreground }}>
                   {stat.value}
                 </div>
                 <div style={{ color: colors.foregroundMuted, fontSize: "0.875rem" }}>{stat.label}</div>

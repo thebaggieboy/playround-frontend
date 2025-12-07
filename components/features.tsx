@@ -169,7 +169,7 @@ export function Features() {
                 <h3 className="text-lg font-semibold mb-2" style={{ color: colors.darkText }}>
                   {feature.title}
                 </h3>
-                <p className="text-sm leading-relaxed" style={{ color: colors.mediumGray }}>
+                <p className="text-xs leading-relaxed" style={{ color: colors.mediumGray }}>
                   {feature.description}
                 </p>
               </div>

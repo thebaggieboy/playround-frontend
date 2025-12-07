@@ -1,3 +1,4 @@
+"use client"
 import { SignInForm } from "@/components/signin-form"
 import Link from "next/link"
 import { useRouter } from 'next/navigation'

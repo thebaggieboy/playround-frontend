@@ -12,15 +12,15 @@ import { Footer } from "@/components/footer"
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background" style={{fontFamily:"Poppins, Sans-serif", lineHeight:1}}>
       <Header />
       <Hero />
       <Overview />
       <WhyMatters />
       <UseCases />
-      <Features />
+      
    
-      <Pricing />
+     
       <FAQ />
       <CTA />
       <Footer />

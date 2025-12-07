@@ -35,7 +35,7 @@ export function WhyMatters() {
       className="relative overflow-hidden"
       style={{
         padding: "clamp(40px, 8vw, 80px) clamp(16px, 5vw, 32px)",
-        background: `linear-gradient(135deg, ${colors.background} 0%, ${colors.secondary}15 50%, ${colors.background} 100%)`,
+        background: `#0F172A`,
       }}
     >
       {/* Animated background blurs */}
@@ -68,66 +68,12 @@ export function WhyMatters() {
         }}
       />
 
-      <div style={{ maxWidth: "1280px", margin: "0 auto", position: "relative", zIndex: 10 }}>
+      <div style={{ maxWidth: "1280px", margin: "0 auto", position: "relative", }}>
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "48px",
-            alignItems: "center",
-          }}
-          className="responsive-grid"
+           
+          className=""
         >
-          {/* Image Section */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, x: -20 }}
-            animate={isInView ? { opacity: 1, scale: 1, x: 0 } : { opacity: 0, scale: 0.95, x: -20 }}
-            transition={{ duration: 0.8 }}
-            style={{
-              position: "relative",
-              height: "clamp(250px, 60vw, 400px)",
-              order: "2",
-            }}
-          >
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                background: `linear-gradient(135deg, ${colors.primary}15 0%, ${colors.tertiary}15 100%)`,
-                borderRadius: "20px",
-                overflow: "hidden",
-                border: `1px solid ${colors.border}`,
-              }}
-            >
-              <img
-                src="/visua.jpg"
-                alt="Team collaboration"
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
-            </div>
-
-            {/* Floating accent card */}
-            <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ repeat: Number.POSITIVE_INFINITY, duration: 3 }}
-              style={{
-                position: "absolute",
-                bottom: "clamp(-10px, -5vw, -20px)",
-                right: "clamp(-15px, -3vw, -30px)",
-                background: colors.card,
-                padding: "clamp(12px 16px, 2vw, 16px 24px)",
-                borderRadius: "12px",
-                border: `1px solid ${colors.primary}40`,
-                boxShadow: `0 20px 40px ${colors.primary}20`,
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", color: colors.primary }}>
-                <Sparkles size={16} />
-                <span style={{ fontSize: "clamp(12px, 2.5vw, 14px)", fontWeight: 600 }}>AI-Powered Analysis</span>
-              </div>
-            </motion.div>
-          </motion.div>
-
+      
           {/* Content Section */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
@@ -137,9 +83,7 @@ export function WhyMatters() {
               order: "1",
             }}
           >
-            <h2 style={{ fontSize: "clamp(32px, 8vw, 48px)", fontWeight: 700, marginBottom: "clamp(16px, 4vw, 24px)", color: "black" }}>
-              Why This <span style={{ color: colors.primary }}>Matters</span>
-            </h2>
+             
 
             <div
               style={{

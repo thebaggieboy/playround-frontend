@@ -8,90 +8,93 @@ import { useState } from "react"
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", active: true },
   { icon: BarChart3, label: "Models", href: "/dashboard/models" },
+  { icon: FileText, label: "Reports", href: "/dashboard/reports" },
   { icon: Settings, label: "Settings", href: "/dashboard/settings" },
 ]
 
 export default function DashboardSidebar() {
   const [isOpen, setIsOpen] = useState(false)
 
+  const closeSidebar = () => setIsOpen(false)
+
   return (
     <>
-      {/* Mobile Menu Button */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-primary text-primary-foreground lg:hidden"
+        className="fixed top-5 left-5 z-50 p-2.5 rounded-lg bg-primary text-primary-foreground lg:hidden shadow-sm hover:shadow-md transition-shadow"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
+        aria-label="Toggle menu"
       >
         {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
       </motion.button>
 
-      {/* Overlay for mobile */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+            onClick={closeSidebar}
+            className="fixed inset-0 bg-black/30 z-30 lg:hidden"
           />
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
       <motion.aside
         initial={{ x: -320 }}
         animate={{ x: isOpen ? 0 : -320 }}
-        transition={{ duration: 0.3 }}
-        className="fixed lg:static w-64 h-screen border-r border-border bg-sidebar flex flex-col z-40 lg:translate-x-0"
+        transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 30 }}
+        className="fixed lg:static w-72 h-screen border-r border-border bg-sidebar flex flex-col z-40 lg:translate-x-0 overflow-y-auto"
       >
-        {/* Logo */}
-        <div className="p-6 border-b border-sidebar-border">
-          <motion.div whileHover={{ scale: 1.05 }} className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">P</span>
-            </div>
-            <span className="font-bold text-lg text-sidebar-foreground">Playground</span>
-          </motion.div>
+        {/* Logo Section */}
+        <div className="p-6 border-b border-sidebar-border sticky top-0 bg-sidebar">
+          <Link href="/dashboard">
+            <motion.div whileHover={{ scale: 1.02 }} className="flex items-center gap-3 cursor-pointer">
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shadow-sm">
+                <span className="text-primary-foreground font-bold">P</span>
+              </div>
+              <span className="font-bold text-lg text-sidebar-foreground">Playground</span>
+            </motion.div>
+          </Link>
         </div>
 
         {/* Menu Items */}
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 p-4 space-y-1.5">
           {menuItems.map((item, index) => (
             <motion.div
               key={item.href}
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: index * 0.1, duration: 0.4 }}
+              transition={{ delay: index * 0.05, duration: 0.3 }}
             >
-              <Link href={item.href} onClick={() => setIsOpen(false)}>
+              <Link href={item.href} onClick={closeSidebar}>
                 <motion.button
-                  whileHover={{ x: 4 }}
+                  whileHover={{ x: 4, backgroundColor: "var(--color-sidebar-accent)" }}
                   whileTap={{ scale: 0.98 }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     item.active
-                      ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
                       : "text-sidebar-foreground hover:bg-sidebar-accent"
                   }`}
                 >
                   <item.icon className="w-5 h-5 flex-shrink-0" />
-                  <span className="font-medium">{item.label}</span>
+                  <span className="font-medium text-sm">{item.label}</span>
                 </motion.button>
               </Link>
             </motion.div>
           ))}
         </nav>
 
-        {/* Logout */}
-        <div className="p-4 border-t border-sidebar-border">
+        {/* Logout Section */}
+        <div className="p-4 border-t border-sidebar-border space-y-3">
           <motion.button
-            whileHover={{ x: 4 }}
+            whileHover={{ x: 4, backgroundColor: "var(--color-sidebar-accent)" }}
             whileTap={{ scale: 0.98 }}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
           >
             <LogOut className="w-5 h-5 flex-shrink-0" />
-            <span className="font-medium">Logout</span>
+            <span className="font-medium text-sm">Logout</span>
           </motion.button>
         </div>
       </motion.aside>
