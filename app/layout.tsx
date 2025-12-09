@@ -4,7 +4,7 @@ import type { Metadata } from "next"
 import Providers from "@/features/Providers"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
- 
+import { Header } from "@/components/header"
  
 import store from "../features/store"
  
@@ -27,6 +27,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${poppins.className} font-sans antialiased`}>
         <Providers>
+        <Header />
         {children}
         
         </Providers>

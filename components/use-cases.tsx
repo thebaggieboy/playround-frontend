@@ -94,7 +94,7 @@ export function UseCases() {
             <Sparkles size={16} style={{ color: colors.primary }} />
             <span style={{ color: colors.primary, fontSize: "12px", fontWeight: 600 }}>Multiple Solutions</span>
           </div>
-          <h2 style={{ fontSize: "36px", fontWeight: 400, marginBottom: "16px", color: colors.text }}>
+          <h2 style={{ fontSize: "48px", fontWeight: 400, marginBottom: "16px", color: colors.text }}>
             Use Cases for <br />
             <span style={{ color: colors.primary }}>Every Role</span>
           </h2>
@@ -180,7 +180,7 @@ export function UseCases() {
                     transition: "all 0.3s ease",
                   }}
                 >
-                  {useCase.accent}
+             
                 </div>
               </div>
 

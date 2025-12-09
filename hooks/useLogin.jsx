@@ -44,7 +44,7 @@ const useLogin = (url, successCallback, userType) => {
           
             if (res.status >= 200 & res.status <= 209) {
                 dispatch(setToken(data?.access))
-                const  url2 = "https://avantrades-api.onrender.com/api/users/"
+                const  url2 = "https://playground-backend-1t0f.onrender.com/api/users/"
                 const res2 =  await fetch(url2, {
                     method: "GET",
                     headers: {

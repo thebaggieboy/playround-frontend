@@ -1,15 +1,19 @@
 "use client"
 
 import { motion } from "framer-motion"
+import DashboardHeader from "@/components/dashboard/header"
 import DashboardSidebar from "@/components/dashboard/sidebar"
-import { BarChart3, TrendingUp, FileText, Plus } from "lucide-react"
+import TemplatesSection from "@/components/dashboard/templates-section"
+import ModelsSection from "@/components/dashboard/models-section"
+import AnalyticsSection from "@/components/dashboard/analytics-section"
+import QuickActionsSection from "@/components/dashboard/quick-actions"
 
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.08,
+      staggerChildren: 0.1,
       delayChildren: 0.2,
     },
   },
@@ -27,107 +31,92 @@ const itemVariants = {
 export default function DashboardPage() {
   return (
     <div className="flex h-screen bg-background">
-      <DashboardSidebar />
+      
+<button data-drawer-target="logo-sidebar" data-drawer-toggle="logo-sidebar" aria-controls="logo-sidebar" type="button" class="text-heading bg-transparent box-border border border-transparent hover:bg-neutral-secondary-medium focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base ms-3 mt-3 text-sm p-2 focus:outline-none inline-flex sm:hidden">
+   <span class="sr-only">Open sidebar</span>
+   <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+  <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M5 7h14M5 12h14M5 17h10"/>
+   </svg>
+</button>
 
-      <motion.main
+<aside id="logo-sidebar" class="fixed top-0 left-0 z-40 w-64 h-full transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
+   <div class="h-full px-3 py-12 mt-5  p-5 overflow-y-auto bg-neutral-primary-soft border-e border-default">
+  
+      <ul class="space-y-2 font-medium">
+         <li>
+            <a href="#" class="flex items-center px-2 py-1.5 text-body rounded-base hover:bg-neutral-tertiary hover:text-fg-brand group">
+               <svg class="w-5 h-5 transition duration-75 group-hover:text-fg-brand" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6.025A7.5 7.5 0 1 0 17.975 14H10V6.025Z"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.5 3c-.169 0-.334.014-.5.025V11h7.975c.011-.166.025-.331.025-.5A7.5 7.5 0 0 0 13.5 3Z"/></svg>
+               <span class="ms-3">Dashboard</span>
+            </a>
+         </li>
+         <li>
+            <a href="#" class="flex items-center px-2 py-1.5 text-body rounded-base hover:bg-neutral-tertiary hover:text-fg-brand group">
+               <svg class="shrink-0 w-5 h-5 transition duration-75 group-hover:text-fg-brand" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v14M9 5v14M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"/></svg>
+               <span class="flex-1 ms-3 whitespace-nowrap">Models</span>
+               <span class="bg-neutral-secondary-medium border border-default-medium text-heading text-xs font-medium px-1.5 py-0.5 rounded-sm">Pro</span>
+            </a>
+         </li>
+         <li>
+            <a href="#" class="flex items-center px-2 py-1.5 text-body rounded-base hover:bg-neutral-tertiary hover:text-fg-brand group">
+               <svg class="shrink-0 w-5 h-5 transition duration-75 group-hover:text-fg-brand" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 13h3.439a.991.991 0 0 1 .908.6 3.978 3.978 0 0 0 7.306 0 .99.99 0 0 1 .908-.6H20M4 13v6a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-6M4 13l2-9h12l2 9M9 7h6m-7 3h8"/></svg>
+               <span class="flex-1 ms-3 whitespace-nowrap">Templates</span>
+               <span class="inline-flex items-center justify-center w-4.5 h-4.5 ms-2 text-xs font-medium text-fg-danger-strong bg-danger-soft border border-danger-subtle rounded-full">2</span>
+            </a>
+         </li>
+         <li>
+            <a href="#" class="flex items-center px-2 py-1.5 text-body rounded-base hover:bg-neutral-tertiary hover:text-fg-brand group">
+               <svg class="shrink-0 w-5 h-5 transition duration-75 group-hover:text-fg-brand" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M16 19h4a1 1 0 0 0 1-1v-1a3 3 0 0 0-3-3h-2m-2.236-4a3 3 0 1 0 0-4M3 18v-1a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Zm8-10a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+               <span class="flex-1 ms-3 whitespace-nowrap">Reports</span>
+            </a>
+         </li>
+       
+         <li>
+            <a href="#" class="flex items-center px-2 py-1.5 text-body rounded-base hover:bg-neutral-tertiary hover:text-fg-brand group">
+               <svg class="shrink-0 w-5 h-5 transition duration-75 group-hover:text-fg-brand" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2"/></svg>
+               <span class="flex-1 ms-3 whitespace-nowrap">Sign In</span>
+            </a>
+         </li>
+      </ul>
+   </div>
+</aside>
+
+<div class="p-4 sm:ml-64">
+
+<motion.main
         className="flex-1 flex flex-col overflow-hidden"
         initial="hidden"
         animate="visible"
         variants={containerVariants}
       >
-        {/* Header */}
-        <header className="border-b border-border bg-card px-6 lg:px-8 py-5 lg:py-6">
-          <motion.div variants={itemVariants} className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Dashboard</h1>
-              <p className="text-sm text-muted-foreground mt-1">Welcome back to your financial models</p>
-            </div>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium text-sm hover:shadow-md transition-shadow"
-            >
-              <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">New Model</span>
-            </motion.button>
-          </motion.div>
-        </header>
+        <DashboardHeader />
 
-        {/* Content */}
         <div className="flex-1 overflow-auto">
-          <div className="p-6 lg:p-8 space-y-8 max-w-7xl mx-auto w-full">
-            {/* Quick Stats */}
-            <motion.section variants={itemVariants} className="space-y-4">
-              <h2 className="text-lg font-semibold text-foreground">Quick Overview</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {[
-                  { label: "Active Models", value: "12", icon: BarChart3, color: "bg-blue-50" },
-                  { label: "Total Reports", value: "48", icon: FileText, color: "bg-purple-50" },
-                  { label: "This Month", value: "+23%", icon: TrendingUp, color: "bg-green-50" },
-                  { label: "Last Updated", value: "2 hrs ago", icon: BarChart3, color: "bg-orange-50" },
-                ].map((stat, idx) => (
-                  <motion.div
-                    key={idx}
-                    whileHover={{ y: -4 }}
-                    className="bg-card border border-border rounded-lg p-6 hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-sm text-muted-foreground font-medium">{stat.label}</p>
-                        <p className="text-2xl font-bold text-foreground mt-2">{stat.value}</p>
-                      </div>
-                      <div className={`w-12 h-12 ${stat.color} rounded-lg flex items-center justify-center`}>
-                        <stat.icon className="w-6 h-6 text-primary opacity-60" />
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.section>
+          <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 max-w-7xl mx-auto w-full">
+            {/* Quick Actions */}
+            <motion.div variants={itemVariants}>
+              <QuickActionsSection />
+            </motion.div>
+
+            {/* Analytics Overview */}
+            <motion.div variants={itemVariants}>
+              <AnalyticsSection />
+            </motion.div>
+
+            {/* Templates */}
+            <motion.div variants={itemVariants}>
+              <TemplatesSection />
+            </motion.div>
 
             {/* Recent Models */}
-            <motion.section variants={itemVariants} className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-foreground">Recent Models</h2>
-                <motion.a
-                  href="#"
-                  whileHover={{ x: 4 }}
-                  className="text-sm text-primary hover:text-primary/80 font-medium"
-                >
-                  View All →
-                </motion.a>
-              </div>
-              <div className="space-y-3">
-                {["Revenue Forecast 2025", "Operating Budget Analysis", "Market Growth Model"].map((model, idx) => (
-                  <motion.div
-                    key={idx}
-                    whileHover={{ x: 4 }}
-                    className="bg-card border border-border rounded-lg p-5 hover:shadow-md transition-all cursor-pointer"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-secondary rounded-lg flex items-center justify-center">
-                          <BarChart3 className="w-6 h-6 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-foreground">{model}</p>
-                          <p className="text-xs text-muted-foreground">Updated 2 days ago</p>
-                        </div>
-                      </div>
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        className="px-3 py-1.5 bg-secondary text-secondary-foreground rounded text-xs font-medium hover:bg-secondary/80"
-                      >
-                        Open
-                      </motion.button>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.section>
+            <motion.div variants={itemVariants}>
+              <ModelsSection />
+            </motion.div>
           </div>
         </div>
       </motion.main>
+</div>
+
+
     </div>
   )
 }

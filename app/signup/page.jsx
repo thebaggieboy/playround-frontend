@@ -27,7 +27,7 @@ const [spinner, setSpinner] = useState(false);
 
 const dispatch = useDispatch();
 
-  const { isIdle, isPending, error, mutateAsync: signUpFn } = useSignUp("https://playground-api.onrender.com/auth/users/", signUpSuccess, USER_TYPES.user)
+  const { isIdle, isPending, error, mutateAsync: signUpFn } = useSignUp("https://playground-backend-1t0f.onrender.com/auth/users/", signUpSuccess, USER_TYPES.user)
   //const { isIdle, isPending, error, mutateAsync: signUpFn } = useDjoserSignup("https://altclan-brands-api-1-1.onrender.com/auth/jwt/create", signUpSuccess, USER_TYPES.user)
 
   
@@ -68,7 +68,7 @@ const dispatch = useDispatch();
         throw { password: "Passwords do not match" }
       }
       setSpinner(true)
-      const url = "https://playground-api.onrender.com/auth/users/"
+      const url = "https://playground-backend-1t0f.onrender.com/auth/users/"
       const res = await fetch(url, {
                 method: "POST",
                 headers: {
