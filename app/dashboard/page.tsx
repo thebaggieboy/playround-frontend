@@ -39,7 +39,7 @@ export default function DashboardPage() {
    </svg>
 </button>
 
-<aside id="logo-sidebar" class="fixed top-0 left-0 z-40 w-64 h-full transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
+<aside  id="logo-sidebar" class="fixed top-0 left-0 z-40 w-64 h-full transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
    <div class="h-full px-3 py-12 mt-5  p-5 overflow-y-auto bg-neutral-primary-soft border-e border-default">
   
       <ul class="space-y-2 font-medium">
