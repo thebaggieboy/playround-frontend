@@ -14,7 +14,7 @@ interface UploadedFile {
   uploadedAt: string
 }
 
-export function CsvUpload() {
+export default function CsvUpload() {
   const [files, setFiles] = useState<UploadedFile[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const [error, setError] = useState<string | null>(null)

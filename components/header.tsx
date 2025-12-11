@@ -90,15 +90,15 @@ const dispatch = useDispatch();
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <a href="/#overview" className="text-foreground/70  text-white hover:text-primary text-sm transition-smooth font-medium">
-            Overview
+          <a href="/use-cases/financial-forecasting" className="text-foreground/70  text-white hover:text-primary text-sm transition-smooth font-medium">
+            Financial Forecasting
           </a>
 
-          <a href="#why" className="text-foreground/70  text-white hover:text-primary text-sm transition-smooth font-medium">
-            Why Choose Us
+          <a href="/use-cases/investment-analysis" className="text-foreground/70  text-white hover:text-primary text-sm transition-smooth font-medium">
+            Investment Analysis
           </a>
-          <a href="/pricing" className="text-foreground/70  text-white hover:text-primary text-sm transition-smooth font-medium">
-            Pricing
+          <a href="/use-cases/portfolio-management" className="text-foreground/70  text-white hover:text-primary text-sm transition-smooth font-medium">
+            Portfolio Management
           </a>
           <a href="/about" className="text-foreground/70  text-white hover:text-primary text-sm transition-smooth font-medium">
             About

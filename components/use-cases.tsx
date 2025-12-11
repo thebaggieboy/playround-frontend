@@ -242,8 +242,9 @@ export function UseCases() {
               </div>
 
               {/* CTA */}
-                <Link >
-                   <div
+              <a 
+              href={useCase.link}
+               
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -256,10 +257,7 @@ export function UseCases() {
                 }}
               >
                 Explore <ArrowRight size={16} />
-              </div>
-                </Link>
-
-           
+              </a>
             </div>
           ))}
         </div>

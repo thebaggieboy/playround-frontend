@@ -1,6 +1,6 @@
 "use client"
 
-import { motion } from "framer-react"
+import { motion } from "framer-motion"
 import Link from "next/link"
 import { ArrowRight, CheckCircle2, Briefcase, LineChart, Shield, Users } from "lucide-react"
 
