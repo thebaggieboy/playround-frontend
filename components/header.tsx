@@ -12,6 +12,14 @@ import {
 import { ChevronDown } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
+import { useDispatch, useSelector } from "react-redux";
+import { USER_TYPES, selectUser, setUser, setUserType } from "../features/user/userSlice";
+import Head from "next/head"
+import { useRouter } from "next/navigation"
+import { useMutation } from "@tanstack/react-query";
+import useSignUp from "../hooks/useSignUp";
+
+
 
 const solutions = [
   {
@@ -37,6 +45,12 @@ const solutions = [
 ]
 
 export function Header() {
+  const user = useSelector(selectUser);
+   const router = useRouter(); 
+  const [spinner, setSpinner] = useState(false);
+ const [isLoading, setIsLoading] = useState(false)
+
+const dispatch = useDispatch();
   const [open, setOpen] = useState(false)
 
   return (
@@ -101,19 +115,31 @@ export function Header() {
               Request Demo
             </Button>
           </Link>
-
           <Link href="/onboard">
             <Button className="bg-white  hover:bg-accent text-black-foreground rounded-full px-4 sm:px-6 py-2 transition-smooth-lg hover:shadow-lg hover:shadow-primary/20 text-sm sm:text-base">
               Get Started
             </Button>
           </Link>
+             
+        
         </div>
       </div>
 
       {/* Mobile Navigation */}
       <div className="md:hidden px-4 pb-2 flex flex-col gap-2">
+      <Link href={"/"}>
+          <div className="flex items-center gap-2 group shrink-0">
+            
+            <span style={{
+             color: "",
+            }} className="font-bold text-white text-sm text-foreground group-hover:text-primary  transition-smooth hidden sm:inline">
+              Playground
+            </span>
+          </div>
+        </Link>
+
         <DropdownMenu>
-          <DropdownMenuTrigger className="w-full text-left flex items-center justify-between px-3 py-2 rounded-md text-foreground/70 hover:bg-accent/50 transition-smooth text-sm font-medium">
+          <DropdownMenuTrigger className="w-full text-left text-white flex items-center justify-between px-3 py-2 rounded-md text-foreground/70 hover:bg-accent/50 transition-smooth text-sm font-medium">
             Solutions
             <ChevronDown className="w-4 h-4" />
           </DropdownMenuTrigger>
@@ -128,6 +154,8 @@ export function Header() {
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+
+      
       </div>
     </header>
   )

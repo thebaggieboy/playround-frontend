@@ -113,7 +113,7 @@ const dispatch = useDispatch();
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
            
-            <span className="font-bold text-xl mt-5   text-foreground">Playground</span>
+            <span className="font-bold text-xl mt-2   text-foreground">Playground</span>
           </Link>
           <h1 className="text-3xl font-bold text-foreground mb-2">Create your account</h1>
           <p className="text-foreground/60">Join Playground and start analyzing financial models</p>

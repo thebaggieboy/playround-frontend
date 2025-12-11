@@ -2,18 +2,19 @@
 
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
-import { LayoutDashboard, FileText, BarChart3, Settings, LogOut, Menu, X } from "lucide-react"
+import { LayoutDashboard, FileText, BarChart3, Layout, Settings, LogOut, Menu, X } from "lucide-react"
 import { useState } from "react"
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", active: true },
   { icon: BarChart3, label: "Models", href: "/dashboard/models" },
+  { icon: Layout, label: "Templates", href: "/dashboard/templates" },
   { icon: FileText, label: "Reports", href: "/dashboard/reports" },
   { icon: Settings, label: "Settings", href: "/dashboard/settings" },
 ]
 
 export default function DashboardSidebar() {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(true)
 
   const closeSidebar = () => setIsOpen(false)
 
@@ -42,19 +43,19 @@ export default function DashboardSidebar() {
       </AnimatePresence>
 
       <motion.aside
-        initial={{ x: -320 }}
-        animate={{ x: isOpen ? 0 : -320 }}
+        initial={{ x: 0 }}
+        animate={{ x: 0 }}
         transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 30 }}
-        className="fixed lg:static w-72 h-screen border-r border-border bg-sidebar flex flex-col z-40 lg:translate-x-0 overflow-y-auto"
+        className={`${isOpen ? "fixed lg:static" : "fixed lg:static"} w-72 h-screen border-r border-border bg-white lg:bg-white flex flex-col z-40 overflow-y-auto ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
         {/* Logo Section */}
-        <div className="p-6 border-b border-sidebar-border sticky top-0 bg-sidebar">
+        <div className="p-6 border-b border-border sticky top-0 bg-white">
           <Link href="/dashboard">
             <motion.div whileHover={{ scale: 1.02 }} className="flex items-center gap-3 cursor-pointer">
               <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shadow-sm">
                 <span className="text-primary-foreground font-bold">P</span>
               </div>
-              <span className="font-bold text-lg text-sidebar-foreground">Playground</span>
+              <span className="font-bold text-lg text-foreground">Playground</span>
             </motion.div>
           </Link>
         </div>
@@ -70,12 +71,10 @@ export default function DashboardSidebar() {
             >
               <Link href={item.href} onClick={closeSidebar}>
                 <motion.button
-                  whileHover={{ x: 4, backgroundColor: "var(--color-sidebar-accent)" }}
+                  whileHover={{ x: 4 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                    item.active
-                      ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent"
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                    item.active ? "bg-primary text-white shadow-sm" : "text-foreground hover:bg-secondary"
                   }`}
                 >
                   <item.icon className="w-5 h-5 flex-shrink-0" />
@@ -87,11 +86,11 @@ export default function DashboardSidebar() {
         </nav>
 
         {/* Logout Section */}
-        <div className="p-4 border-t border-sidebar-border space-y-3">
+        <div className="p-4 border-t border-border space-y-3">
           <motion.button
-            whileHover={{ x: 4, backgroundColor: "var(--color-sidebar-accent)" }}
+            whileHover={{ x: 4 }}
             whileTap={{ scale: 0.98 }}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors"
           >
             <LogOut className="w-5 h-5 flex-shrink-0" />
             <span className="font-medium text-sm">Logout</span>

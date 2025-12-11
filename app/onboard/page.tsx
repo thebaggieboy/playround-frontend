@@ -2,14 +2,16 @@
 
 import { useState } from "react"
 import { Building2, User } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 export default function Onboarding() {
   const [selected, setSelected] = useState<"individual" | "business" | null>(null)
-
+const router = useRouter()
   const handleContinue = () => {
     if (selected) {
       console.log("[v0] User selected:", selected)
       // Handle navigation or state update here
+      router.push(`/signup?user=${selected}`)
     }
   }
 
