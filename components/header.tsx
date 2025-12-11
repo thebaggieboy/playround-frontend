@@ -23,24 +23,24 @@ import useSignUp from "../hooks/useSignUp";
 
 const solutions = [
   {
-    name: "Data Upload",
-    description: "CSV import & financial data management",
+    name: "Financial Model",
+    description: "Create and manage comprehensive financial models",
   },
   {
-    name: "Analytics",
-    description: "Charts and KPI dashboards",
+    name: "Economic Model",
+    description: "Build and analyze economic forecasting models",
   },
   {
-    name: "Templates",
-    description: "Ready-made financial models",
+    name: "Portfolio Management",
+    description: "Track and optimize investment portfolios",
   },
   {
-    name: "Customization",
-    description: "Tailor templates to your needs",
+    name: "AI Integration",
+    description: "Leverage AI to enhance analysis and predictions",
   },
   {
     name: "Export",
-    description: "PDF & Excel export capabilities",
+    description: "Save and share data in multiple formats",
   },
 ]
 
