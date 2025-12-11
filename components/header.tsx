@@ -56,7 +56,7 @@ const dispatch = useDispatch();
   return (
     <header
       style={{ fontFamily: "Poppins, Sans-serif", lineHeight: 1, background:"linear-gradient(to right bottom, rgb(26, 38, 84), rgb(26, 38, 84))" }}
-      className="sticky top-0 z-50    supports-[backdrop-filter]:bg-background/60 border-b border-border/50 transition-smooth"
+      className="sticky top-0 z-50  text-xs  supports-[backdrop-filter]:bg-background/60 border-b border-border/50 transition-smooth"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
         {/* Logo */}

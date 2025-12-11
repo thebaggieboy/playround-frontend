@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight, Sparkles } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
+ 
+const localVideoSrc = '/videos/video2.mp4';
 
 export function Hero() {
   // Color system: Primary (#FF1B6D), Secondary (#1A2654), Tertiary (#7C3AED)
@@ -216,11 +218,11 @@ export function Hero() {
                 e.currentTarget.style.borderColor = `${colors.primary}4D`
               }}
             >
-              <img
-                src="/emp.jpg"
-                alt="Playground Dashboard"
-                className="w-full h-full object-cover bg-transparent"
-              />
+                <video className="w-full h-full object-cover bg-transparent" controls autoPlay muted>
+               <source src={localVideoSrc} type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+           
             </div>
           </motion.div>
         </div>
