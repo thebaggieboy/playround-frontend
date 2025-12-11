@@ -31,7 +31,7 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-5">
       {/* Header */}
       <div className="space-y-4">
         <Link href="/dashboard/reports">
