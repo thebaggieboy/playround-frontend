@@ -31,27 +31,25 @@ export function HeroMain() {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Button size="lg" className="gap-2">
-                Start Free Trial <ArrowRight className="w-4 h-4" />
-              </Button>
+              
               <Button size="lg" variant="outline">
                 View Demo
               </Button>
             </div>
 
             {/* Quick stats */}
-            <div className="flex flex-col sm:flex-row gap-8 pt-8 border-t border-border">
+            <div className="flex flex-col sm:flex-row gap-8 pt-8 border-t b order-border">
               <div>
-                <p className="text-2xl font-bold text-primary">500+</p>
-                <p className="text-sm text-foreground/60">Financial templates</p>
+                <p className="text-2xl font-bold text-white text-primary">500+</p>
+                <p className="text-sm text-white text-foreground/60">Financial templates</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-primary">10K+</p>
-                <p className="text-sm text-foreground/60">Active analysts</p>
+                <p className="text-2xl font-bold text-white text-primary">10K+</p>
+                <p className="text-sm text-foreground/60 text-white">Active analysts</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-primary">99%</p>
-                <p className="text-sm text-foreground/60">Uptime guarantee</p>
+                <p className="text-2xl font-bold text-white text-primary">99%</p>
+                <p className="text-sm text-white text-foreground/60">Uptime guarantee</p>
               </div>
             </div>
           </div>
