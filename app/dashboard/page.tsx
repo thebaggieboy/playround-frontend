@@ -32,7 +32,7 @@ export default function DashboardPage() {
       variants={containerVariants}
     >
       {/* Header */}
-      <header className="border-b border-border bg-card px-6 lg:px-8 py-5 lg:py-6">
+      <header className="border-b border-border bg-card px-6 lg:px-8 py-5 p-5 lg:py-6" >
         <motion.div variants={itemVariants} className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Dashboard</h1>

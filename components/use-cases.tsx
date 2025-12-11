@@ -1,6 +1,6 @@
 "use client"
 
-import { TrendingUp, PieChart, BarChart3, Zap, ArrowRight, Sparkles } from "lucide-react"
+import { TrendingUp, PieChart, BarChart3, Zap, ArrowRight, Sparkles, Link } from "lucide-react"
 import { useState } from "react"
 
 const colors = {
@@ -26,6 +26,7 @@ export function UseCases() {
       details: ["Automated DCF models", "Multi-scenario analysis", "Real-time data"],
       bgColor: colors.primary,
       accent: "🎯",
+      link:"/use-cases/investment-analysis",
     },
     {
       icon: <PieChart size={24} />,
@@ -35,6 +36,7 @@ export function UseCases() {
       details: ["Performance tracking", "Risk assessment", "Asset allocation"],
       bgColor: colors.primary,
       accent: "📊",
+      link:"/use-cases/portfolio-management",
     },
     {
       icon: <BarChart3 size={24} />,
@@ -44,6 +46,7 @@ export function UseCases() {
       details: ["Template library", "Trend analysis", "Predictive models"],
       bgColor: colors.primary,
       accent: "📈",
+      link:"/use-cases/financial-forecasting",
     },
     {
       icon: <Zap size={24} />,
@@ -52,6 +55,8 @@ export function UseCases() {
       details: ["Instant calculations", "Auto-insights", "Export ready"],
       bgColor: colors.primary,
       accent: "⚡",
+      link:"/use-cases/quick-analysis",
+    
     },
   ]
 
@@ -237,7 +242,8 @@ export function UseCases() {
               </div>
 
               {/* CTA */}
-              <div
+                <Link >
+                   <div
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -251,6 +257,9 @@ export function UseCases() {
               >
                 Explore <ArrowRight size={16} />
               </div>
+                </Link>
+
+           
             </div>
           ))}
         </div>

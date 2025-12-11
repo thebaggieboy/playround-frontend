@@ -4,19 +4,28 @@ import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import { LayoutDashboard, FileText, BarChart3, Layout, Settings, LogOut, Menu, X } from "lucide-react"
 import { useState } from "react"
+import { usePathname } from "next/navigation"
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", active: true },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: BarChart3, label: "Models", href: "/dashboard/models" },
-  { icon: Layout, label: "Templates", href: "/dashboard/templates" },
+  //{ icon: Layout, label: "Templates", href: "/dashboard/templates" },
   { icon: FileText, label: "Reports", href: "/dashboard/reports" },
   { icon: Settings, label: "Settings", href: "/dashboard/settings" },
 ]
 
 export default function DashboardSidebar() {
   const [isOpen, setIsOpen] = useState(true)
+  const pathname = usePathname()
 
   const closeSidebar = () => setIsOpen(false)
+
+  const isActive = (href: string) => {
+    if (href === "/dashboard") {
+      return pathname === "/dashboard"
+    }
+    return pathname.startsWith(href)
+  }
 
   return (
     <>
@@ -74,7 +83,7 @@ export default function DashboardSidebar() {
                   whileHover={{ x: 4 }}
                   whileTap={{ scale: 0.98 }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                    item.active ? "bg-primary text-white shadow-sm" : "text-foreground hover:bg-secondary"
+                    isActive(item.href) ? "bg-primary text-white shadow-sm" : "text-foreground hover:bg-secondary"
                   }`}
                 >
                   <item.icon className="w-5 h-5 flex-shrink-0" />
