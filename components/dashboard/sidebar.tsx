@@ -2,16 +2,20 @@
 
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
-import { LayoutDashboard, FileText, BarChart3, Layout, Settings, LogOut, Menu, X } from "lucide-react"
+import { LayoutDashboard, FileText, BarChart3, Layout, Settings, LogOut, Menu, X, Upload, BarChart2 } from "lucide-react"
 import { useState } from "react"
 import { usePathname } from "next/navigation"
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: BarChart3, label: "Models", href: "/dashboard/models" },
+
+  { icon: BarChart2, label: "Analytics", href: "/dashboard/analytics" }, 
+   { icon: Upload, label: "Upload", href: "/dashboard/upload" },
   //{ icon: Layout, label: "Templates", href: "/dashboard/templates" },
   { icon: FileText, label: "Reports", href: "/dashboard/reports" },
   { icon: Settings, label: "Settings", href: "/dashboard/settings" },
+
 ]
 
 export default function DashboardSidebar() {

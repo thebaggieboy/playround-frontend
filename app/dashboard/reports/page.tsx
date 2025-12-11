@@ -87,7 +87,7 @@ export default function ReportsPage() {
   })
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-5">
       {/* Header */}
       <div className="space-y-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

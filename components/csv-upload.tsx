@@ -69,7 +69,7 @@ export function CsvUpload() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-5">
       <div>
         <h2 className="text-2xl font-semibold text-foreground mb-2">Upload Financial Data</h2>
         <p className="text-muted-foreground">Import your CSV or Excel files for analysis and forecasting</p>
