@@ -1,180 +1,197 @@
 "use client"
 
 import { motion } from "framer-motion"
-import DashboardHeader from "@/components/dashboard/header"
-import DashboardSidebar from "@/components/dashboard/sidebar"
-import { Search, Filter, Plus } from "lucide-react"
+import { Plus, Search, Star, TrendingUp, Users, Building2, ShoppingCart, Briefcase } from "lucide-react"
+import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { useState } from "react"
 
 const templates = [
   {
     id: 1,
-    name: "DCF Analysis",
-    description: "Discounted Cash Flow valuation model",
-    category: "Valuation",
-    icon: "📊",
-    models: 12,
-    rating: 4.8,
+    name: "Manufacturing Model",
+    description: "Complete 3-statement model for manufacturing businesses with COGS breakdown",
+    category: "Manufacturing",
+    icon: Building2,
+    complexity: "Advanced",
+    useCount: 245,
   },
   {
     id: 2,
-    name: "IRR Calculator",
-    description: "Internal Rate of Return analysis",
-    category: "Returns",
-    icon: "📈",
-    models: 8,
-    rating: 4.9,
+    name: "SaaS Startup",
+    description: "Revenue model with MRR, churn, and customer acquisition metrics",
+    category: "Technology",
+    icon: TrendingUp,
+    complexity: "Intermediate",
+    useCount: 532,
   },
   {
     id: 3,
-    name: "NPV Model",
-    description: "Net Present Value calculations",
-    category: "Valuation",
-    icon: "💰",
-    models: 15,
-    rating: 4.7,
+    name: "E-commerce Business",
+    description: "Multi-channel retail model with inventory and fulfillment tracking",
+    category: "Retail",
+    icon: ShoppingCart,
+    complexity: "Intermediate",
+    useCount: 328,
   },
   {
     id: 4,
-    name: "Budget Forecast",
-    description: "Annual budget forecasting",
-    category: "Planning",
-    icon: "📋",
-    models: 20,
-    rating: 4.6,
+    name: "Professional Services",
+    description: "Billable hours model with resource allocation and utilization",
+    category: "Services",
+    icon: Briefcase,
+    complexity: "Beginner",
+    useCount: 412,
   },
   {
     id: 5,
-    name: "Break-Even Analysis",
-    description: "Break-even point calculations",
-    category: "Analysis",
-    icon: "🎯",
-    models: 6,
-    rating: 4.8,
+    name: "Real Estate Investment",
+    description: "Property investment analysis with cash flow and valuation",
+    category: "Real Estate",
+    icon: Building2,
+    complexity: "Advanced",
+    useCount: 189,
   },
   {
     id: 6,
-    name: "Sensitivity Analysis",
-    description: "What-if scenario modeling",
-    category: "Analysis",
-    icon: "🔄",
-    models: 10,
-    rating: 4.9,
+    name: "Restaurant Operations",
+    description: "Food service model with cost of goods, labor, and location analysis",
+    category: "Hospitality",
+    icon: Users,
+    complexity: "Intermediate",
+    useCount: 267,
   },
 ]
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
-    },
-  },
-}
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: "easeOut" },
-  },
-}
-
 export default function TemplatesPage() {
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState("All")
+
+  const categories = ["All", "Manufacturing", "Technology", "Retail", "Services", "Real Estate", "Hospitality"]
+
+  const filteredTemplates = templates.filter((template) => {
+    const matchesSearch = template.name.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesCategory = selectedCategory === "All" || template.category === selectedCategory
+    return matchesSearch && matchesCategory
+  })
+
   return (
-    <div className="flex h-screen bg-background">
-      <DashboardSidebar />
+    <div className="flex flex-col overflow-hidden flex-1">
+      {/* Header */}
+      <header className="border-b border-border bg-card px-6 lg:px-8 py-5 lg:py-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Templates</h1>
+            <p className="text-sm text-muted-foreground mt-1">Ready-made financial models for common business types</p>
+          </div>
+          <Button className="gap-2 w-fit">
+            <Plus className="w-4 h-4" />
+            Create Custom Template
+          </Button>
+        </div>
+      </header>
 
-      <motion.main
-        className="flex-1 flex flex-col overflow-hidden"
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-      >
-        <DashboardHeader />
+      {/* Search and Filters */}
+      <div className="border-b border-border bg-card px-6 lg:px-8 py-4">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search templates..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                  selectedCategory === category
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
 
-        <div className="flex-1 overflow-auto">
-          <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 max-w-7xl mx-auto w-full">
-            {/* Header */}
-            <motion.div variants={itemVariants} className="space-y-4">
-              <div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Templates</h1>
-                <p className="text-sm lg:text-base text-muted-foreground mt-1">
-                  Browse and manage financial model templates
-                </p>
-              </div>
-
-              {/* Search and Filter */}
-              <div className="flex flex-col sm:flex-row gap-3 lg:gap-4 items-stretch sm:items-center">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <input
-                    type="text"
-                    placeholder="Search templates..."
-                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  />
-                </div>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="p-2 border border-border rounded-lg hover:bg-secondary transition-colors"
-                >
-                  <Filter className="w-5 h-5 text-muted-foreground" />
-                </motion.button>
-                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 w-full sm:w-auto">
-                  <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">Create Template</span>
-                  <span className="sm:hidden">Create</span>
-                </Button>
-              </div>
-            </motion.div>
-
-            {/* Templates Grid */}
-            <motion.div
-              variants={itemVariants}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6"
-            >
-              {templates.map((template, index) => (
+      {/* Content */}
+      <div className="flex-1 overflow-auto bg-secondary/20">
+        <div className="p-6 lg:p-8 max-w-7xl mx-auto w-full">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {filteredTemplates.map((template, idx) => {
+              const Icon = template.icon
+              return (
                 <motion.div
                   key={template.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05, duration: 0.4 }}
-                  whileHover={{ y: -4, boxShadow: "0 12px 24px rgba(0,0,0,0.08)" }}
-                  className="bg-card border border-border rounded-xl p-4 lg:p-6 cursor-pointer hover:border-primary/50 transition-all group"
+                  transition={{ delay: idx * 0.05 }}
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="text-3xl lg:text-4xl">{template.icon}</div>
-                    <span className="px-2 lg:px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                      {template.category}
-                    </span>
-                  </div>
-
-                  <h3 className="font-semibold text-foreground mb-1 text-base lg:text-lg">{template.name}</h3>
-                  <p className="text-xs lg:text-sm text-muted-foreground mb-4">{template.description}</p>
-
-                  <div className="flex items-center justify-between pt-4 border-t border-border">
-                    <div className="flex items-center gap-2 lg:gap-4 text-xs lg:text-sm text-muted-foreground">
-                      <span>{template.models} models</span>
-                      <span>⭐ {template.rating}</span>
+                  <Card className="p-6 hover:shadow-lg transition-shadow h-full flex flex-col">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Icon className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        className="text-muted-foreground hover:text-yellow-500"
+                      >
+                        <Star className="w-5 h-5" />
+                      </motion.button>
                     </div>
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="px-2 lg:px-3 py-1 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-xs lg:text-sm font-medium"
-                    >
-                      Use
-                    </motion.button>
-                  </div>
+
+                    <h3 className="text-lg font-semibold text-foreground mb-2">{template.name}</h3>
+                    <p className="text-sm text-muted-foreground mb-4 flex-1">{template.description}</p>
+
+                    <div className="flex items-center gap-2 mb-4">
+                      <span className="text-xs px-2 py-1 bg-secondary rounded text-secondary-foreground">
+                        {template.category}
+                      </span>
+                      <span
+                        className={`text-xs px-2 py-1 rounded ${
+                          template.complexity === "Beginner"
+                            ? "bg-green-100 text-green-700"
+                            : template.complexity === "Intermediate"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {template.complexity}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-4 border-t border-border">
+                      <span className="text-xs text-muted-foreground">{template.useCount} uses</span>
+                      <Button size="sm" variant="outline">
+                        Use Template
+                      </Button>
+                    </div>
+                  </Card>
                 </motion.div>
-              ))}
-            </motion.div>
-          </div>
+              )
+            })}
+          </motion.div>
+
+          {filteredTemplates.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No templates found matching your criteria</p>
+            </div>
+          )}
         </div>
-      </motion.main>
+      </div>
     </div>
   )
 }

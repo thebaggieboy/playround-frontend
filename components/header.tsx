@@ -107,19 +107,26 @@ const dispatch = useDispatch();
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2 sm:gap-3">
-          <Link href="/demo">
+       {user == null ?    <Link href="/demo">
             <Button
                
               className="hidden sm:inline-flex  bg-gradient-to-r from-blue-600 to-indigo-600  text-sm border-primary/20 hover:bg-primary/5"
             >
               Request Demo
             </Button>
-          </Link>
-          <Link href="/onboard">
+          </Link> : ""}
+
+           {user !== null ?   <Link href="/onboard">
+            <Button className="bg-white  hover:bg-accent text-black-foreground rounded-full px-4 sm:px-6 py-2 transition-smooth-lg hover:shadow-lg hover:shadow-primary/20 text-sm sm:text-base">
+              Dashsboard
+            </Button>
+          </Link> :   <Link href="/onboard">
             <Button className="bg-white  hover:bg-accent text-black-foreground rounded-full px-4 sm:px-6 py-2 transition-smooth-lg hover:shadow-lg hover:shadow-primary/20 text-sm sm:text-base">
               Get Started
             </Button>
-          </Link>
+          </Link>}
+              
+        
              
         
         </div>
