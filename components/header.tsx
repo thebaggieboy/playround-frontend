@@ -25,14 +25,17 @@ const solutions = [
   {
     name: "Financial Model",
     description: "Create and manage comprehensive financial models",
+    src:"/use-cases/financial-forecasting/"
   },
   {
     name: "Economic Model",
     description: "Build and analyze economic forecasting models",
+     src:"/use-cases/financial-forecasting/"
   },
   {
     name: "Portfolio Management",
     description: "Track and optimize investment portfolios",
+     src:"/use-cases/portfolio-management/"
   },
   {
     name: "AI Integration",
@@ -90,19 +93,19 @@ const dispatch = useDispatch();
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <a href="/use-cases/financial-forecasting" className="text-foreground/70  text-white hover:text-primary text-sm transition-smooth font-medium">
-            Financial Forecasting
+          <a href="/use-cases/industry" className="text-foreground/70  text-white hover:text-primary text-sm transition-smooth font-medium">
+           Industry
           </a>
 
-          <a href="/use-cases/investment-analysis" className="text-foreground/70  text-white hover:text-primary text-sm transition-smooth font-medium">
-            Investment Analysis
-          </a>
-          <a href="/use-cases/portfolio-management" className="text-foreground/70  text-white hover:text-primary text-sm transition-smooth font-medium">
-            Portfolio Management
+          <a href="/use-cases/customer-stories" className="text-foreground/70  text-white hover:text-primary text-sm transition-smooth font-medium">
+            Customer Stories
           </a>
           <a href="/about" className="text-foreground/70  text-white hover:text-primary text-sm transition-smooth font-medium">
-            About
+            Company
           </a>
+         {/* { <a href="/about" className="text-foreground/70  text-white hover:text-primary text-sm transition-smooth font-medium">
+            About
+          </a>} */}
         </nav>
 
         {/* Action Buttons */}

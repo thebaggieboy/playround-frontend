@@ -5,7 +5,7 @@ import { ArrowRight, Sparkles } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
  
-const localVideoSrc = '/videos/video2.mp4';
+const localVideoSrc = 'https://collection.cloudinary.com/baggieboy/4b32b7678ccdfa7c11522ae447c551d6';
 
 export function Hero() {
   // Color system: Primary (#FF1B6D), Secondary (#1A2654), Tertiary (#7C3AED)
