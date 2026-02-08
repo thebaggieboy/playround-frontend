@@ -1,315 +1,188 @@
 "use client"
 
-import { TrendingUp, PieChart, BarChart3, Zap, ArrowRight, Sparkles, Link } from "lucide-react"
+import { TrendingUp, PieChart, BarChart3, Zap, ArrowRight, Sparkles } from "lucide-react"
 import { useState } from "react"
-
-const colors = {
-  primary: "#1e40af",
-  secondary: "#1a2654",
-  tertiary: "#7C3AED",
-  background: "#ffffff",
-  card: "#f9fafb",
-  border: "#e5e7eb",
-  text: "#111827",
-  textMuted: "#6b7280",
-}
+import { motion } from "framer-motion"
+import { useInView } from "framer-motion"
+import { useRef } from "react"
 
 export function UseCases() {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 
   const useCases = [
     {
-      icon: <TrendingUp size={24} />,
+      icon: TrendingUp,
       title: "Investment Analysis",
       description:
         "Evaluate investment opportunities with DCF and NPV models. Compare multiple scenarios with real-time data integration.",
       details: ["Automated DCF models", "Multi-scenario analysis", "Real-time data"],
-      bgColor: colors.primary,
-      accent: "🎯",
-      link:"/use-cases/investment-analysis",
+      link: "/use-cases/investment-analysis",
     },
     {
-      icon: <PieChart size={24} />,
+      icon: PieChart,
       title: "Portfolio Management",
       description:
         "Track and analyze portfolio performance metrics across multiple asset classes with advanced visualizations.",
       details: ["Performance tracking", "Risk assessment", "Asset allocation"],
-      bgColor: colors.primary,
-      accent: "📊",
-      link:"/use-cases/portfolio-management",
+      link: "/use-cases/portfolio-management",
     },
     {
-      icon: <BarChart3 size={24} />,
+      icon: BarChart3,
       title: "Financial Forecasting",
       description:
         "Create accurate forecasts with built-in templates and historical data modeling for predictive analytics.",
       details: ["Template library", "Trend analysis", "Predictive models"],
-      bgColor: colors.primary,
-      accent: "📈",
-      link:"/use-cases/financial-forecasting",
+      link: "/use-cases/financial-forecasting",
     },
     {
-      icon: <Zap size={24} />,
+      icon: Zap,
       title: "Quick Analysis",
-      description: "Get insights in minutes, not hours. Transform raw data into actionable intelligence instantly.",
+      description:
+        "Get insights in minutes, not hours. Transform raw data into actionable intelligence instantly.",
       details: ["Instant calculations", "Auto-insights", "Export ready"],
-      bgColor: colors.primary,
-      accent: "⚡",
-      link:"/use-cases/quick-analysis",
-    
+      link: "/use-cases/quick-analysis",
     },
   ]
 
   return (
     <section
-      style={{
-        padding: "80px 32px",
-        background: colors.background,
-        position: "relative",
-        overflow: "hidden",
-      }}
+      ref={ref}
+      className="py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-white relative overflow-hidden"
     >
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: "1px",
-          background: `linear-gradient(90deg, transparent 0%, ${colors.primary}20 50%, transparent 100%)`,
-          pointerEvents: "none",
-        }}
-      />
+      {/* Subtle decorative pigments */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-[#e8e4df]" />
+      <div className="absolute top-20 right-0 w-72 h-72 rounded-full bg-[#f5f0ea]/40 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-20 left-0 w-56 h-56 rounded-full bg-blue-50/30 blur-3xl pointer-events-none" />
 
-      <div style={{ maxWidth: "1280px", margin: "0 auto", position: "relative", zIndex: 10 }}>
+      <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: "64px" }}>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              marginBottom: "16px",
-              padding: "8px 16px",
-              backgroundColor: `${colors.primary}10`,
-              borderRadius: "8px",
-              borderLeft: `2px solid ${colors.primary}`,
-            }}
-          >
-            <Sparkles size={16} style={{ color: colors.primary }} />
-            <span style={{ color: colors.primary, fontSize: "12px", fontWeight: 600 }}>Multiple Solutions</span>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
+        >
+          <div className="inline-flex items-center gap-2 mb-5 px-4 py-2 rounded-full bg-blue-50 border border-blue-100">
+            <Sparkles className="w-4 h-4 text-blue-600" />
+            <span className="text-sm font-medium text-blue-600">
+              Multiple Solutions
+            </span>
           </div>
-          <h2 style={{ fontSize: "48px", fontWeight: 400, marginBottom: "16px", color: colors.text }}>
-            Use Cases for <br />
-            <span style={{ color: colors.primary }}>Every Role</span>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 text-balance">
+            Use Cases for Every Role
           </h2>
-          <p
-            style={{
-              fontSize: "18px",
-              color: colors.textMuted,
-              maxWidth: "600px",
-              margin: "0 auto",
-              lineHeight: "1.6",
-            }}
-          >
-            Whether you're a CFO, analyst, or finance novice, our platform adapts to your needs and expertise level
+          <p className="text-base md:text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
+            Whether you're a CFO, analyst, or finance novice, our platform
+            adapts to your needs and expertise level
           </p>
-        </div>
+        </motion.div>
 
         {/* Use Cases Grid */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: "24px",
-          }}
-        >
-          {useCases.map((useCase, index) => (
-            <div
-              key={index}
-              style={{
-                background: colors.card,
-                borderRadius: "12px",
-                padding: "32px 24px",
-                border: `1px solid ${colors.border}`,
-                transition: "all 0.3s ease",
-                cursor: "pointer",
-                transform: hoveredIndex === index ? "translateY(-4px)" : "translateY(0)",
-                boxShadow: hoveredIndex === index ? "0 12px 24px rgba(0,0,0,0.08)" : "0 2px 8px rgba(0,0,0,0.04)",
-                position: "relative",
-              }}
-              onMouseEnter={() => setHoveredIndex(index)}
-              onMouseLeave={() => setHoveredIndex(null)}
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: "24px",
-                  right: "24px",
-                  height: "3px",
-                  background: hoveredIndex === index ? colors.primary : `${colors.primary}20`,
-                  borderRadius: "0 0 2px 2px",
-                  transition: "all 0.3s ease",
-                }}
-              />
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  marginBottom: "20px",
-                }}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {useCases.map((useCase, index) => {
+            const Icon = useCase.icon
+            return (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={
+                  isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }
+                }
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                onMouseEnter={() => setHoveredIndex(index)}
+                onMouseLeave={() => setHoveredIndex(null)}
+                className="group cursor-pointer"
               >
                 <div
-                  style={{
-                    width: "56px",
-                    height: "56px",
-                    background: `${useCase.bgColor}10`,
-                    borderRadius: "8px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: useCase.bgColor,
-                    transition: "all 0.3s ease",
-                    boxShadow: hoveredIndex === index ? `0 4px 12px ${useCase.bgColor}15` : "none",
-                  }}
+                  className={`relative h-full rounded-xl p-7 border transition-all duration-300 ${
+                    hoveredIndex === index
+                      ? "border-blue-200 bg-white shadow-lg shadow-blue-100/40 -translate-y-1"
+                      : "border-[#e8e4df] bg-[#faf9f7] shadow-sm shadow-[#e8e4df]/30"
+                  }`}
                 >
-                  {useCase.icon}
-                </div>
-                <div
-                  style={{
-                    fontSize: "24px",
-                    opacity: hoveredIndex === index ? 1 : 0.5,
-                    transition: "all 0.3s ease",
-                  }}
-                >
-             
-                </div>
-              </div>
+                  {/* Top accent bar */}
+                  <div
+                    className={`absolute top-0 left-6 right-6 h-0.5 rounded-full transition-all duration-300 ${
+                      hoveredIndex === index ? "bg-blue-600" : "bg-[#e8e4df]"
+                    }`}
+                  />
 
-              {/* Title */}
-              <h3
-                style={{
-                  fontSize: "18px",
-                  fontWeight: 600,
-                  color: colors.text,
-                  marginBottom: "12px",
-                }}
-              >
-                {useCase.title}
-              </h3>
-
-              {/* Description */}
-              <p
-                style={{
-                  fontSize: "14px",
-                  color: colors.textMuted,
-                  marginBottom: "16px",
-                  lineHeight: "1.6",
-                }}
-              >
-                {useCase.description}
-              </p>
-
-              {/* Details List */}
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: "8px",
-                  marginBottom: "16px",
-                  paddingBottom: "16px",
-                  borderBottom: `1px solid ${colors.border}`,
-                }}
-              >
-                {useCase.details.map((detail, idx) => (
-                  <span
-                    key={idx}
-                    style={{
-                      fontSize: "12px",
-                      padding: "4px 12px",
-                      background: `${colors.primary}08`,
-                      color: colors.primary,
-                      borderRadius: "16px",
-                      fontWeight: 500,
-                    }}
+                  {/* Icon */}
+                  <div
+                    className={`w-12 h-12 rounded-lg flex items-center justify-center mb-5 transition-all duration-300 ${
+                      hoveredIndex === index
+                        ? "bg-blue-600 text-white scale-105"
+                        : "bg-[#f0ece7] text-blue-600"
+                    }`}
                   >
-                    {detail}
-                  </span>
-                ))}
-              </div>
+                    <Icon className="w-6 h-6" />
+                  </div>
 
-              {/* CTA */}
-              <a 
-              href={useCase.link}
-               
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  color: colors.primary,
-                  fontWeight: 600,
-                  fontSize: "14px",
-                  transition: "all 0.3s ease",
-                  transform: hoveredIndex === index ? "translateX(4px)" : "translateX(0)",
-                }}
-              >
-                Explore <ArrowRight size={16} />
-              </a>
-            </div>
-          ))}
+                  {/* Title */}
+                  <h3 className="text-lg font-semibold text-slate-900 mb-3">
+                    {useCase.title}
+                  </h3>
+
+                  {/* Description */}
+                  <p className="text-sm text-slate-500 leading-relaxed mb-5">
+                    {useCase.description}
+                  </p>
+
+                  {/* Detail tags */}
+                  <div className="flex flex-wrap gap-2 mb-5 pb-5 border-b border-slate-100">
+                    {useCase.details.map((detail, idx) => (
+                      <span
+                        key={idx}
+                        className="text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100/60"
+                      >
+                        {detail}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* CTA */}
+                  <a
+                    href={useCase.link}
+                    className={`inline-flex items-center gap-2 text-sm font-semibold text-blue-600 transition-all duration-300 ${
+                      hoveredIndex === index ? "translate-x-1" : ""
+                    }`}
+                  >
+                    Explore
+                    <ArrowRight className="w-4 h-4" />
+                  </a>
+                </div>
+              </motion.div>
+            )
+          })}
         </div>
 
         {/* Stats Section */}
-        <div
-          style={{
-            marginTop: "80px",
-            padding: "40px",
-            background: colors.card,
-            borderRadius: "12px",
-            border: `1px solid ${colors.border}`,
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: "32px",
-            textAlign: "center",
-            position: "relative",
-          }}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-6"
         >
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              height: "2px",
-              borderRadius: "12px 12px 0 0",
-              background: `linear-gradient(90deg, ${colors.primary}, transparent)`,
-            }}
-          />
-
           {[
             { stat: "500K+", label: "Financial Models Created" },
             { stat: "99.9%", label: "System Uptime" },
             { stat: "<30s", label: "Model Generation Time" },
             { stat: "50+", label: "Pre-built Templates" },
           ].map((item, idx) => (
-            <div key={idx}>
-              <div
-                style={{
-                  fontSize: "32px",
-                  fontWeight: 700,
-                  color: colors.primary,
-                  marginBottom: "8px",
-                }}
-              >
+            <motion.div
+              key={idx}
+              whileHover={{ scale: 1.02 }}
+              className="rounded-xl p-6 text-center bg-[#faf9f7] border border-[#e8e4df] shadow-sm shadow-[#e8e4df]/30 hover:border-blue-200 hover:bg-white transition-all duration-300"
+            >
+              <div className="text-2xl md:text-3xl font-bold text-blue-600 mb-1">
                 {item.stat}
               </div>
-              <div style={{ fontSize: "14px", color: colors.textMuted }}>{item.label}</div>
-            </div>
+              <div className="text-sm text-slate-500">{item.label}</div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   )

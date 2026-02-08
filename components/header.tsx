@@ -55,6 +55,35 @@ export function Header() {
 
 const dispatch = useDispatch();
   const [open, setOpen] = useState(false)
+  const [companyOpen, setCompanyOpen] = useState(false)
+
+  const companyLinks = [
+    {
+      name: "About Us",
+      description: "Our mission and team",
+      src: "/about",
+    },
+    {
+      name: "Careers",
+      description: "Join the Playground team",
+      src: "/careers",
+    },
+    {
+      name: "Blog",
+      description: "Insights and updates",
+      src: "/blog",
+    },
+    {
+      name: "Partners",
+      description: "Our partner ecosystem",
+      src: "/partners",
+    },
+    {
+      name: "Contact",
+      description: "Get in touch with us",
+      src: "/contact",
+    },
+  ]
 
   return (
     <header
@@ -100,9 +129,24 @@ const dispatch = useDispatch();
           <a href="/use-cases/customer-stories" className="text-foreground/70  text-white hover:text-primary text-sm transition-smooth font-medium">
             Customer Stories
           </a>
-          <a href="/about" className="text-foreground/70  text-white hover:text-primary text-sm transition-smooth font-medium">
-            Company
-          </a>
+          <DropdownMenu open={companyOpen} onOpenChange={setCompanyOpen}>
+            <DropdownMenuTrigger className="flex items-center text-white gap-1 text-foreground/70 hover:text-primary text-sm transition-smooth font-medium focus:outline-none">
+              Company
+              <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${companyOpen ? "rotate-180" : ""}`} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              <DropdownMenuLabel className="text-primary font-semibold">Company</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {companyLinks.map((link) => (
+                <DropdownMenuItem key={link.name} asChild className="flex flex-col items-start gap-1 py-2 cursor-pointer">
+                  <Link href={link.src}>
+                    <span className="font-medium text-foreground">{link.name}</span>
+                    <span className="text-xs text-foreground/60">{link.description}</span>
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
          {/* { <a href="/about" className="text-foreground/70  text-white hover:text-primary text-sm transition-smooth font-medium">
             About
           </a>} */}
