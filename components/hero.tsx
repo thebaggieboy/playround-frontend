@@ -5,8 +5,8 @@ import { ArrowRight, Play } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 
-const cloudinaryCollectionUrl =
-  "https://collection.cloudinary.com/baggieboy/4b32b7678ccdfa7c11522ae447c551d6"
+const heroVideoUrl =
+  "https://res.cloudinary.com/baggieboy/video/upload/v1770388607/plyground_input_variables_ivbvxn.mp4"
 
 export function Hero() {
   return (
@@ -124,14 +124,16 @@ export function Hero() {
                   </div>
                 </div>
               </div>
-              {/* Iframe embedding the Cloudinary collection */}
-              <div className="aspect-video">
-                <iframe
-                  src={cloudinaryCollectionUrl}
+              {/* Video player */}
+              <div className="aspect-video bg-[#080e20]">
+                <video
+                  src={heroVideoUrl}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="w-full h-full object-cover"
                   title="Playground financial platform demo"
-                  className="w-full h-full border-0"
-                  allow="autoplay; fullscreen; picture-in-picture"
-                  allowFullScreen
                 />
               </div>
             </div>
