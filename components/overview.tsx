@@ -59,12 +59,10 @@ export function Overview() {
     <section
       ref={ref}
       id="overview"
-      className="py-24 md:py-36 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-slate-50"
+      className="py-24 md:py-36 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-white"
     >
-      {/* Subtle decorative pigments */}
+      {/* Subtle top border accent */}
       <div className="absolute top-0 left-0 right-0 h-px bg-slate-200" />
-      <div className="absolute top-16 -left-20 w-72 h-72 rounded-full bg-blue-50/50 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-24 right-0 w-64 h-64 rounded-full bg-slate-200/40 blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Section header */}

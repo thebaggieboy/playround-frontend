@@ -73,14 +73,9 @@ export function Features() {
     <section
       ref={ref}
       id="features"
-      className="py-16 md:py-24 lg:py-32 px-4 sm:px-6 lg:px-8 bg-white relative overflow-hidden"
+      className="py-16 md:py-24 lg:py-32 px-4 sm:px-6 lg:px-8 bg-white relative"
     >
-      {/* Subtle decorative pigments */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-slate-200" />
-      <div className="absolute -top-20 left-1/4 w-80 h-80 rounded-full bg-blue-50/40 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-32 -right-16 w-60 h-60 rounded-full bg-slate-100/50 blur-3xl pointer-events-none" />
-
-      <div className="max-w-7xl mx-auto relative z-10">
+      <div className="max-w-7xl mx-auto">
         {/* Section header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -120,8 +115,8 @@ export function Features() {
               <div
                 className={`relative rounded-xl p-6 border transition-all duration-200 h-full ${
                   hoveredFeature === index
-                    ? "border-blue-200 bg-blue-50/40 shadow-lg shadow-blue-100/50 -translate-y-1"
-                    : "border-slate-200 bg-white shadow-sm shadow-slate-100"
+                    ? "border-blue-300 bg-blue-50/60 shadow-lg shadow-blue-100/60 -translate-y-1"
+                    : "border-slate-200 bg-white shadow-sm"
                 }`}
               >
                 {/* Top accent line */}

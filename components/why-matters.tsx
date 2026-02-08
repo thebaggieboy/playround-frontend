@@ -3,7 +3,18 @@
 import { motion } from "framer-motion"
 import { useInView } from "framer-motion"
 import { useRef, useState } from "react"
-import { CheckCircle2, Target } from "lucide-react"
+import { CheckCircle2, Sparkles } from "lucide-react"
+
+const colors = {
+  primary: "#FF1B6D",
+  secondary: "#1A2654",
+  tertiary: "#7C3AED",
+  background: "#0F1419",
+  card: "#1A1F2E",
+  border: "#2D3748",
+  text: "#F5F7FA",
+  textMuted: "#A0AEC0",
+}
 
 export function WhyMatters() {
   const ref = useRef(null)
@@ -11,106 +22,165 @@ export function WhyMatters() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 
   const benefits = [
-    {
-      title: "Accuracy of forecasts",
-      description: "Enhance prediction precision with advanced modeling",
-    },
-    {
-      title: "Decision-making",
-      description: "Make data-driven decisions with confidence",
-    },
-    {
-      title: "Team efficiency",
-      description: "Streamline workflows and reduce manual work by 60%",
-    },
-    {
-      title: "Collaboration and transparency",
-      description: "Enable seamless cross-team communication",
-    },
+    { title: "Accuracy of forecasts", description: "Enhance prediction precision with advanced modeling" },
+    { title: "Decision-making", description: "Make data-driven decisions with confidence" },
+    { title: "Team efficiency", description: "Streamline workflows and reduce manual work by 60%" },
+    { title: "Collaboration and transparency", description: "Enable seamless cross-team communication" },
   ]
 
   return (
     <section
       ref={ref}
       id="why"
-      className="relative overflow-hidden py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-slate-50"
+      className="relative overflow-hidden"
+      style={{
+        padding: "clamp(40px, 8vw, 80px) clamp(16px, 5vw, 32px)",
+        background: `#0F172A`,
+      }}
     >
-      {/* Subtle decorative elements -- soft blue pigment washes */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-slate-200" />
-      <div className="absolute -top-32 -right-32 w-64 h-64 rounded-full bg-blue-100/40 blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-24 -left-24 w-48 h-48 rounded-full bg-blue-50/60 blur-3xl pointer-events-none" />
+      {/* Animated background blurs */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 0,
+          right: 0,
+          width: "400px",
+          height: "400px",
+          background: colors.primary,
+          opacity: 0.08,
+          borderRadius: "50%",
+          filter: "blur(120px)",
+          pointerEvents: "none",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          top: "20%",
+          left: "-200px",
+          width: "300px",
+          height: "300px",
+          background: colors.tertiary,
+          opacity: 0.06,
+          borderRadius: "50%",
+          filter: "blur(100px)",
+          pointerEvents: "none",
+        }}
+      />
 
-      <div className="max-w-4xl mx-auto relative z-10">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+      <div style={{ maxWidth: "1280px", margin: "0 auto", position: "relative", }}>
+        <div
+           
+          className=""
         >
-          <div className="inline-flex items-center gap-2 mb-5 px-4 py-2 rounded-full bg-blue-50 border border-blue-100">
-            <Target className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-medium text-blue-600">
-              Why It Matters
-            </span>
-          </div>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 text-balance">
-            Why Financial Modeling Matters
-          </h2>
-        </motion.div>
+      
+          {/* Content Section */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
+            transition={{ duration: 0.8 }}
+            style={{
+              order: "1",
+            }}
+          >
+             
 
-        {/* Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="bg-white rounded-2xl p-8 md:p-10 border border-slate-200 shadow-sm shadow-slate-100"
-        >
-          <p className="text-base md:text-lg text-slate-500 mb-8 leading-relaxed">
-            Our goal is to empower finance teams with flexible tools to
-            customize, visualize, and interpret complex models easily. Transform
-            your financial workflows with enterprise-grade modeling capabilities.
-          </p>
-
-          <p className="text-slate-900 font-semibold mb-5 text-sm uppercase tracking-wide">
-            This improves:
-          </p>
-
-          <div className="flex flex-col gap-3">
-            {benefits.map((benefit, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: -10 }}
-                animate={
-                  isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }
-                }
-                transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
-                onMouseEnter={() => setHoveredIndex(index)}
-                onMouseLeave={() => setHoveredIndex(null)}
-                className={`flex items-start gap-3 p-3 rounded-lg transition-all duration-300 cursor-pointer ${
-                  hoveredIndex === index
-                    ? "bg-blue-50/80 translate-x-1"
-                    : "bg-transparent"
-                }`}
+            <div
+              style={{
+                background: colors.card,
+                borderRadius: "20px",
+                padding: "clamp(24px, 5vw, 40px)",
+                border: `1px solid ${colors.border}`,
+                transition: "all 0.3s ease",
+                cursor: "pointer",
+              }}
+              onMouseEnter={() => setHoveredIndex(-1)}
+              onMouseLeave={() => setHoveredIndex(null)}
+            >
+              <p
+                style={{
+                  fontSize: "clamp(15px, 2.5vw, 18px)",
+                  color: colors.textMuted,
+                  marginBottom: "clamp(20px, 5vw, 32px)",
+                  lineHeight: "1.6",
+                  fontWeight: 500,
+                  transition: "color 0.3s ease",
+                }}
               >
-                <CheckCircle2
-                  className={`w-5 h-5 mt-0.5 flex-shrink-0 text-blue-600 transition-transform duration-300 ${
-                    hoveredIndex === index ? "scale-110" : "scale-100"
-                  }`}
-                />
-                <div>
-                  <div className="text-slate-900 font-semibold text-sm md:text-base">
-                    {benefit.title}
-                  </div>
-                  <div className="text-slate-500 text-xs md:text-sm mt-0.5">
-                    {benefit.description}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
+                Our goal is to empower finance teams with flexible tools to customize, visualize, and interpret complex
+                models easily. Transform your financial workflows with enterprise-grade modeling capabilities.
+              </p>
+
+              <p style={{ color: colors.text, fontWeight: 600, marginBottom: "clamp(12px, 3vw, 20px)", fontSize: "clamp(14px, 2vw, 16px)" }}>This improves:</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "clamp(8px, 2vw, 12px)" }}>
+                {benefits.map((benefit, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }}
+                    transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: "clamp(8px, 2vw, 12px)",
+                      padding: "clamp(8px, 2vw, 12px)",
+                      borderRadius: "8px",
+                      background: hoveredIndex === index ? `${colors.primary}10` : "transparent",
+                      transition: "all 0.3s ease",
+                      cursor: "pointer",
+                    }}
+                    onMouseEnter={() => setHoveredIndex(index)}
+                    onMouseLeave={() => setHoveredIndex(null)}
+                  >
+                    <CheckCircle2
+                      size={20}
+                      style={{
+                        color: colors.primary,
+                        marginTop: "2px",
+                        flexShrink: 0,
+                        transition: "transform 0.3s ease",
+                        transform: hoveredIndex === index ? "scale(1.2)" : "scale(1)",
+                        minWidth: "20px",
+                      }}
+                    />
+                    <div>
+                      <div
+                        style={{
+                          color: colors.text,
+                          fontWeight: 600,
+                          fontSize: "clamp(13px, 2vw, 15px)",
+                          marginBottom: "2px",
+                        }}
+                      >
+                        {benefit.title}
+                      </div>
+                      <div style={{ color: colors.textMuted, fontSize: "clamp(12px, 1.8vw, 13px)" }}>{benefit.description}</div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </div>
+
+      <style>{`
+        @media (max-width: 767px) {
+          .responsive-grid {
+            grid-template-columns: 1fr !important;
+            gap: clamp(24px, 6vw, 48px) !important;
+          }
+          
+          .responsive-grid > div:first-child {
+            order: 2;
+            height: clamp(250px, 60vw, 400px) !important;
+          }
+          
+          .responsive-grid > div:last-child {
+            order: 1;
+          }
+        }
+      `}</style>
     </section>
   )
 }
