@@ -44,10 +44,10 @@ export function FAQ() {
   const [openIndex, setOpenIndex] = useState(0)
 
   return (
-    <section className="py-16 lg:py-24 px-4 sm:px-6 lg:px-8 bg-white relative overflow-hidden">
+    <section className="py-16 lg:py-24 px-4 sm:px-6 lg:px-8 bg-slate-50 relative overflow-hidden">
       {/* Decorative pigments */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-[#e8e4df]" />
-      <div className="absolute -top-16 right-1/4 w-64 h-64 rounded-full bg-[#f5f0ea]/40 blur-3xl pointer-events-none" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-slate-200" />
+      <div className="absolute -top-16 right-1/4 w-64 h-64 rounded-full bg-blue-50/40 blur-3xl pointer-events-none" />
 
       <div className="max-w-3xl mx-auto relative z-10">
         <motion.div
@@ -76,13 +76,13 @@ export function FAQ() {
             <motion.div
               key={index}
               variants={itemVariants}
-              className="border border-[#e8e4df] rounded-xl overflow-hidden bg-[#faf9f7] shadow-sm shadow-[#e8e4df]/30 hover:border-blue-200 transition-all duration-300"
+              className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm shadow-slate-100 hover:border-blue-200 transition-all duration-300"
             >
               <button
                 onClick={() =>
                   setOpenIndex(openIndex === index ? -1 : index)
                 }
-                className="w-full px-6 py-4 flex items-center justify-between hover:bg-[#f5f0ea]/50 transition-colors duration-300"
+                className="w-full px-6 py-4 flex items-center justify-between hover:bg-blue-50/30 transition-colors duration-300"
               >
                 <span className="font-semibold text-slate-900 text-left">
                   {faq.question}
@@ -104,7 +104,7 @@ export function FAQ() {
                 transition={{ duration: 0.3 }}
                 className="overflow-hidden"
               >
-                <div className="px-6 py-4 border-t border-[#e8e4df] bg-[#f5f0ea]/30">
+                <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
                   <p className="text-slate-500 leading-relaxed">
                     {faq.answer}
                   </p>

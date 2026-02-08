@@ -52,9 +52,9 @@ export function UseCases() {
       className="py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-white relative overflow-hidden"
     >
       {/* Subtle decorative pigments */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-[#e8e4df]" />
-      <div className="absolute top-20 right-0 w-72 h-72 rounded-full bg-[#f5f0ea]/40 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-20 left-0 w-56 h-56 rounded-full bg-blue-50/30 blur-3xl pointer-events-none" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-slate-200" />
+      <div className="absolute top-20 right-0 w-72 h-72 rounded-full bg-blue-50/50 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-20 left-0 w-56 h-56 rounded-full bg-slate-100/60 blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
@@ -98,14 +98,14 @@ export function UseCases() {
                 <div
                   className={`relative h-full rounded-xl p-7 border transition-all duration-300 ${
                     hoveredIndex === index
-                      ? "border-blue-200 bg-white shadow-lg shadow-blue-100/40 -translate-y-1"
-                      : "border-[#e8e4df] bg-[#faf9f7] shadow-sm shadow-[#e8e4df]/30"
+                      ? "border-blue-200 bg-blue-50/40 shadow-lg shadow-blue-100/50 -translate-y-1"
+                      : "border-slate-200 bg-white shadow-sm shadow-slate-100"
                   }`}
                 >
                   {/* Top accent bar */}
                   <div
                     className={`absolute top-0 left-6 right-6 h-0.5 rounded-full transition-all duration-300 ${
-                      hoveredIndex === index ? "bg-blue-600" : "bg-[#e8e4df]"
+                      hoveredIndex === index ? "bg-blue-600" : "bg-slate-100"
                     }`}
                   />
 
@@ -114,7 +114,7 @@ export function UseCases() {
                     className={`w-12 h-12 rounded-lg flex items-center justify-center mb-5 transition-all duration-300 ${
                       hoveredIndex === index
                         ? "bg-blue-600 text-white scale-105"
-                        : "bg-[#f0ece7] text-blue-600"
+                        : "bg-blue-50 text-blue-600"
                     }`}
                   >
                     <Icon className="w-6 h-6" />
@@ -174,7 +174,7 @@ export function UseCases() {
             <motion.div
               key={idx}
               whileHover={{ scale: 1.02 }}
-              className="rounded-xl p-6 text-center bg-[#faf9f7] border border-[#e8e4df] shadow-sm shadow-[#e8e4df]/30 hover:border-blue-200 hover:bg-white transition-all duration-300"
+              className="rounded-xl p-6 text-center bg-slate-50 border border-slate-200 shadow-sm shadow-slate-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all duration-300"
             >
               <div className="text-2xl md:text-3xl font-bold text-blue-600 mb-1">
                 {item.stat}
