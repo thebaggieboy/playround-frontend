@@ -33,12 +33,12 @@ export function WhyMatters() {
     <section
       ref={ref}
       id="why"
-      className="relative overflow-hidden py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-slate-50"
+      className="relative overflow-hidden py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-[#faf9f7]"
     >
-      {/* Subtle decorative elements -- soft blue pigment washes */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-slate-200" />
-      <div className="absolute -top-32 -right-32 w-64 h-64 rounded-full bg-blue-100/40 blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-24 -left-24 w-48 h-48 rounded-full bg-blue-50/60 blur-3xl pointer-events-none" />
+      {/* Subtle decorative pigments */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-[#e8e4df]" />
+      <div className="absolute -top-32 -right-32 w-64 h-64 rounded-full bg-[#f0ece7]/50 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-24 -left-24 w-48 h-48 rounded-full bg-blue-50/40 blur-3xl pointer-events-none" />
 
       <div className="max-w-4xl mx-auto relative z-10">
         {/* Header */}
@@ -64,7 +64,7 @@ export function WhyMatters() {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="bg-white rounded-2xl p-8 md:p-10 border border-slate-200 shadow-sm shadow-slate-100"
+          className="bg-white rounded-2xl p-8 md:p-10 border border-[#e8e4df] shadow-sm shadow-[#e8e4df]/30"
         >
           <p className="text-base md:text-lg text-slate-500 mb-8 leading-relaxed">
             Our goal is to empower finance teams with flexible tools to
@@ -89,7 +89,7 @@ export function WhyMatters() {
                 onMouseLeave={() => setHoveredIndex(null)}
                 className={`flex items-start gap-3 p-3 rounded-lg transition-all duration-300 cursor-pointer ${
                   hoveredIndex === index
-                    ? "bg-blue-50/80 translate-x-1"
+                    ? "bg-[#f5f0ea] translate-x-1"
                     : "bg-transparent"
                 }`}
               >

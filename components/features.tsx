@@ -73,12 +73,12 @@ export function Features() {
     <section
       ref={ref}
       id="features"
-      className="py-16 md:py-24 lg:py-32 px-4 sm:px-6 lg:px-8 bg-white relative overflow-hidden"
+      className="py-16 md:py-24 lg:py-32 px-4 sm:px-6 lg:px-8 bg-[#faf9f7] relative overflow-hidden"
     >
       {/* Subtle decorative pigments */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-slate-200" />
-      <div className="absolute -top-20 left-1/4 w-80 h-80 rounded-full bg-blue-50/40 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-32 -right-16 w-60 h-60 rounded-full bg-slate-100/50 blur-3xl pointer-events-none" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-[#e8e4df]" />
+      <div className="absolute -top-20 left-1/4 w-80 h-80 rounded-full bg-blue-50/30 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-32 -right-16 w-60 h-60 rounded-full bg-[#f0ece7]/50 blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Section header */}
@@ -120,14 +120,14 @@ export function Features() {
               <div
                 className={`relative rounded-xl p-6 border transition-all duration-200 h-full ${
                   hoveredFeature === index
-                    ? "border-blue-200 bg-blue-50/40 shadow-lg shadow-blue-100/50 -translate-y-1"
-                    : "border-slate-200 bg-white shadow-sm shadow-slate-100"
+                    ? "border-blue-200 bg-white shadow-lg shadow-blue-100/40 -translate-y-1"
+                    : "border-[#e8e4df] bg-white shadow-sm shadow-[#e8e4df]/50"
                 }`}
               >
                 {/* Top accent line */}
                 <div
                   className={`absolute top-0 left-6 right-6 h-0.5 rounded-full transition-colors duration-200 ${
-                    hoveredFeature === index ? "bg-blue-600" : "bg-slate-100"
+                    hoveredFeature === index ? "bg-blue-600" : "bg-[#e8e4df]"
                   }`}
                 />
 
@@ -143,7 +143,7 @@ export function Features() {
                   className={`w-10 h-10 rounded-lg flex items-center justify-center mb-4 transition-all duration-200 ${
                     hoveredFeature === index
                       ? "bg-blue-600 text-white scale-110"
-                      : "bg-slate-100 text-blue-600"
+                      : "bg-[#f0ece7] text-blue-600"
                   }`}
                 >
                   {feature.icon}

@@ -43,12 +43,12 @@ export function HeroWorkflow() {
   return (
     <section
       ref={ref}
-      className="py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-white relative overflow-hidden"
+      className="py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-[#faf9f7] relative overflow-hidden"
     >
       {/* Decorative pigments */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-slate-200" />
-      <div className="absolute top-32 right-0 w-64 h-64 rounded-full bg-blue-50/50 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-1/3 w-80 h-80 rounded-full bg-slate-100/50 blur-3xl pointer-events-none" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-[#e8e4df]" />
+      <div className="absolute top-32 right-0 w-64 h-64 rounded-full bg-blue-50/30 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-1/3 w-80 h-80 rounded-full bg-[#f0ece7]/50 blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
@@ -81,10 +81,10 @@ export function HeroWorkflow() {
             >
               {/* Connector line */}
               {index < steps.length - 1 && (
-                <div className="hidden lg:block absolute top-5 -right-3 w-6 h-px bg-slate-200" />
+                <div className="hidden lg:block absolute top-5 -right-3 w-6 h-px bg-[#e8e4df]" />
               )}
 
-              <div className="space-y-4 p-6 rounded-xl bg-white border border-slate-200 shadow-sm shadow-slate-100 hover:shadow-md hover:border-blue-200 hover:-translate-y-1 transition-all duration-300">
+              <div className="space-y-4 p-6 rounded-xl bg-white border border-[#e8e4df] shadow-sm shadow-[#e8e4df]/30 hover:shadow-md hover:border-blue-200 hover:-translate-y-1 transition-all duration-300">
                 {/* Step number */}
                 <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-lg group-hover:scale-105 transition-transform duration-300">
                   {step.number}

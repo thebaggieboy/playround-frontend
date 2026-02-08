@@ -59,12 +59,12 @@ export function Overview() {
     <section
       ref={ref}
       id="overview"
-      className="py-24 md:py-36 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-slate-50"
+      className="py-24 md:py-36 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-white"
     >
       {/* Subtle decorative pigments */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-slate-200" />
-      <div className="absolute top-16 -left-20 w-72 h-72 rounded-full bg-blue-50/50 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-24 right-0 w-64 h-64 rounded-full bg-slate-200/40 blur-3xl pointer-events-none" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-[#e8e4df]" />
+      <div className="absolute top-16 -left-20 w-72 h-72 rounded-full bg-[#f5f0ea]/60 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-24 right-0 w-64 h-64 rounded-full bg-blue-50/30 blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Section header */}
@@ -101,10 +101,10 @@ export function Overview() {
                 animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
                 transition={{ duration: 0.6, delay: index * 0.08 }}
                 whileHover={{ y: -6 }}
-                className="group relative rounded-xl p-8 bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-200 hover:bg-blue-50/30 transition-all duration-300 cursor-pointer"
+                className="group relative rounded-xl p-8 bg-[#faf9f7] border border-[#e8e4df] shadow-sm shadow-[#e8e4df]/30 hover:shadow-md hover:border-blue-200 hover:bg-white transition-all duration-300 cursor-pointer"
               >
                 {/* Icon */}
-                <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-6 bg-blue-50 text-blue-600 group-hover:bg-blue-100 transition-colors duration-300">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-6 bg-[#f0ece7] text-blue-600 group-hover:bg-blue-50 transition-colors duration-300">
                   <Icon className="w-6 h-6" />
                 </div>
 
@@ -119,7 +119,7 @@ export function Overview() {
                 </p>
 
                 {/* Bottom accent bar on hover */}
-                <div className="absolute bottom-0 left-0 h-0.5 w-0 group-hover:w-full bg-blue-600 transition-all duration-500 rounded-b-xl" />
+                <div className="absolute bottom-0 left-0 h-0.5 w-0 group-hover:w-full bg-blue-500 transition-all duration-500 rounded-b-xl" />
               </motion.div>
             )
           })}
@@ -138,7 +138,7 @@ export function Overview() {
               <motion.div
                 key={index}
                 whileHover={{ scale: 1.03 }}
-                className="rounded-xl p-6 text-center bg-slate-50 border border-slate-200 hover:border-blue-200 hover:bg-blue-50/40 transition-all duration-300"
+                className="rounded-xl p-6 text-center bg-[#faf9f7] border border-[#e8e4df] hover:border-blue-200 hover:bg-white transition-all duration-300"
               >
                 <Icon className="w-5 h-5 mx-auto mb-3 text-blue-500" />
                 <div className="text-2xl font-bold text-slate-900 mb-1">
