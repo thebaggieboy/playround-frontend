@@ -44,8 +44,12 @@ export function FAQ() {
   const [openIndex, setOpenIndex] = useState(0)
 
   return (
-    <section className="py-16 lg:py-24 px-4 sm:px-6 lg:px-8 bg-background">
-      <div className="max-w-3xl mx-auto">
+    <section className="py-16 lg:py-24 px-4 sm:px-6 lg:px-8 bg-slate-50 relative overflow-hidden">
+      {/* Decorative pigments */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-slate-200" />
+      <div className="absolute -top-16 right-1/4 w-64 h-64 rounded-full bg-blue-50/40 blur-3xl pointer-events-none" />
+
+      <div className="max-w-3xl mx-auto relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -53,8 +57,12 @@ export function FAQ() {
           viewport={{ once: true }}
           className="text-center mb-12 lg:mb-16"
         >
-          <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">Frequently Asked Questions</h2>
-          <p className="text-lg text-muted-foreground">Find answers to common questions about Playground</p>
+          <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
+            Frequently Asked Questions
+          </h2>
+          <p className="text-lg text-slate-500">
+            Find answers to common questions about Playground
+          </p>
         </motion.div>
 
         <motion.div
@@ -68,15 +76,22 @@ export function FAQ() {
             <motion.div
               key={index}
               variants={itemVariants}
-              className="border border-border rounded-lg overflow-hidden bg-card hover:border-primary/50 transition-colors"
+              className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm shadow-slate-100 hover:border-blue-200 transition-all duration-300"
             >
               <button
-                onClick={() => setOpenIndex(openIndex === index ? -1 : index)}
-                className="w-full px-6 py-4 flex items-center justify-between hover:bg-secondary/50 transition-colors"
+                onClick={() =>
+                  setOpenIndex(openIndex === index ? -1 : index)
+                }
+                className="w-full px-6 py-4 flex items-center justify-between hover:bg-blue-50/30 transition-colors duration-300"
               >
-                <span className="font-semibold text-foreground text-left">{faq.question}</span>
-                <motion.div animate={{ rotate: openIndex === index ? 180 : 0 }} transition={{ duration: 0.3 }}>
-                  <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                <span className="font-semibold text-slate-900 text-left">
+                  {faq.question}
+                </span>
+                <motion.div
+                  animate={{ rotate: openIndex === index ? 180 : 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <ChevronDown className="w-5 h-5 text-slate-400" />
                 </motion.div>
               </button>
 
@@ -89,8 +104,10 @@ export function FAQ() {
                 transition={{ duration: 0.3 }}
                 className="overflow-hidden"
               >
-                <div className="px-6 py-4 border-t border-border bg-secondary/30">
-                  <p className="text-muted-foreground">{faq.answer}</p>
+                <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+                  <p className="text-slate-500 leading-relaxed">
+                    {faq.answer}
+                  </p>
                 </div>
               </motion.div>
             </motion.div>

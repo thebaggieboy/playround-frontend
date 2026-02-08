@@ -9,22 +9,22 @@ import { Pricing } from "@/components/pricing"
 import { FAQ } from "@/components/faq"
 import { CTA } from "@/components/cta"
 import { Footer } from "@/components/footer"
-import {HeroMain} from "@/components/HeroMain"
+import { HeroMain } from "@/components/HeroMain"
 import { HeroWorkflow } from "@/components/hero-workflow"
 import { HeroFeatures } from "@/components/hero-features"
 export default function Home() {
   return (
-    <main className="min-h-screen bg-background" style={{fontFamily:"Poppins, Sans-serif", lineHeight:1}}>
-    
+    <main className="min-h-screen bg-background font-sans">
+
       <Hero />
-      <Overview />
+
       <WhyMatters />
       <UseCases />
-      <Features />
-      <HeroMain/>
-      <HeroWorkflow/>
-    
-     
+
+      <HeroMain />
+      <HeroWorkflow />
+
+
       <FAQ />
       <CTA />
       <Footer />
