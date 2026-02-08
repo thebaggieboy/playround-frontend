@@ -11,7 +11,6 @@ import {
   TrendingUp,
   Zap,
   Share2,
-  CheckCircle2,
   Sparkles,
   ArrowRight,
 } from "lucide-react"
@@ -76,9 +75,6 @@ export function Features() {
       id="features"
       className="py-16 md:py-24 lg:py-32 px-4 sm:px-6 lg:px-8 bg-white relative"
     >
-      {/* Top separator */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-slate-200" />
-
       <div className="max-w-7xl mx-auto">
         {/* Section header */}
         <motion.div
@@ -119,20 +115,20 @@ export function Features() {
               <div
                 className={`relative rounded-xl p-6 border transition-all duration-200 h-full ${
                   hoveredFeature === index
-                    ? "border-blue-300 bg-blue-50/50 shadow-lg shadow-blue-100/50 -translate-y-1"
-                    : "border-slate-200 bg-slate-50 shadow-sm"
+                    ? "border-blue-300 bg-blue-50/60 shadow-lg shadow-blue-100/60 -translate-y-1"
+                    : "border-slate-200 bg-white shadow-sm"
                 }`}
               >
-                {/* Top accent bar */}
+                {/* Top accent line */}
                 <div
                   className={`absolute top-0 left-6 right-6 h-0.5 rounded-full transition-colors duration-200 ${
-                    hoveredFeature === index ? "bg-blue-600" : "bg-slate-200"
+                    hoveredFeature === index ? "bg-blue-600" : "bg-slate-100"
                   }`}
                 />
 
                 {/* Badge */}
                 <div className="mb-4">
-                  <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-100 text-blue-700">
+                  <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
                     {feature.badge}
                   </span>
                 </div>
@@ -142,7 +138,7 @@ export function Features() {
                   className={`w-10 h-10 rounded-lg flex items-center justify-center mb-4 transition-all duration-200 ${
                     hoveredFeature === index
                       ? "bg-blue-600 text-white scale-110"
-                      : "bg-blue-100 text-blue-600"
+                      : "bg-slate-100 text-blue-600"
                   }`}
                 >
                   {feature.icon}
@@ -160,14 +156,14 @@ export function Features() {
           ))}
         </div>
 
-        {/* Coming Soon section */}
+        {/* Coming Soon section -- dark navy panel for contrast */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <div className="relative rounded-xl p-8 md:p-10 lg:p-12 border border-slate-200 bg-[#0f1b3d]">
-            {/* Top accent */}
+          <div className="relative rounded-xl p-8 md:p-10 lg:p-12 bg-[#0f1b3d] border border-[#1d3a6e]">
+            {/* Top left accent bar */}
             <div className="absolute top-0 left-0 w-24 h-1 rounded-tr-full bg-blue-500" />
 
             <div className="flex items-center gap-3 mb-8">
