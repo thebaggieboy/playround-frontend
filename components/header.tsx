@@ -58,8 +58,8 @@ const dispatch = useDispatch();
 
   return (
     <header
-      style={{ fontFamily: "Poppins, Sans-serif", lineHeight: 1, background:"linear-gradient(to right bottom, rgb(26, 38, 84), rgb(26, 38, 84))" }}
-      className="sticky top-0 z-50  text-xs  supports-[backdrop-filter]:bg-background/60 border-b border-border/50 transition-smooth"
+      style={{ fontFamily: "Poppins, Sans-serif", lineHeight: 1 }}
+      className="sticky top-0 z-50 text-xs bg-[#0f1b3d] border-b border-[#1d3a6e] transition-smooth"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
         {/* Logo */}
@@ -113,7 +113,7 @@ const dispatch = useDispatch();
        {user == null ?    <Link href="/demo">
             <Button
                
-              className="hidden sm:inline-flex  bg-gradient-to-r from-blue-600 to-indigo-600  text-sm border-primary/20 hover:bg-primary/5"
+              className="hidden sm:inline-flex bg-blue-600 hover:bg-blue-700 text-white text-sm transition-colors duration-200"
             >
               Request Demo
             </Button>

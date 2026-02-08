@@ -20,6 +20,7 @@ export default function Home() {
       <Overview />
       <WhyMatters />
       <UseCases />
+      <Features />
       <HeroMain/>
       <HeroWorkflow/>
     
