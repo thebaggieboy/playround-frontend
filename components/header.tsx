@@ -147,9 +147,7 @@ const dispatch = useDispatch();
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-         {/* { <a href="/about" className="text-foreground/70  text-white hover:text-primary text-sm transition-smooth font-medium">
-            About
-          </a>} */}
+      
         </nav>
 
         {/* Action Buttons */}
@@ -163,11 +161,11 @@ const dispatch = useDispatch();
             </Button>
           </Link> : ""}
 
-           {user !== null ?   <Link href="/onboard">
+           {user !== null ?   <Link href="/dashboard">
             <Button className="bg-white  hover:bg-accent text-black-foreground rounded-full px-4 sm:px-6 py-2 transition-smooth-lg hover:shadow-lg hover:shadow-primary/20 text-sm sm:text-base">
               Dashsboard
             </Button>
-          </Link> :   <Link href="/onboard">
+          </Link> :   <Link href="/signup">
             <Button className="bg-white  hover:bg-accent text-black-foreground rounded-full px-4 sm:px-6 py-2 transition-smooth-lg hover:shadow-lg hover:shadow-primary/20 text-sm sm:text-base">
               Get Started
             </Button>

@@ -50,13 +50,11 @@ export function WhyMatters() {
         >
           <div className="inline-flex items-center gap-2 mb-5 px-4 py-2 rounded-full bg-blue-50 border border-blue-100">
             <Target className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-medium text-blue-600">
+            <span className="text-lg font-medium text-blue-600">
               Why It Matters
             </span>
           </div>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 text-balance">
-            Why Financial Modeling Matters
-          </h2>
+         
         </motion.div>
 
         {/* Card */}

@@ -29,6 +29,8 @@ import {
   BarChart3,
   Plus,
   X,
+  Loader2,      // ← ADD THIS LINE
+  CheckCircle,
 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -75,6 +77,7 @@ interface FormData {
   maximumPlantAvailability: number
   availabilityDuringTam: number
   commissioningAvailability: number
+  factoryCapacityMultiplier:number
   
   // Macro Assumptions
   reportingCurrency: string
@@ -152,6 +155,18 @@ interface FormData {
   terminalGrowthRatePct: number
   discountRateNpvPct: number
   targetIrrPct: number
+  constructionEndDate: string           // ← ADD
+  modelTolerance: number                // ← ADD
+  longtermTargetInflation: number       // ← ADD
+  revenueOpexEscalationUsd: number      // ← ADD
+  contingencyBuffer: number             // ← ADD
+  waterGasUtilitiesAnnual: number       // ← ADD
+  administrativeExpensesAnnual: number  // ← ADD
+  rentFacilitiesAnnual: number          // ← ADD
+  technologySoftwareAnnual: number      // ← ADD
+  professionalFeesAnnual: number        // ← ADD
+  payablesDaysDpo2: number              // ← ADD (for working capital)
+  minimumCashBalance: number 
 }
 
 
@@ -194,7 +209,7 @@ export default function InputModelPage() {
     maximumPlantAvailability: 90,
     availabilityDuringTam: 80,
     commissioningAvailability: 60,
-    
+    factoryCapacityMultiplier:0,
     // Macro Assumptions
     reportingCurrency: "USD ($)",
     exchangeRate: 1470,
@@ -270,6 +285,19 @@ export default function InputModelPage() {
     terminalGrowthRatePct: 3.0,
     discountRateNpvPct: 12.5,
     targetIrrPct: 18.0,
+      // ADD THESE:
+  constructionEndDate: "2029-07-01",
+  modelTolerance: 0.001,
+  longtermTargetInflation: 9.0,
+  revenueOpexEscalationUsd: 2.5,
+  contingencyBuffer: 4.0,
+  waterGasUtilitiesAnnual: 100000,
+  administrativeExpensesAnnual: 150000,
+  rentFacilitiesAnnual: 120000,
+  technologySoftwareAnnual: 50000,
+  professionalFeesAnnual: 75000,
+  payablesDaysDpo2: 30,
+  minimumCashBalance: 1000000,
   })
   console.log("FormData: ", formData)
   // Calculate completion percentage based on filled fields
@@ -846,7 +874,7 @@ export default function InputModelPage() {
 
           <div className="flex items-center gap-3">
             {/* Quick Actions */}
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button  variant="outline" size="sm" className="gap-2">
               <Upload className="w-4 h-4" />
               Import
             </Button>
@@ -876,10 +904,30 @@ export default function InputModelPage() {
           </div>
         </div>
 
-        {/* Progress Indicator */}
-        <div className="mt-4">
-         
-        </div>
+       {/* Progress Indicator */}
+<div className="mt-4 flex items-center gap-4">
+  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+    <BarChart3 className="w-4 h-4" />
+    <span>Completion: {completionPercentage}%</span>
+  </div>
+  {lastSaved && (
+    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <CheckCircle className="w-4 h-4 text-green-600" />
+      <span>Last saved: {lastSaved.toLocaleTimeString()}</span>
+    </div>
+  )}
+  {(isGenerating || isSavingDraft || isSavingTemplate || isExporting) && (
+    <div className="flex items-center gap-2 text-sm text-blue-600">
+      <Loader2 className="w-4 h-4 animate-spin" />
+      <span>
+        {isGenerating && "Generating model..."}
+        {isSavingDraft && "Saving..."}
+        {isSavingTemplate && "Saving template..."}
+        {isExporting && "Exporting..."}
+      </span>
+    </div>
+  )}
+</div>
       </header>
 
       {/* Tab Navigation */}
@@ -938,45 +986,153 @@ export default function InputModelPage() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
-              {activeTab === "project" && <ProjectForm detailMode={detailMode} onProjectTypeChange={setProjectType} />}
-              {activeTab === "macro" && <MacroForm detailMode={detailMode} />}
-              {activeTab === "revenue" && <RevenueForm detailMode={detailMode} projectType={projectType} />}
-              {activeTab === "opex" && <OpexForm detailMode={detailMode} projectType={projectType} />}
-              {activeTab === "capex" && <CapexForm detailMode={detailMode} projectType={projectType} />}
-              {activeTab === "debt" && <DebtForm detailMode={detailMode} />}
-              {activeTab === "tax" && <TaxForm detailMode={detailMode} />}
-              {activeTab === "working-capital" && <WorkingCapitalForm detailMode={detailMode} />}
-              {activeTab === "depreciation" && <DepreciationForm detailMode={detailMode} />}
-              {activeTab === "dividend" && <DividendForm detailMode={detailMode} />}
-              {activeTab === "valuation" && <ValuationForm detailMode={detailMode} />}
+         {activeTab === "project" && (
+  <ProjectForm 
+    formData={formData}
+    updateFormData={updateFormData}
+    detailMode={detailMode} 
+    onProjectTypeChange={setProjectType} 
+  />
+)}
+{activeTab === "macro" && (
+  <MacroForm 
+    formData={formData}
+    updateFormData={updateFormData}
+    detailMode={detailMode} 
+  />
+)}
+{activeTab === "revenue" && (
+  <RevenueForm 
+    formData={formData}
+    updateFormData={updateFormData}
+    updateRevenueProduct={updateRevenueProduct}
+    addRevenueProduct={addRevenueProduct}
+    removeRevenueProduct={removeRevenueProduct}
+    detailMode={detailMode} 
+    projectType={projectType} 
+  />
+)}
+{activeTab === "opex" && (
+  <OpexForm 
+    formData={formData}
+    updateFormData={updateFormData}
+    detailMode={detailMode} 
+    projectType={projectType} 
+  />
+)}
+{activeTab === "capex" && (
+  <CapexForm 
+    formData={formData}
+    updateFormData={updateFormData}
+    detailMode={detailMode} 
+    projectType={projectType} 
+  />
+)}
+{activeTab === "debt" && (
+  <DebtForm 
+    formData={formData}
+    updateFormData={updateFormData}
+    detailMode={detailMode} 
+  />
+)}
+{activeTab === "tax" && (
+  <TaxForm 
+    formData={formData}
+    updateFormData={updateFormData}
+    detailMode={detailMode} 
+  />
+)}
+{activeTab === "working-capital" && (
+  <WorkingCapitalForm 
+    formData={formData}
+    updateFormData={updateFormData}
+    detailMode={detailMode} 
+  />
+)}
+{activeTab === "depreciation" && (
+  <DepreciationForm 
+    formData={formData}
+    updateFormData={updateFormData}
+    detailMode={detailMode} 
+  />
+)}
+{activeTab === "dividend" && (
+  <DividendForm 
+    formData={formData}
+    updateFormData={updateFormData}
+    detailMode={detailMode} 
+  />
+)}
+{activeTab === "valuation" && (
+  <ValuationForm 
+    formData={formData}
+    updateFormData={updateFormData}
+    detailMode={detailMode} 
+  />
+)}
             </motion.div>
           </AnimatePresence>
 
-          {/* Action Buttons */}
-          <Card className="p-6">
-            <div className="flex flex-col sm:flex-row gap-3 justify-between">
-              <div className="flex gap-3">
-                <Button variant="outline" className="gap-2 bg-transparent">
-                  <Download className="w-4 h-4" />
-                  Export to Excel
-                </Button>
-                <Button variant="outline" className="gap-2 bg-transparent">
-                  <Copy className="w-4 h-4" />
-                  Save as Template
-                </Button>
-              </div>
-              <div className="flex gap-3">
-                <Button variant="outline" className="gap-2 bg-transparent">
-                  <Save className="w-4 h-4" />
-                  Save Draft
-                </Button>
-                <Button className="gap-2">
-                  <Play className="w-4 h-4" />
-                  Generate Model
-                </Button>
-              </div>
-            </div>
-          </Card>
+       {/* Action Buttons */}
+<Card className="p-6">
+  <div className="flex flex-col sm:flex-row gap-3 justify-between">
+    <div className="flex gap-3">
+      <Button 
+        variant="outline" 
+        className="gap-2"
+        onClick={handleExportExcel}
+        disabled={isExporting || !modelId}
+      >
+        {isExporting ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <Download className="w-4 h-4" />
+        )}
+        Export to Excel
+      </Button>
+      <Button 
+        variant="outline" 
+        className="gap-2"
+        onClick={handleSaveAsTemplate}
+        disabled={isSavingTemplate || !modelId}
+      >
+        {isSavingTemplate ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <Copy className="w-4 h-4" />
+        )}
+        Save as Template
+      </Button>
+    </div>
+    <div className="flex gap-3">
+      <Button 
+        variant="outline" 
+        className="gap-2"
+        onClick={handleSaveDraft}
+        disabled={isSavingDraft}
+      >
+        {isSavingDraft ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <Save className="w-4 h-4" />
+        )}
+        Save Draft
+      </Button>
+      <Button 
+        className="gap-2"
+        onClick={handleGenerateModel}
+        disabled={isGenerating}
+      >
+        {isGenerating ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <Play className="w-4 h-4" />
+        )}
+        Generate Model
+      </Button>
+    </div>
+  </div>
+</Card>
         </div>
       </div>
     </div>
@@ -1007,14 +1163,15 @@ function ProjectForm({
         label="Project Name" 
         type="text" 
         name="projectName" 
-       
+        value={formData?.projectName}
         onChange={(value) => updateFormData('projectName', value)}  
         placeholder="e.g., Eghudu Refinery Project" />
 
-        <InputField label="Project Location" type="text" name="projectLocation" placeholder="e.g., Edo State, Nigeria" />
+        <InputField label="Project Location"  value={formData?.projectLocation} type="text"  onChange={(value) => updateFormData('projectLocation', value)}  placeholder="e.g., Edo State, Nigeria" />
         <InputField 
           label="Industry/Sector" 
           type="select" 
+          value={formData?.industrySector}
           options={["Manufacturing", "Real Estate", "Energy & Power", "Oil & Gas", "Healthcare", "Technology", "Agriculture", "Infrastructure", "Other"]} 
           defaultValue="Manufacturing" 
           onChange={(val) => {
@@ -1024,18 +1181,18 @@ function ProjectForm({
             else onProjectTypeChange("general")
           }}
         />
-        <InputField label="Project Type" type="select" options={["Greenfield", "Brownfield", "Expansion", "Acquisition", "Development"]}  onChange={(value) => updateFormData('projectType', value)}  defaultValue="Greenfield" />
+        <InputField label="Project Type"  value={formData?.projectType} type="select" options={["Greenfield", "Brownfield", "Expansion", "Acquisition", "Development"]}  onChange={(value) => updateFormData('projectType', value)}  defaultValue="Greenfield" />
       </div>
 
       <div className="pt-6 border-t border-border">
         <h4 className="text-sm font-semibold text-foreground mb-4">Project Timeline</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <InputField label="Project Commencement Date" type="date"   onChange={(value) => updateFormData('projectCommencementDate', value)}   defaultValue="2026-07-01" />
-          <InputField label="Construction Start Date" type="date"  onChange={(value) => updateFormData('constructionStartDate', value)}  defaultValue="2026-07-01" />
-          <InputField label="Construction Duration" type="number"  onChange={(value) => updateFormData('constructionDuration', value)}  suffix="months" defaultValue="36" tooltip="Total construction period in months" />
-          <InputField label="Construction End Date" type="date" onChange={(value) => updateFormData('constructionEndDate', value)} defaultValue="2029-07-01" calculated />
-          <InputField label="Operations Start Date" type="date"  onChange={(value) => updateFormData('operationsStartDate', value)} defaultValue="2029-07-01" />
-          <InputField label="Operations Duration" type="number" suffix="years" onChange={(value) => updateFormData('operationsDurationDate', value)} defaultValue="25" tooltip="Operational life of the project" />
+          <InputField label="Project Commencement Date" type="date"  value={formData?.projectCommencementDate}   onChange={(value) => updateFormData('projectCommencementDate', value)}   defaultValue="2026-07-01" />
+          <InputField label="Construction Start Date" type="date" value={formData?.constructionStartDate}   onChange={(value) => updateFormData('constructionStartDate', value)}  defaultValue="2026-07-01" />
+          <InputField label="Construction Duration" type="number" value={formData?.constructionDurationMonths}   onChange={(value) => updateFormData('constructionDuration', value)}  suffix="months" defaultValue="36" tooltip="Total construction period in months" />
+          <InputField label="Construction End Date" type="date" value={formData?.constructionEndDate}  onChange={(value) => updateFormData('constructionEndDate', value)} defaultValue="2029-07-01" calculated />
+          <InputField label="Operations Start Date" type="date" value={formData?.operationsStartDate}   onChange={(value) => updateFormData('operationsStartDate', value)} defaultValue="2029-07-01" />
+          <InputField label="Operations Duration" type="number" value={formData?.operationsDurationYears}  suffix="years" onChange={(value) => updateFormData('operationsDurationDate', value)} defaultValue="25" tooltip="Operational life of the project" />
         </div>
       </div>
 
@@ -1051,12 +1208,14 @@ function ProjectForm({
               label="Total Plant/Factory Capacity" 
               type="number" 
               defaultValue="100000" 
+              value={formData?.totalCapacity} 
               tooltip="Maximum production capacity" 
               onChange={(value) => updateFormData('totalCapacity', value)}
             />
             <InputField 
               label="Capacity Unit" 
               type="select" 
+              value={formData?.capacityUnit} 
               options={["bpd (barrels per day)", "tons/day", "MW (Megawatts)", "units/month", "sq.ft", "sq.m", "kg/day", "liters/day", "other"]} 
               defaultValue="bpd (barrels per day)" 
               onChange={(value) => updateFormData('capacityUnit', value)}
@@ -1066,6 +1225,7 @@ function ProjectForm({
               type="number" 
               suffix="%" 
               defaultValue="90" 
+              value={formData?.maximumPlantAvailability} 
               tooltip="Normal operating availability %" 
               onChange={(value) => updateFormData('maximumPlantAvailability', value)}
             />
@@ -1074,6 +1234,7 @@ function ProjectForm({
               type="number" 
               suffix="%" 
               defaultValue="80" 
+              value={formData?.availabilityDuringTam} 
               tooltip="Turn Around Maintenance year availability" 
               onChange={(value) => updateFormData('availabilityDuringTam', value)}
             />
@@ -1082,6 +1243,7 @@ function ProjectForm({
               type="number" 
               suffix="%" 
               defaultValue="60" 
+              value={formData?.commissioningAvailability} 
               tooltip="Availability during ramp-up period"
               onChange={(value) => updateFormData('commissioningAvailability', value)}
             />
@@ -1089,6 +1251,7 @@ function ProjectForm({
               label="Factory Capacity Multiplier" 
               type="number" 
               defaultValue="0.25" 
+          
               tooltip="Capacity adjustment factor" 
             />
           </div>
@@ -1139,7 +1302,8 @@ function MacroForm({
           label="Reporting Currency" 
           type="select" 
           options={["USD ($)", "NGN (₦)", "EUR (€)", "GBP (£)", "JPY (¥)"]} 
-          defaultValue="USD ($)" 
+          defaultValue="USD ($)"
+          value={formData?.reportingCurrency}  
           onChange={(value) => updateFormData('reportingCurrency', value)}
           
         />
@@ -1147,19 +1311,21 @@ function MacroForm({
           label="Exchange Rate (Local/USD)" 
           type="number" 
           defaultValue="1470" 
+          value={formData?.exchangeRate} 
           tooltip="Local currency units per 1 USD" 
           onChange={(value) => updateFormData('exchangeRate', value)}
         />
-        <InputField label="Base Year" type="number" defaultValue="2025" onChange={(value) => updateFormData('baseYear', value)} />
+        <InputField label="Base Year" type="number" value={formData?.baseYear}  defaultValue="2025" onChange={(value) => updateFormData('baseYear', value)} />
         <InputField 
           label="Periodicity" 
           type="select" 
           options={["Monthly", "Quarterly", "Semi-Annually", "Annually"]} 
           defaultValue="Annually" 
+          value={formData?.periodicity} 
           onChange={(value) => updateFormData('periodicity', value)}
         />
-        <InputField label="Number of Years in Model" type="number" onChange={(value) => updateFormData('numberOfYears', value)} defaultValue="28" tooltip="Total model duration" />
-        <InputField label="Model Tolerance" type="number" defaultValue="0.001" onChange={(value) => updateFormData('modelTolerance', value)} tooltip="Calculation rounding tolerance" />
+        <InputField label="Number of Years in Model" type="number" value={formData?.numberOfYears}  onChange={(value) => updateFormData('numberOfYears', value)} defaultValue="28" tooltip="Total model duration" />
+        <InputField label="Model Tolerance" type="number" defaultValue="0.001" value={formData?.modelTolerance}  onChange={(value) => updateFormData('modelTolerance', value)} tooltip="Calculation rounding tolerance" />
       </div>
 
       <div className="pt-6 border-t border-border">
@@ -1170,6 +1336,7 @@ function MacroForm({
             type="number" 
             suffix="%" 
             defaultValue="15.0" 
+            value={formData?.localInflationRate} 
             tooltip="Current local inflation rate" 
             onChange={(value) => updateFormData('localInflationRate', value)}
           />
@@ -1178,6 +1345,7 @@ function MacroForm({
             type="number" 
             suffix="%" 
             defaultValue="2.5" 
+            value={formData?.foreignInflationRate} 
             tooltip="Expected foreign inflation rate" 
             onChange={(value) => updateFormData('foreignInflationRate', value)}
           />
@@ -1211,6 +1379,7 @@ function MacroForm({
               type="number" 
               suffix="%" 
               defaultValue="12.5" 
+              value={formData?.discountRateWacc} 
               tooltip="Weighted Average Cost of Capital for NPV" 
                onChange={(value) => updateFormData('discountRateWacc', value)}
             />
@@ -1219,6 +1388,7 @@ function MacroForm({
               type="number" 
               suffix="%" 
               defaultValue="4.5" 
+              value={formData?.riskFreeRate} 
               tooltip="Government bond rate (e.g., US Treasury)" 
                onChange={(value) => updateFormData('riskFreeRate', value)}
             />
@@ -1227,6 +1397,7 @@ function MacroForm({
               type="select" 
               options={["SOFR", "MPR (Monetary Policy Rate)", "LIBOR", "Prime Rate", "Other"]} 
               defaultValue="SOFR" 
+              value={formData?.benchmarkRateType} 
                onChange={(value) => updateFormData('benchmarkRate', value)}
             />
             <InputField 
@@ -1235,6 +1406,7 @@ function MacroForm({
               suffix="%" 
               defaultValue="5.0" 
               tooltip="Current benchmark rate value" 
+              value={formData?.benchmarkRateValue} 
                onChange={(value) => updateFormData('benchMarkRateValue', value)}
             />
             <InputField 
@@ -1243,6 +1415,7 @@ function MacroForm({
               suffix="%" 
               defaultValue="3.0" 
               tooltip="Perpetual growth rate for terminal value" 
+              value={formData?.terminalGrowthRate} 
                onChange={(value) => updateFormData('terminalGrowthRate', value)}
             />
             <InputField 
@@ -1251,6 +1424,7 @@ function MacroForm({
               suffix="%" 
               defaultValue="4.0" 
               tooltip="General contingency percentage" 
+              value={formData?.contingencyBuffer} 
                onChange={(value) => updateFormData('contingencyBuffer', value)}
             />
           </div>
@@ -1339,6 +1513,7 @@ function RevenueForm({
             <InputField 
               label={projectType === "real-estate" ? "Building/Unit Type" : "Product/Service Name"} 
               type="text" 
+              
               onChange={(value) => updateRevenueProduct(idx, 'productName', value)}
               placeholder={
                 projectType === "real-estate" ? "e.g., 4-Bedroom Apartment" :
@@ -1453,11 +1628,21 @@ function RevenueForm({
 
 // OPERATING EXPENSES FORM (project-type aware)
 function OpexForm({ 
-  detailMode,
-  projectType
+  formData, 
+  updateFormData,
+  updateRevenueProduct,
+  addRevenueProduct,
+  removeRevenueProduct,
+  projectType,
+  detailMode 
 }: { 
-  detailMode: boolean
-  projectType: "manufacturing" | "real-estate" | "energy" | "general"
+  formData: FormData
+  updateFormData: (field: string, value: any) => void
+  updateRevenueProduct: (index: number, field: string, value: any) => void
+  addRevenueProduct: () => void
+  removeRevenueProduct: (index: number) => void
+  projectType:  "manufacturing" | "real-estate" | "energy" | "general"
+  detailMode: boolean 
 }) {
   return (
     <Card className="p-6 space-y-6">
@@ -1672,11 +1857,21 @@ function OpexForm({
 
 // CAPITAL EXPENDITURE FORM (project-type aware)
 function CapexForm({ 
-  detailMode,
-  projectType
+  formData, 
+  updateFormData,
+  updateRevenueProduct,
+  addRevenueProduct,
+  removeRevenueProduct,
+  projectType,
+  detailMode 
 }: { 
-  detailMode: boolean
-  projectType: "manufacturing" | "real-estate" | "energy" | "general"
+  formData: FormData
+  updateFormData: (field: string, value: any) => void
+  updateRevenueProduct: (index: number, field: string, value: any) => void
+  addRevenueProduct: () => void
+  removeRevenueProduct: (index: number) => void
+  projectType:  "manufacturing" | "real-estate" | "energy" | "general"
+  detailMode: boolean 
 }) {
   return (
     <Card className="p-6 space-y-6">
@@ -1849,7 +2044,23 @@ function CapexForm({
 }
 
 // DEBT & FINANCING FORM
-function DebtForm({ detailMode }: { detailMode: boolean }) {
+function DebtForm({ 
+  formData, 
+  updateFormData,
+  updateRevenueProduct,
+  addRevenueProduct,
+  removeRevenueProduct,
+  projectType,
+  detailMode 
+}: { 
+  formData: FormData
+  updateFormData: (field: string, value: any) => void
+  updateRevenueProduct: (index: number, field: string, value: any) => void
+  addRevenueProduct: () => void
+  removeRevenueProduct: (index: number) => void
+  projectType:  "manufacturing" | "real-estate" | "energy" | "general"
+  detailMode: boolean 
+}) {
   return (
     <Card className="p-6 space-y-6">
       <div>
@@ -2030,7 +2241,23 @@ function DebtForm({ detailMode }: { detailMode: boolean }) {
 }
 
 // TAX ASSUMPTIONS FORM
-function TaxForm({ detailMode }: { detailMode: boolean }) {
+function TaxForm({ 
+  formData, 
+  updateFormData,
+  updateRevenueProduct,
+  addRevenueProduct,
+  removeRevenueProduct,
+  projectType,
+  detailMode 
+}: { 
+  formData: FormData
+  updateFormData: (field: string, value: any) => void
+  updateRevenueProduct: (index: number, field: string, value: any) => void
+  addRevenueProduct: () => void
+  removeRevenueProduct: (index: number) => void
+  projectType:  "manufacturing" | "real-estate" | "energy" | "general"
+  detailMode: boolean 
+}){
   return (
     <Card className="p-6 space-y-6">
       <div>
@@ -2148,7 +2375,23 @@ function TaxForm({ detailMode }: { detailMode: boolean }) {
 }
 
 // WORKING CAPITAL FORM
-function WorkingCapitalForm({ detailMode }: { detailMode: boolean }) {
+function WorkingCapitalForm({ 
+  formData, 
+  updateFormData,
+  updateRevenueProduct,
+  addRevenueProduct,
+  removeRevenueProduct,
+  projectType,
+  detailMode 
+}: { 
+  formData: FormData
+  updateFormData: (field: string, value: any) => void
+  updateRevenueProduct: (index: number, field: string, value: any) => void
+  addRevenueProduct: () => void
+  removeRevenueProduct: (index: number) => void
+  projectType:  "manufacturing" | "real-estate" | "energy" | "general"
+  detailMode: boolean 
+}) {
   return (
     <Card className="p-6 space-y-6">
       <div>
@@ -2238,7 +2481,23 @@ function WorkingCapitalForm({ detailMode }: { detailMode: boolean }) {
 }
 
 // DEPRECIATION FORM
-function DepreciationForm({ detailMode }: { detailMode: boolean }) {
+function DepreciationForm({ 
+  formData, 
+  updateFormData,
+  updateRevenueProduct,
+  addRevenueProduct,
+  removeRevenueProduct,
+  projectType,
+  detailMode 
+}: { 
+  formData: FormData
+  updateFormData: (field: string, value: any) => void
+  updateRevenueProduct: (index: number, field: string, value: any) => void
+  addRevenueProduct: () => void
+  removeRevenueProduct: (index: number) => void
+  projectType:  "manufacturing" | "real-estate" | "energy" | "general"
+  detailMode: boolean 
+}) {
   return (
     <Card className="p-6 space-y-6">
       <div>
@@ -2323,7 +2582,23 @@ function DepreciationForm({ detailMode }: { detailMode: boolean }) {
 }
 
 // DIVIDEND FORM
-function DividendForm({ detailMode }: { detailMode: boolean }) {
+function DividendForm({ 
+  formData, 
+  updateFormData,
+  updateRevenueProduct,
+  addRevenueProduct,
+  removeRevenueProduct,
+  projectType,
+  detailMode 
+}: { 
+  formData: FormData
+  updateFormData: (field: string, value: any) => void
+  updateRevenueProduct: (index: number, field: string, value: any) => void
+  addRevenueProduct: () => void
+  removeRevenueProduct: (index: number) => void
+  projectType:  "manufacturing" | "real-estate" | "energy" | "general"
+  detailMode: boolean 
+}) {
   return (
     <Card className="p-6 space-y-6">
       <div>
@@ -2408,7 +2683,23 @@ function DividendForm({ detailMode }: { detailMode: boolean }) {
 }
 
 // EXIT & VALUATION FORM
-function ValuationForm({ detailMode }: { detailMode: boolean }) {
+function ValuationForm({ 
+  formData, 
+  updateFormData,
+  updateRevenueProduct,
+  addRevenueProduct,
+  removeRevenueProduct,
+  projectType,
+  detailMode 
+}: { 
+  formData: FormData
+  updateFormData: (field: string, value: any) => void
+  updateRevenueProduct: (index: number, field: string, value: any) => void
+  addRevenueProduct: () => void
+  removeRevenueProduct: (index: number) => void
+  projectType:  "manufacturing" | "real-estate" | "energy" | "general"
+  detailMode: boolean 
+}){
   return (
     <Card className="p-6 space-y-6">
       <div>

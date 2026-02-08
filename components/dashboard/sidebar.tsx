@@ -9,7 +9,7 @@ import { usePathname } from "next/navigation"
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
  
-  { icon: PenSquare, label: "Input Model", href: "/dashboard/models/input" },
+  { icon: PenSquare, label: "Input Model", href: "/dashboard/models/input/advanced" },
   { icon: Layout, label: "Templates", href: "/dashboard/templates" },
   { icon: FileText, label: "Reports", href: "/dashboard/reports" },
   { icon: Settings, label: "Settings", href: "/dashboard/settings" },
@@ -56,7 +56,7 @@ export default function DashboardSidebar() {
         initial={{ x: 0 }}
         animate={{ x: 0 }}
         transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 30 }}
-        className={`${isOpen ? "fixed lg:static" : "fixed lg:static"} w-72 h-screen border-r border-border bg-white lg:bg-white flex flex-col z-40 overflow-y-auto ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
+        className={`${isOpen ? "fixed lg:static" : "fixed lg:static"} w-64 h-screen border-r border-border bg-white lg:bg-white flex flex-col z-40 overflow-y-auto ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
         {/* Logo Section */}
         <div className="p-6 border-b border-border sticky top-0 bg-white">
