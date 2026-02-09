@@ -53,7 +53,7 @@ export default function SignInPage() {
   const [spinner, setSpinner] = useState(false)	
 
   const { isIdle, isPending, error, mutateAsync: loginFn } = useLogin("https://playground-backend-1t0f.onrender.com/auth/jwt/create/", loginSuccess, USER_TYPES.user)
-  const resend = new Resend('re_eE1h4P5d_K5y3ArezBW8pDbXqLX22KWz5');
+  //const resend = new Resend('re_eE1h4P5d_K5y3ArezBW8pDbXqLX22KWz5');
 
 
   async function sendEmail() {
@@ -107,13 +107,7 @@ export default function SignInPage() {
 	}
 
  
-	async function loginEmail(){
-		dispatch(setUserEmail(formData?.email))
-		console.log("User Email: ", user_email)
-	
-	}
-	loginEmail()
-	
+ 
 	async function loginSuccess() {
     
         console.log("Successful Login")
@@ -130,8 +124,9 @@ export default function SignInPage() {
 		//
 		
 		try {
-			sendEmail()
+			//sendEmail()
 			setSpinner(true)
+      dispatch(setUserEmail(formData?.email))
 			await loginFn(formData)
 		
 			loginSuccess()
