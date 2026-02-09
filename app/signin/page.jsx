@@ -88,6 +88,12 @@ export default function SignInPage() {
      </div>
  
 
+ if (user !== null) {
+	 
+  router.push("/dashboard");
+  
+}
+
 	const [formData, setFormData] = useState({
 		email: "",
 		password: "",

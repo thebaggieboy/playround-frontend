@@ -58,7 +58,7 @@ const dispatch = useDispatch();
 
   function signUpSuccess() {
     
-    router.push("/onboard")
+    router.push("/signin")
   }
   const submit = async (e) => {
     
