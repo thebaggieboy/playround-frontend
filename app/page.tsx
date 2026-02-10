@@ -1,30 +1,30 @@
-import { Header } from "@/components/header"
 import { Hero } from "@/components/hero"
-import { Overview } from "@/components/overview"
 import { WhyMatters } from "@/components/why-matters"
 import { UseCases } from "@/components/use-cases"
-import { Features } from "@/components/features"
-import { Testimonials } from "@/components/testimonials"
-import { Pricing } from "@/components/pricing"
 import { FAQ } from "@/components/faq"
 import { CTA } from "@/components/cta"
 import { Footer } from "@/components/footer"
 import { HeroMain } from "@/components/HeroMain"
 import { HeroWorkflow } from "@/components/hero-workflow"
-import { HeroFeatures } from "@/components/hero-features"
+import { TrustedBy } from "@/components/trusted-by"
+import { PlatformCapabilities } from "@/components/platform-capabilities"
+import { IntegrationEcosystem } from "@/components/integration-ecosystem"
+import { LiveDashboardPreview } from "@/components/live-dashboard-preview"
+import { ComparisonSection } from "@/components/comparison-section"
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-background font-sans">
-
       <Hero />
-
+      <TrustedBy />
       <WhyMatters />
       <UseCases />
-
+      <PlatformCapabilities />
+      <LiveDashboardPreview />
+      <IntegrationEcosystem />
+      <ComparisonSection />
       <HeroMain />
       <HeroWorkflow />
-
-
       <FAQ />
       <CTA />
       <Footer />
