@@ -1,12 +1,14 @@
 "use client"
 
+import React from "react"
+
 import { useState, useRef, useEffect } from "react"
 import { Save, Eye, EyeOff, Lock, User, MapPin, Upload, X, Loader2, CheckCircle, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { useSelector, useDispatch } from "react-redux"
 import { selectUser, setUser } from "../../../features/user/userSlice"
 import { selectUserEmail } from "../../../features/user/userActiveEmail"
@@ -32,6 +34,20 @@ const itemVariants = {
   },
 }
 
+const tabContentVariants = {
+  initial: { opacity: 0, y: 10 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.3, ease: "easeOut" },
+  },
+  exit: {
+    opacity: 0,
+    y: -10,
+    transition: { duration: 0.15 },
+  },
+}
+
 export default function SettingsPage() {
   const dispatch = useDispatch()
   const user = useSelector(selectUser)
@@ -40,15 +56,18 @@ export default function SettingsPage() {
   
   const [activeTab, setActiveTab] = useState("profile")
   const [showPassword, setShowPassword] = useState(false)
-  const [profileImage, setProfileImage] = useState(null)
-  const [imageFile, setImageFile] = useState(null)
-  const fileInputRef = useRef(null)
+  const [profileImage, setProfileImage] = useState<string | null>(null)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   
   // Loading and notification states
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
-  const [notification, setNotification] = useState(null)
-  const [currentUser, setCurrentUser] = useState(null)
+  const [notification, setNotification] = useState<{
+    message: string
+    type: "success" | "error"
+  } | null>(null)
+  const [currentUser, setCurrentUser] = useState<Record<string, unknown> | null>(null)
 
   // Form state matching AccountUser model
   const [formData, setFormData] = useState({
@@ -87,28 +106,25 @@ export default function SettingsPage() {
         }
 
         const data = await response.json()
-        console.log("Fetched users:", data)
 
         // Filter user by email or id
         let filteredUser = null
         
         if (Array.isArray(data)) {
-          // If user object from Redux has id or email
           if (user?.id) {
-            filteredUser = data.find(u => u.id === user.id)
+            filteredUser = data.find((u: Record<string, unknown>) => u.id === user.id)
           } else if (userEmail) {
-            filteredUser = data.find(u => u.email === userEmail)
+            filteredUser = data.find((u: Record<string, unknown>) => u.email === userEmail)
           } else if (user?.email) {
-            filteredUser = data.find(u => u.email === user.email)
+            filteredUser = data.find((u: Record<string, unknown>) => u.email === user.email)
           }
         } else if (data.results && Array.isArray(data.results)) {
-          // Handle paginated response
           if (user?.id) {
-            filteredUser = data.results.find(u => u.id === user.id)
+            filteredUser = data.results.find((u: Record<string, unknown>) => u.id === user.id)
           } else if (userEmail) {
-            filteredUser = data.results.find(u => u.email === userEmail)
+            filteredUser = data.results.find((u: Record<string, unknown>) => u.email === userEmail)
           } else if (user?.email) {
-            filteredUser = data.results.find(u => u.email === user.email)
+            filteredUser = data.results.find((u: Record<string, unknown>) => u.email === user.email)
           }
         }
 
@@ -125,12 +141,10 @@ export default function SettingsPage() {
             zip: filteredUser.zip || "",
           })
           
-          // Set profile image if exists
           if (filteredUser.display_picture) {
-            setProfileImage(filteredUser.display_picture)
+            setProfileImage(filteredUser.display_picture as string)
           }
           
-          // Update Redux store with full user data
           dispatch(setUser(filteredUser))
         } else {
           showNotification("User not found", "error")
@@ -146,12 +160,12 @@ export default function SettingsPage() {
     fetchUserData()
   }, [userEmail, user?.email, user?.id, token, dispatch])
 
-  const showNotification = (message, type = "success") => {
+  const showNotification = (message: string, type: "success" | "error" = "success") => {
     setNotification({ message, type })
     setTimeout(() => setNotification(null), 5000)
   }
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
@@ -159,7 +173,7 @@ export default function SettingsPage() {
     }))
   }
 
-  const handlePasswordChange = (e) => {
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setPasswordData(prev => ({
       ...prev,
@@ -167,16 +181,14 @@ export default function SettingsPage() {
     }))
   }
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      // Validate file size (5MB max)
       if (file.size > 5 * 1024 * 1024) {
         showNotification("Image size must be less than 5MB", "error")
         return
       }
 
-      // Validate file type
       if (!file.type.startsWith('image/')) {
         showNotification("Please upload an image file", "error")
         return
@@ -185,7 +197,7 @@ export default function SettingsPage() {
       setImageFile(file)
       const reader = new FileReader()
       reader.onloadend = () => {
-        setProfileImage(reader.result)
+        setProfileImage(reader.result as string)
       }
       reader.readAsDataURL(file)
     }
@@ -199,7 +211,7 @@ export default function SettingsPage() {
     }
   }
 
-  const handleSaveProfile = async (e) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!currentUser?.id) {
@@ -210,17 +222,14 @@ export default function SettingsPage() {
     try {
       setIsSaving(true)
 
-      // Create FormData for multipart/form-data (needed for image upload)
       const formDataToSend = new FormData()
       
-      // Append all text fields
       Object.keys(formData).forEach(key => {
-        if (key !== 'email' && formData[key]) { // Don't send email as it's read-only
-          formDataToSend.append(key, formData[key])
+        if (key !== 'email' && formData[key as keyof typeof formData]) {
+          formDataToSend.append(key, formData[key as keyof typeof formData])
         }
       })
 
-      // Append image if changed
       if (imageFile) {
         formDataToSend.append('display_picture', imageFile)
       }
@@ -231,7 +240,6 @@ export default function SettingsPage() {
           method: "PATCH",
           headers: {
             ...(token && { "Authorization": `Bearer ${token}` })
-            // Don't set Content-Type - browser will set it with boundary for FormData
           },
           body: formDataToSend,
         }
@@ -243,28 +251,25 @@ export default function SettingsPage() {
       }
 
       const updatedUser = await response.json()
-      console.log("Updated user:", updatedUser)
       
-      // Update local state and Redux
       setCurrentUser(updatedUser)
       dispatch(setUser(updatedUser))
       
-      // Update profile image if returned from server
       if (updatedUser.display_picture) {
         setProfileImage(updatedUser.display_picture)
       }
       
-      setImageFile(null) // Clear the file after successful upload
+      setImageFile(null)
       showNotification("Profile updated successfully!", "success")
     } catch (error) {
       console.error("Error updating profile:", error)
-      showNotification(error.message || "Failed to update profile", "error")
+      showNotification(error instanceof Error ? error.message : "Failed to update profile", "error")
     } finally {
       setIsSaving(false)
     }
   }
 
-  const handleSaveAddress = async (e) => {
+  const handleSaveAddress = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!currentUser?.id) {
@@ -300,22 +305,20 @@ export default function SettingsPage() {
       }
 
       const updatedUser = await response.json()
-      console.log("Updated user:", updatedUser)
       
-      // Update local state and Redux
       setCurrentUser(updatedUser)
       dispatch(setUser(updatedUser))
       
       showNotification("Address updated successfully!", "success")
     } catch (error) {
       console.error("Error updating address:", error)
-      showNotification(error.message || "Failed to update address", "error")
+      showNotification(error instanceof Error ? error.message : "Failed to update address", "error")
     } finally {
       setIsSaving(false)
     }
   }
 
-  const handleSavePassword = async (e) => {
+  const handleSavePassword = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (passwordData.new_password !== passwordData.confirm_password) {
@@ -356,7 +359,6 @@ export default function SettingsPage() {
         throw new Error(errorData.message || "Failed to change password")
       }
 
-      // Clear password fields
       setPasswordData({
         current_password: "",
         new_password: "",
@@ -366,7 +368,7 @@ export default function SettingsPage() {
       showNotification("Password changed successfully!", "success")
     } catch (error) {
       console.error("Error changing password:", error)
-      showNotification(error.message || "Failed to change password", "error")
+      showNotification(error instanceof Error ? error.message : "Failed to change password", "error")
     } finally {
       setIsSaving(false)
     }
@@ -375,17 +377,17 @@ export default function SettingsPage() {
   const handleCancelProfile = () => {
     if (currentUser) {
       setFormData({
-        email: currentUser.email || "",
-        first_name: currentUser.first_name || "",
-        last_name: currentUser.last_name || "",
-        mobile_number: currentUser.mobile_number || "",
-        billing_address: currentUser.billing_address || "",
-        city: currentUser.city || "",
-        state: currentUser.state || "",
-        zip: currentUser.zip || "",
+        email: (currentUser.email as string) || "",
+        first_name: (currentUser.first_name as string) || "",
+        last_name: (currentUser.last_name as string) || "",
+        mobile_number: (currentUser.mobile_number as string) || "",
+        billing_address: (currentUser.billing_address as string) || "",
+        city: (currentUser.city as string) || "",
+        state: (currentUser.state as string) || "",
+        zip: (currentUser.zip as string) || "",
       })
       
-      setProfileImage(currentUser.display_picture || null)
+      setProfileImage((currentUser.display_picture as string) || null)
       setImageFile(null)
       if (fileInputRef.current) {
         fileInputRef.current.value = ""
@@ -412,83 +414,92 @@ export default function SettingsPage() {
       variants={containerVariants}
     >
       {/* Notification */}
-      {notification && (
-        <motion.div
-          initial={{ opacity: 0, y: -50 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -50 }}
-          className="fixed top-4 right-4 z-50 max-w-md"
-        >
-          <div
-            className={`flex items-center gap-3 p-4 rounded-lg shadow-lg ${
-              notification.type === "success"
-                ? "bg-green-50 text-green-800 border border-green-200"
-                : "bg-red-50 text-red-800 border border-red-200"
-            }`}
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            className="fixed top-4 right-4 z-50 max-w-sm"
           >
-            {notification.type === "success" ? (
-              <CheckCircle className="w-5 h-5" />
-            ) : (
-              <AlertCircle className="w-5 h-5" />
-            )}
-            <p className="text-sm font-medium">{notification.message}</p>
-          </div>
-        </motion.div>
-      )}
+            <div
+              className={`flex items-center gap-3 p-4 rounded-lg shadow-lg ${
+                notification.type === "success"
+                  ? "bg-green-50 text-green-800 border border-green-200"
+                  : "bg-red-50 text-red-800 border border-red-200"
+              }`}
+            >
+              {notification.type === "success" ? (
+                <CheckCircle className="w-5 h-5 shrink-0" />
+              ) : (
+                <AlertCircle className="w-5 h-5 shrink-0" />
+              )}
+              <p className="text-sm font-medium">{notification.message}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Header */}
       <div className="border-b border-border bg-card">
-        <div className="max-w-5xl mx-auto px-6 lg:px-8 py-6">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <motion.div variants={itemVariants}>
-            <h1 className="text-2xl font-semibold text-foreground">Settings</h1>
+            <h1 className="text-xl sm:text-2xl font-semibold text-foreground">Settings</h1>
             <p className="text-sm text-muted-foreground mt-1">Manage your account information</p>
           </motion.div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-5xl mx-auto px-6 lg:px-8 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-8 bg-secondary/50">
-            <TabsTrigger value="profile" className="gap-2">
-              <User className="w-4 h-4" />
+          <TabsList className="mb-6 sm:mb-8 bg-secondary/50 w-full sm:w-auto">
+            <TabsTrigger value="profile" className="gap-2 flex-1 sm:flex-initial">
+              <User className="w-4 h-4 hidden sm:inline-block" />
               Profile
             </TabsTrigger>
-            <TabsTrigger value="address" className="gap-2">
-              <MapPin className="w-4 h-4" />
+            <TabsTrigger value="address" className="gap-2 flex-1 sm:flex-initial">
+              <MapPin className="w-4 h-4 hidden sm:inline-block" />
               Address
             </TabsTrigger>
-            <TabsTrigger value="security" className="gap-2">
-              <Lock className="w-4 h-4" />
+            <TabsTrigger value="security" className="gap-2 flex-1 sm:flex-initial">
+              <Lock className="w-4 h-4 hidden sm:inline-block" />
               Security
             </TabsTrigger>
           </TabsList>
 
           {/* Profile Tab */}
-          <TabsContent value="profile" className="space-y-6">
-            <motion.div variants={itemVariants}>
-              <Card className="p-6">
+          <TabsContent value="profile" className="mt-0">
+            <motion.div
+              key="profile"
+              variants={tabContentVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+            >
+              <Card className="p-4 sm:p-6">
                 <form onSubmit={handleSaveProfile} className="space-y-6">
                   {/* Profile Picture Section */}
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     <div>
                       <h3 className="text-lg font-semibold text-foreground mb-1">Profile Picture</h3>
-                      <p className="text-sm text-muted-foreground mb-4">Upload a photo to personalize your account</p>
+                      <p className="text-sm text-muted-foreground">Upload a photo to personalize your account</p>
                     </div>
                     
                     <div className="flex items-center gap-4">
-                      <div className="relative">
+                      <div className="relative shrink-0">
                         {profileImage ? (
                           <div className="relative w-20 h-20 rounded-full overflow-hidden ring-2 ring-border">
                             <img 
-                              src={profileImage} 
+                              src={profileImage || "/placeholder.svg"} 
                               alt="Profile" 
                               className="w-full h-full object-cover"
                             />
                             <button
                               type="button"
                               onClick={removeImage}
-                              className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors shadow-md"
+                              className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-1 hover:opacity-90 transition-opacity shadow-md"
+                              aria-label="Remove profile picture"
                             >
                               <X className="w-3 h-3" />
                             </button>
@@ -499,7 +510,7 @@ export default function SettingsPage() {
                           </div>
                         )}
                       </div>
-                      <div className="flex-1">
+                      <div className="min-w-0">
                         <input
                           ref={fileInputRef}
                           type="file"
@@ -507,19 +518,18 @@ export default function SettingsPage() {
                           onChange={handleImageUpload}
                           className="hidden"
                           id="profile-picture"
+                          aria-label="Upload profile picture"
                         />
-                        <label htmlFor="profile-picture">
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            size="sm" 
-                            className="gap-2 cursor-pointer"
-                            onClick={() => fileInputRef.current?.click()}
-                          >
-                            <Upload className="w-4 h-4" />
-                            Upload Photo
-                          </Button>
-                        </label>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          className="gap-2 bg-transparent"
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          <Upload className="w-4 h-4" />
+                          Upload Photo
+                        </Button>
                         <p className="text-xs text-muted-foreground mt-2">
                           JPG, PNG or GIF. Max size 5MB
                         </p>
@@ -528,19 +538,20 @@ export default function SettingsPage() {
                   </div>
 
                   {/* Personal Information Section */}
-                  <div className="border-t border-border pt-6 space-y-6">
+                  <div className="border-t border-border pt-6 space-y-4">
                     <div>
                       <h3 className="text-lg font-semibold text-foreground mb-1">Personal Information</h3>
-                      <p className="text-sm text-muted-foreground mb-4">Update your personal details</p>
+                      <p className="text-sm text-muted-foreground">Update your personal details</p>
                     </div>
                     
                     <div className="space-y-4">
                       {/* Email (Read-only) */}
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-foreground">
+                        <label htmlFor="email" className="text-sm font-medium text-foreground">
                           Email Address
                         </label>
                         <Input
+                          id="email"
                           type="email"
                           name="email"
                           value={formData.email}
@@ -553,12 +564,13 @@ export default function SettingsPage() {
                       </div>
 
                       {/* Name Fields */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-foreground">
+                          <label htmlFor="first_name" className="text-sm font-medium text-foreground">
                             First Name
                           </label>
                           <Input
+                            id="first_name"
                             type="text"
                             name="first_name"
                             value={formData.first_name}
@@ -568,10 +580,11 @@ export default function SettingsPage() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-foreground">
+                          <label htmlFor="last_name" className="text-sm font-medium text-foreground">
                             Last Name
                           </label>
                           <Input
+                            id="last_name"
                             type="text"
                             name="last_name"
                             value={formData.last_name}
@@ -584,10 +597,11 @@ export default function SettingsPage() {
 
                       {/* Mobile Number */}
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-foreground">
+                        <label htmlFor="mobile_number" className="text-sm font-medium text-foreground">
                           Mobile Number
                         </label>
                         <Input
+                          id="mobile_number"
                           type="tel"
                           name="mobile_number"
                           value={formData.mobile_number}
@@ -600,7 +614,7 @@ export default function SettingsPage() {
                   </div>
 
                   {/* Save Button */}
-                  <div className="flex gap-3 pt-6 border-t border-border">
+                  <div className="flex flex-col-reverse sm:flex-row gap-3 pt-6 border-t border-border">
                     <Button type="submit" className="gap-2" disabled={isSaving}>
                       {isSaving ? (
                         <>
@@ -629,23 +643,30 @@ export default function SettingsPage() {
           </TabsContent>
 
           {/* Address Tab */}
-          <TabsContent value="address" className="space-y-6">
-            <motion.div variants={itemVariants}>
-              <Card className="p-6">
+          <TabsContent value="address" className="mt-0">
+            <motion.div
+              key="address"
+              variants={tabContentVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+            >
+              <Card className="p-4 sm:p-6">
                 <form onSubmit={handleSaveAddress} className="space-y-6">
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     <div>
                       <h3 className="text-lg font-semibold text-foreground mb-1">Billing Address</h3>
-                      <p className="text-sm text-muted-foreground mb-6">Update your billing and shipping information</p>
+                      <p className="text-sm text-muted-foreground">Update your billing and shipping information</p>
                     </div>
                     
                     <div className="space-y-4">
                       {/* Street Address */}
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-foreground">
+                        <label htmlFor="billing_address" className="text-sm font-medium text-foreground">
                           Street Address
                         </label>
                         <Input
+                          id="billing_address"
                           type="text"
                           name="billing_address"
                           value={formData.billing_address}
@@ -657,10 +678,11 @@ export default function SettingsPage() {
 
                       {/* City */}
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-foreground">
+                        <label htmlFor="city" className="text-sm font-medium text-foreground">
                           City
                         </label>
                         <Input
+                          id="city"
                           type="text"
                           name="city"
                           value={formData.city}
@@ -671,12 +693,13 @@ export default function SettingsPage() {
                       </div>
 
                       {/* State and ZIP */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-foreground">
+                          <label htmlFor="state" className="text-sm font-medium text-foreground">
                             State / Province
                           </label>
                           <Input
+                            id="state"
                             type="text"
                             name="state"
                             value={formData.state}
@@ -686,10 +709,11 @@ export default function SettingsPage() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-foreground">
+                          <label htmlFor="zip" className="text-sm font-medium text-foreground">
                             ZIP / Postal Code
                           </label>
                           <Input
+                            id="zip"
                             type="text"
                             name="zip"
                             value={formData.zip}
@@ -703,7 +727,7 @@ export default function SettingsPage() {
                   </div>
 
                   {/* Save Button */}
-                  <div className="flex gap-3 pt-6 border-t border-border">
+                  <div className="flex flex-col-reverse sm:flex-row gap-3 pt-6 border-t border-border">
                     <Button type="submit" className="gap-2" disabled={isSaving}>
                       {isSaving ? (
                         <>
@@ -732,24 +756,31 @@ export default function SettingsPage() {
           </TabsContent>
 
           {/* Security Tab */}
-          <TabsContent value="security" className="space-y-6">
-            <motion.div variants={itemVariants}>
-              <Card className="p-6">
+          <TabsContent value="security" className="mt-0">
+            <motion.div
+              key="security"
+              variants={tabContentVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+            >
+              <Card className="p-4 sm:p-6">
                 <form onSubmit={handleSavePassword} className="space-y-6">
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     <div>
                       <h3 className="text-lg font-semibold text-foreground mb-1">Change Password</h3>
-                      <p className="text-sm text-muted-foreground mb-6">Update your password to keep your account secure</p>
+                      <p className="text-sm text-muted-foreground">Update your password to keep your account secure</p>
                     </div>
                     
                     <div className="space-y-4">
                       {/* Current Password */}
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-foreground">
+                        <label htmlFor="current_password" className="text-sm font-medium text-foreground">
                           Current Password
                         </label>
                         <div className="relative">
                           <Input
+                            id="current_password"
                             type={showPassword ? "text" : "password"}
                             name="current_password"
                             value={passwordData.current_password}
@@ -762,6 +793,7 @@ export default function SettingsPage() {
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                            aria-label={showPassword ? "Hide password" : "Show password"}
                           >
                             {showPassword ? (
                               <EyeOff className="w-4 h-4" />
@@ -774,10 +806,11 @@ export default function SettingsPage() {
 
                       {/* New Password */}
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-foreground">
+                        <label htmlFor="new_password" className="text-sm font-medium text-foreground">
                           New Password
                         </label>
                         <Input
+                          id="new_password"
                           type="password"
                           name="new_password"
                           value={passwordData.new_password}
@@ -790,10 +823,11 @@ export default function SettingsPage() {
 
                       {/* Confirm Password */}
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-foreground">
+                        <label htmlFor="confirm_password" className="text-sm font-medium text-foreground">
                           Confirm New Password
                         </label>
                         <Input
+                          id="confirm_password"
                           type="password"
                           name="confirm_password"
                           value={passwordData.confirm_password}
@@ -818,7 +852,7 @@ export default function SettingsPage() {
                   </div>
 
                   {/* Save Button */}
-                  <div className="flex gap-3 pt-6 border-t border-border">
+                  <div className="flex flex-col-reverse sm:flex-row gap-3 pt-6 border-t border-border">
                     <Button type="submit" className="gap-2" disabled={isSaving}>
                       {isSaving ? (
                         <>
