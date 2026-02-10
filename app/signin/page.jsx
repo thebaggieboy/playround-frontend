@@ -11,7 +11,7 @@ import useLogin from "../../hooks/useLogin";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 
 
@@ -40,7 +40,8 @@ You have created a new account, please login to complete your profile
 </div>
 </div>
 
-export default function SignInPage() {
+export default function SignIn() {
+
   const dispatch = useDispatch();
   const router = useRouter();
   const user = useSelector(selectUser);
@@ -50,32 +51,26 @@ export default function SignInPage() {
   const [formErr, setFormErr] = useState(null)
   const searchParams = useSearchParams()
   const search = searchParams.get('user')
-  const [spinner, setSpinner] = useState(false)	
+  const [spinner, setSpinner] = useState(false)		
 
   const { isIdle, isPending, error, mutateAsync: loginFn } = useLogin("https://playground-backend-1t0f.onrender.com/auth/jwt/create/", loginSuccess, USER_TYPES.user)
   //const resend = new Resend('re_eE1h4P5d_K5y3ArezBW8pDbXqLX22KWz5');
 
 
-  async function sendEmail() {
-   try {
-     const { data, error } = await resend.emails.send({
-     from: 'Playground <onboarding@resend.dev>',
-     to: user_email,
-     subject: 'Login Success',
-      react: EmailTemplate({ firstName: 'John' }),
-     });
-   
-     if (error) {
-     return Response.json({ error }, { status: 500 });
-     }
-   
-     return Response.json(data);
-   } catch (error) {
-     return Response.json({ error }, { status: 500 });
-   }
-   }
- 
- 
+   function LoginError() {
+    return (
+      <div id="alert-2" class="flex items-center p-4 mb-4 text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
+        <svg class="flex-shrink-0 w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+        </svg>
+        <span class="sr-only">Info</span>
+        <div class="ml-3 text-sm text-center font-medium">
+          Email or password is incorrect.
+        </div>
+  
+      </div>
+    )
+  }
  
    const signupSuccess =    <div class="flex items-center text-center p-4 mb-4 text-sm text-green-800 border border-0 bg-green-50 dark:bg-gray-800 dark:text-green-400 dark:border-green-800" role="alert">
      <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -87,69 +82,73 @@ export default function SignInPage() {
      </div>
      </div>
  
+ const [formData, setFormData] = useState({
+  email: "",
+  password: "",
+})
 
- if (user !== null) {
-	 
+const { email, password } = formData
+
+const inputChangeHandler = (e) => {
+  const { name, value } = e.target
+  setFormData((prevValue) => {
+    return {
+      ...prevValue,
+      [name]: value
+    }
+  })
+
+}
+
+async function loginEmail(){
+  dispatch(setUserEmail(formData?.email))
+  console.log("User Email: ", user_email)
+
+}
+
+
+  loginEmail()
+
+
+
+
+async function loginSuccess() {
+  
+      console.log("Successful Login")
+      const today = new Date();
+      const oneMonthFromToday = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate());
+      document.cookie = `user_type=user; expires=${oneMonthFromToday.toUTCString()} Path=/`
+  
+      console.log(document.cookie)
+  }
+
+
+const submit = async (e) => {
+  e.preventDefault();  
+  try {
+    setIsLoading(true)
+    
+    await loginFn(formData)    
+    loginSuccess()
+    setIsLoading(false)
+
+  } catch (error) {
+    console.log(error)
+    setSpinner(false)
+    setFormErr(error)
+  }
+};
+
+if (user !== null) {
+
   router.push("/dashboard");
   
 }
 
-	const [formData, setFormData] = useState({
-		email: "",
-		password: "",
-	})
-	//console.log("Query params: ", search)
-	console.log("Token State: ", token)
-	
-	const inputChangeHandler = (e) => {
-		const { name, value } = e.target
-		setFormData((prevValue) => {
-			return {
-				...prevValue,
-				[name]: value
-			}
-		})
-
-	}
-
- 
- 
-	async function loginSuccess() {
-    
-        console.log("Successful Login")
-        const today = new Date();
-        const oneMonthFromToday = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate());
-        document.cookie = `user_type=user; expires=${oneMonthFromToday.toUTCString()} Path=/`
-    
-		console.log(document.cookie)
-    }
-
-
-	const submit = async (e) => {
-		e.preventDefault();
-		//
-		
-		try {
-			//sendEmail()
-			setSpinner(true)
-      dispatch(setUserEmail(formData?.email))
-			await loginFn(formData)
-		
-			loginSuccess()
-
-
-			
-		
-		} catch (error) {
-			console.log(error)
-			setSpinner(false)
-			setFormErr(error)
-		}
-	};
-	
 
   return (
     <main className="min-h-screen bg-background flex items-center justify-center px-4">
+        {search == "success" ? signupSuccess : ""}
       <div className="w-full max-w-md">
         {/* Logo and branding */}
         <div className="mb-4 text-center">
@@ -196,10 +195,10 @@ export default function SignInPage() {
 
       <button
         type="submit"
-        disabled={isLoading}
+        disabled={isPending}
         className="w-full bg-primary hover:bg-accent text-primary-foreground font-semibold py-2 rounded-lg transition-colors"
       >
-        {isLoading ? "Signing in..." : "Sign in"}
+        {isPending ? "Signing in..." : "Sign in"}
       </button>
 
       <div className="relative my-6">

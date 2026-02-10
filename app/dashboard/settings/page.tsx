@@ -1,37 +1,16 @@
 "use client"
 
-import { motion } from "framer-motion"
-import DashboardHeader from "@/components/dashboard/header"
-import DashboardSidebar from "@/components/dashboard/sidebar"
-import { Bell, Lock, User, Palette, LogOut } from "lucide-react"
+import { useState, useRef, useEffect } from "react"
+import { Save, Eye, EyeOff, Lock, User, MapPin, Upload, X, Loader2, CheckCircle, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
-
-const settingsSections = [
-  {
-    icon: User,
-    title: "Profile Settings",
-    description: "Manage your account information and preferences",
-    items: ["Full Name", "Email Address", "Phone Number", "Avatar"],
-  },
-  {
-    icon: Lock,
-    title: "Security",
-    description: "Manage your password and security settings",
-    items: ["Change Password", "Two-Factor Authentication", "Active Sessions", "Login History"],
-  },
-  {
-    icon: Bell,
-    title: "Notifications",
-    description: "Control how you receive notifications",
-    items: ["Email Notifications", "Model Alerts", "Team Updates", "Weekly Digest"],
-  },
-  {
-    icon: Palette,
-    title: "Appearance",
-    description: "Customize your dashboard appearance",
-    items: ["Theme", "Color Scheme", "Font Size", "Layout"],
-  },
-]
+import { Input } from "@/components/ui/input"
+import { Card } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { motion } from "framer-motion"
+import { useSelector, useDispatch } from "react-redux"
+import { selectUser, setUser } from "../../../features/user/userSlice"
+import { selectUserEmail } from "../../../features/user/userActiveEmail"
+import { selectToken } from "../../../features/token/tokenSlice"
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -39,96 +18,839 @@ const containerVariants = {
     opacity: 1,
     transition: {
       staggerChildren: 0.1,
-      delayChildren: 0.2,
+      delayChildren: 0.1,
     },
   },
 }
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 15 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: "easeOut" },
+    transition: { duration: 0.4, ease: "easeOut" },
   },
 }
 
 export default function SettingsPage() {
+  const dispatch = useDispatch()
+  const user = useSelector(selectUser)
+  const userEmail = useSelector(selectUserEmail)
+  const token = useSelector(selectToken)
+  
+  const [activeTab, setActiveTab] = useState("profile")
+  const [showPassword, setShowPassword] = useState(false)
+  const [profileImage, setProfileImage] = useState(null)
+  const [imageFile, setImageFile] = useState(null)
+  const fileInputRef = useRef(null)
+  
+  // Loading and notification states
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+  const [notification, setNotification] = useState(null)
+  const [currentUser, setCurrentUser] = useState(null)
+
+  // Form state matching AccountUser model
+  const [formData, setFormData] = useState({
+    email: "",
+    first_name: "",
+    last_name: "",
+    mobile_number: "",
+    billing_address: "",
+    city: "",
+    state: "",
+    zip: "",
+  })
+
+  // Password change state
+  const [passwordData, setPasswordData] = useState({
+    current_password: "",
+    new_password: "",
+    confirm_password: "",
+  })
+
+  // Fetch user data on component mount
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setIsLoading(true)
+        const response = await fetch("https://playground-backend-1t0f.onrender.com/api/users/", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token && { "Authorization": `Bearer ${token}` })
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch user data")
+        }
+
+        const data = await response.json()
+        console.log("Fetched users:", data)
+
+        // Filter user by email or id
+        let filteredUser = null
+        
+        if (Array.isArray(data)) {
+          // If user object from Redux has id or email
+          if (user?.id) {
+            filteredUser = data.find(u => u.id === user.id)
+          } else if (userEmail) {
+            filteredUser = data.find(u => u.email === userEmail)
+          } else if (user?.email) {
+            filteredUser = data.find(u => u.email === user.email)
+          }
+        } else if (data.results && Array.isArray(data.results)) {
+          // Handle paginated response
+          if (user?.id) {
+            filteredUser = data.results.find(u => u.id === user.id)
+          } else if (userEmail) {
+            filteredUser = data.results.find(u => u.email === userEmail)
+          } else if (user?.email) {
+            filteredUser = data.results.find(u => u.email === user.email)
+          }
+        }
+
+        if (filteredUser) {
+          setCurrentUser(filteredUser)
+          setFormData({
+            email: filteredUser.email || "",
+            first_name: filteredUser.first_name || "",
+            last_name: filteredUser.last_name || "",
+            mobile_number: filteredUser.mobile_number || "",
+            billing_address: filteredUser.billing_address || "",
+            city: filteredUser.city || "",
+            state: filteredUser.state || "",
+            zip: filteredUser.zip || "",
+          })
+          
+          // Set profile image if exists
+          if (filteredUser.display_picture) {
+            setProfileImage(filteredUser.display_picture)
+          }
+          
+          // Update Redux store with full user data
+          dispatch(setUser(filteredUser))
+        } else {
+          showNotification("User not found", "error")
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error)
+        showNotification("Failed to load user data", "error")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchUserData()
+  }, [userEmail, user?.email, user?.id, token, dispatch])
+
+  const showNotification = (message, type = "success") => {
+    setNotification({ message, type })
+    setTimeout(() => setNotification(null), 5000)
+  }
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target
+    setPasswordData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        showNotification("Image size must be less than 5MB", "error")
+        return
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        showNotification("Please upload an image file", "error")
+        return
+      }
+
+      setImageFile(file)
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setProfileImage(reader.result)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const removeImage = () => {
+    setProfileImage(null)
+    setImageFile(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault()
+    
+    if (!currentUser?.id) {
+      showNotification("User ID not found", "error")
+      return
+    }
+
+    try {
+      setIsSaving(true)
+
+      // Create FormData for multipart/form-data (needed for image upload)
+      const formDataToSend = new FormData()
+      
+      // Append all text fields
+      Object.keys(formData).forEach(key => {
+        if (key !== 'email' && formData[key]) { // Don't send email as it's read-only
+          formDataToSend.append(key, formData[key])
+        }
+      })
+
+      // Append image if changed
+      if (imageFile) {
+        formDataToSend.append('display_picture', imageFile)
+      }
+
+      const response = await fetch(
+        `https://playground-backend-1t0f.onrender.com/api/users/${currentUser.id}/`,
+        {
+          method: "PATCH",
+          headers: {
+            ...(token && { "Authorization": `Bearer ${token}` })
+            // Don't set Content-Type - browser will set it with boundary for FormData
+          },
+          body: formDataToSend,
+        }
+      )
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Failed to update profile")
+      }
+
+      const updatedUser = await response.json()
+      console.log("Updated user:", updatedUser)
+      
+      // Update local state and Redux
+      setCurrentUser(updatedUser)
+      dispatch(setUser(updatedUser))
+      
+      // Update profile image if returned from server
+      if (updatedUser.display_picture) {
+        setProfileImage(updatedUser.display_picture)
+      }
+      
+      setImageFile(null) // Clear the file after successful upload
+      showNotification("Profile updated successfully!", "success")
+    } catch (error) {
+      console.error("Error updating profile:", error)
+      showNotification(error.message || "Failed to update profile", "error")
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleSaveAddress = async (e) => {
+    e.preventDefault()
+    
+    if (!currentUser?.id) {
+      showNotification("User ID not found", "error")
+      return
+    }
+
+    try {
+      setIsSaving(true)
+
+      const addressData = {
+        billing_address: formData.billing_address,
+        city: formData.city,
+        state: formData.state,
+        zip: formData.zip,
+      }
+
+      const response = await fetch(
+        `https://playground-backend-1t0f.onrender.com/api/users/${currentUser.id}/`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token && { "Authorization": `Bearer ${token}` })
+          },
+          body: JSON.stringify(addressData),
+        }
+      )
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Failed to update address")
+      }
+
+      const updatedUser = await response.json()
+      console.log("Updated user:", updatedUser)
+      
+      // Update local state and Redux
+      setCurrentUser(updatedUser)
+      dispatch(setUser(updatedUser))
+      
+      showNotification("Address updated successfully!", "success")
+    } catch (error) {
+      console.error("Error updating address:", error)
+      showNotification(error.message || "Failed to update address", "error")
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleSavePassword = async (e) => {
+    e.preventDefault()
+    
+    if (passwordData.new_password !== passwordData.confirm_password) {
+      showNotification("Passwords don't match!", "error")
+      return
+    }
+
+    if (passwordData.new_password.length < 8) {
+      showNotification("Password must be at least 8 characters", "error")
+      return
+    }
+
+    if (!currentUser?.id) {
+      showNotification("User ID not found", "error")
+      return
+    }
+
+    try {
+      setIsSaving(true)
+
+      const response = await fetch(
+        `https://playground-backend-1t0f.onrender.com/api/users/${currentUser.id}/change_password/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token && { "Authorization": `Bearer ${token}` })
+          },
+          body: JSON.stringify({
+            current_password: passwordData.current_password,
+            new_password: passwordData.new_password,
+          }),
+        }
+      )
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Failed to change password")
+      }
+
+      // Clear password fields
+      setPasswordData({
+        current_password: "",
+        new_password: "",
+        confirm_password: "",
+      })
+
+      showNotification("Password changed successfully!", "success")
+    } catch (error) {
+      console.error("Error changing password:", error)
+      showNotification(error.message || "Failed to change password", "error")
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleCancelProfile = () => {
+    if (currentUser) {
+      setFormData({
+        email: currentUser.email || "",
+        first_name: currentUser.first_name || "",
+        last_name: currentUser.last_name || "",
+        mobile_number: currentUser.mobile_number || "",
+        billing_address: currentUser.billing_address || "",
+        city: currentUser.city || "",
+        state: currentUser.state || "",
+        zip: currentUser.zip || "",
+      })
+      
+      setProfileImage(currentUser.display_picture || null)
+      setImageFile(null)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading user data...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex h-screen bg-background">
-      <DashboardSidebar />
+    <motion.div
+      className="min-h-screen bg-background"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
+      {/* Notification */}
+      {notification && (
+        <motion.div
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -50 }}
+          className="fixed top-4 right-4 z-50 max-w-md"
+        >
+          <div
+            className={`flex items-center gap-3 p-4 rounded-lg shadow-lg ${
+              notification.type === "success"
+                ? "bg-green-50 text-green-800 border border-green-200"
+                : "bg-red-50 text-red-800 border border-red-200"
+            }`}
+          >
+            {notification.type === "success" ? (
+              <CheckCircle className="w-5 h-5" />
+            ) : (
+              <AlertCircle className="w-5 h-5" />
+            )}
+            <p className="text-sm font-medium">{notification.message}</p>
+          </div>
+        </motion.div>
+      )}
 
-      <motion.main
-        className="flex-1 flex flex-col overflow-hidden"
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-      >
-        <DashboardHeader />
+      {/* Header */}
+      <div className="border-b border-border bg-card">
+        <div className="max-w-5xl mx-auto px-6 lg:px-8 py-6">
+          <motion.div variants={itemVariants}>
+            <h1 className="text-2xl font-semibold text-foreground">Settings</h1>
+            <p className="text-sm text-muted-foreground mt-1">Manage your account information</p>
+          </motion.div>
+        </div>
+      </div>
 
-        <div className="flex-1 overflow-auto">
-          <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 max-w-4xl">
-            {/* Header */}
-            <motion.div variants={itemVariants} className="space-y-2">
-              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Settings</h1>
-              <p className="text-sm lg:text-base text-muted-foreground">Manage your account and preferences</p>
-            </motion.div>
+      {/* Content */}
+      <div className="max-w-5xl mx-auto px-6 lg:px-8 py-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="mb-8 bg-secondary/50">
+            <TabsTrigger value="profile" className="gap-2">
+              <User className="w-4 h-4" />
+              Profile
+            </TabsTrigger>
+            <TabsTrigger value="address" className="gap-2">
+              <MapPin className="w-4 h-4" />
+              Address
+            </TabsTrigger>
+            <TabsTrigger value="security" className="gap-2">
+              <Lock className="w-4 h-4" />
+              Security
+            </TabsTrigger>
+          </TabsList>
 
-            {/* Settings Sections */}
-            <motion.div variants={itemVariants} className="space-y-3 lg:space-y-4">
-              {settingsSections.map((section, index) => (
-                <motion.div
-                  key={section.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1, duration: 0.4 }}
-                  whileHover={{ y: -2 }}
-                  className="bg-card border border-border rounded-xl p-4 lg:p-6 hover:shadow-md transition-all"
-                >
-                  <div className="flex items-start gap-3 lg:gap-4">
-                    <div className="p-2 lg:p-3 bg-primary/10 rounded-lg flex-shrink-0">
-                      <section.icon className="w-5 lg:w-6 h-5 lg:h-6 text-primary" />
+          {/* Profile Tab */}
+          <TabsContent value="profile" className="space-y-6">
+            <motion.div variants={itemVariants}>
+              <Card className="p-6">
+                <form onSubmit={handleSaveProfile} className="space-y-6">
+                  {/* Profile Picture Section */}
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground mb-1">Profile Picture</h3>
+                      <p className="text-sm text-muted-foreground mb-4">Upload a photo to personalize your account</p>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-base lg:text-lg font-semibold text-foreground mb-1">{section.title}</h3>
-                      <p className="text-xs lg:text-sm text-muted-foreground mb-3 lg:mb-4">{section.description}</p>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 lg:gap-3">
-                        {section.items.map((item) => (
-                          <motion.button
-                            key={item}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="px-2 lg:px-3 py-2 rounded-lg bg-secondary/50 hover:bg-secondary text-xs lg:text-sm text-foreground transition-colors text-left truncate"
+                    
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        {profileImage ? (
+                          <div className="relative w-20 h-20 rounded-full overflow-hidden ring-2 ring-border">
+                            <img 
+                              src={profileImage} 
+                              alt="Profile" 
+                              className="w-full h-full object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={removeImage}
+                              className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors shadow-md"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="w-20 h-20 bg-secondary rounded-full flex items-center justify-center border-2 border-border">
+                            <User className="w-8 h-8 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          id="profile-picture"
+                        />
+                        <label htmlFor="profile-picture">
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="sm" 
+                            className="gap-2 cursor-pointer"
+                            onClick={() => fileInputRef.current?.click()}
                           >
-                            {item}
-                          </motion.button>
-                        ))}
+                            <Upload className="w-4 h-4" />
+                            Upload Photo
+                          </Button>
+                        </label>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          JPG, PNG or GIF. Max size 5MB
+                        </p>
                       </div>
                     </div>
                   </div>
-                </motion.div>
-              ))}
-            </motion.div>
 
-            {/* Danger Zone */}
-            <motion.div
-              variants={itemVariants}
-              className="bg-red-50 border border-red-200 rounded-xl p-4 lg:p-6 space-y-4"
-            >
-              <div className="flex items-start gap-3 lg:gap-4">
-                <div className="p-2 lg:p-3 bg-red-100 rounded-lg flex-shrink-0">
-                  <LogOut className="w-5 lg:w-6 h-5 lg:h-6 text-red-600" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-base lg:text-lg font-semibold text-red-900 mb-1">Danger Zone</h3>
-                  <p className="text-xs lg:text-sm text-red-700 mb-3 lg:mb-4">Irreversible actions</p>
-                  <Button className="bg-red-600 hover:bg-red-700 text-white w-full sm:w-auto">Delete Account</Button>
-                </div>
-              </div>
+                  {/* Personal Information Section */}
+                  <div className="border-t border-border pt-6 space-y-6">
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground mb-1">Personal Information</h3>
+                      <p className="text-sm text-muted-foreground mb-4">Update your personal details</p>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {/* Email (Read-only) */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground">
+                          Email Address
+                        </label>
+                        <Input
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          readOnly
+                          className="bg-secondary/50 border-border cursor-not-allowed"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Email cannot be changed
+                        </p>
+                      </div>
+
+                      {/* Name Fields */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-foreground">
+                            First Name
+                          </label>
+                          <Input
+                            type="text"
+                            name="first_name"
+                            value={formData.first_name}
+                            onChange={handleInputChange}
+                            placeholder="Enter first name"
+                            className="bg-background border-border"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-foreground">
+                            Last Name
+                          </label>
+                          <Input
+                            type="text"
+                            name="last_name"
+                            value={formData.last_name}
+                            onChange={handleInputChange}
+                            placeholder="Enter last name"
+                            className="bg-background border-border"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Mobile Number */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground">
+                          Mobile Number
+                        </label>
+                        <Input
+                          type="tel"
+                          name="mobile_number"
+                          value={formData.mobile_number}
+                          onChange={handleInputChange}
+                          placeholder="+1 (555) 000-0000"
+                          className="bg-background border-border"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Save Button */}
+                  <div className="flex gap-3 pt-6 border-t border-border">
+                    <Button type="submit" className="gap-2" disabled={isSaving}>
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4" />
+                          Save Changes
+                        </>
+                      )}
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      onClick={handleCancelProfile}
+                      disabled={isSaving}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              </Card>
             </motion.div>
-          </div>
-        </div>
-      </motion.main>
-    </div>
+          </TabsContent>
+
+          {/* Address Tab */}
+          <TabsContent value="address" className="space-y-6">
+            <motion.div variants={itemVariants}>
+              <Card className="p-6">
+                <form onSubmit={handleSaveAddress} className="space-y-6">
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground mb-1">Billing Address</h3>
+                      <p className="text-sm text-muted-foreground mb-6">Update your billing and shipping information</p>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {/* Street Address */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground">
+                          Street Address
+                        </label>
+                        <Input
+                          type="text"
+                          name="billing_address"
+                          value={formData.billing_address}
+                          onChange={handleInputChange}
+                          placeholder="123 Main Street, Apt 4B"
+                          className="bg-background border-border"
+                        />
+                      </div>
+
+                      {/* City */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground">
+                          City
+                        </label>
+                        <Input
+                          type="text"
+                          name="city"
+                          value={formData.city}
+                          onChange={handleInputChange}
+                          placeholder="New York"
+                          className="bg-background border-border"
+                        />
+                      </div>
+
+                      {/* State and ZIP */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-foreground">
+                            State / Province
+                          </label>
+                          <Input
+                            type="text"
+                            name="state"
+                            value={formData.state}
+                            onChange={handleInputChange}
+                            placeholder="NY"
+                            className="bg-background border-border"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-foreground">
+                            ZIP / Postal Code
+                          </label>
+                          <Input
+                            type="text"
+                            name="zip"
+                            value={formData.zip}
+                            onChange={handleInputChange}
+                            placeholder="10001"
+                            className="bg-background border-border"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Save Button */}
+                  <div className="flex gap-3 pt-6 border-t border-border">
+                    <Button type="submit" className="gap-2" disabled={isSaving}>
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4" />
+                          Save Address
+                        </>
+                      )}
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      onClick={handleCancelProfile}
+                      disabled={isSaving}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              </Card>
+            </motion.div>
+          </TabsContent>
+
+          {/* Security Tab */}
+          <TabsContent value="security" className="space-y-6">
+            <motion.div variants={itemVariants}>
+              <Card className="p-6">
+                <form onSubmit={handleSavePassword} className="space-y-6">
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground mb-1">Change Password</h3>
+                      <p className="text-sm text-muted-foreground mb-6">Update your password to keep your account secure</p>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {/* Current Password */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground">
+                          Current Password
+                        </label>
+                        <div className="relative">
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            name="current_password"
+                            value={passwordData.current_password}
+                            onChange={handlePasswordChange}
+                            placeholder="Enter your current password"
+                            className="bg-background border-border pr-10"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            {showPassword ? (
+                              <EyeOff className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* New Password */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground">
+                          New Password
+                        </label>
+                        <Input
+                          type="password"
+                          name="new_password"
+                          value={passwordData.new_password}
+                          onChange={handlePasswordChange}
+                          placeholder="Enter your new password"
+                          className="bg-background border-border"
+                          required
+                        />
+                      </div>
+
+                      {/* Confirm Password */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground">
+                          Confirm New Password
+                        </label>
+                        <Input
+                          type="password"
+                          name="confirm_password"
+                          value={passwordData.confirm_password}
+                          onChange={handlePasswordChange}
+                          placeholder="Confirm your new password"
+                          className="bg-background border-border"
+                          required
+                        />
+                      </div>
+
+                      {/* Password Requirements */}
+                      <div className="bg-secondary/30 border border-border rounded-lg p-4">
+                        <p className="text-sm font-medium text-foreground mb-2">Password requirements:</p>
+                        <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+                          <li>Minimum 8 characters long</li>
+                          <li>At least one uppercase letter</li>
+                          <li>At least one lowercase letter</li>
+                          <li>At least one number</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Save Button */}
+                  <div className="flex gap-3 pt-6 border-t border-border">
+                    <Button type="submit" className="gap-2" disabled={isSaving}>
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Updating...
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="w-4 h-4" />
+                          Update Password
+                        </>
+                      )}
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      onClick={() => setPasswordData({
+                        current_password: "",
+                        new_password: "",
+                        confirm_password: "",
+                      })}
+                      disabled={isSaving}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              </Card>
+            </motion.div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </motion.div>
   )
 }

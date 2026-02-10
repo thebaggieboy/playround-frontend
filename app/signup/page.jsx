@@ -1,7 +1,7 @@
 "use client"
 
  
-import { useState, React } from "react"
+import { useState, React, useEffect } from "react"
 import { SignUpForm } from "@/components/signup-form"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -56,49 +56,18 @@ const dispatch = useDispatch();
   
  console.log("Form Data: ", formData)
 
-  function signUpSuccess() {
+  async function signUpSuccess() {
     
-    router.push("/signin")
+    router.push("/dashboard")
   }
   const submit = async (e) => {
     
     e.preventDefault();
     try {
-      if (password1 !== password2) {
-        throw { password: "Passwords do not match" }
-      }
-      setSpinner(true)
-      const url = "https://playground-backend-1t0f.onrender.com/auth/users/"
-      const res = await fetch(url, {
-                method: "POST",
-                headers: {
-
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ email, password:password1}),
-                credentials: "include"
-
-            })
-            const data = await res.json()
-
-            if (res.status >= 200 & res.status <= 209) {
-            console.log("New User Registered.")
-            console.log(data)
-         
-            setSpinner(false)
-            signUpSuccess()
-            await signUpFn(formData)
+      
+      await signUpFn({email, password: password1})
            
-            
-                
-                
-            }
-      
-            const error = { ...data }
-            throw error
-
-      
-    
+              
     } catch (error) {
       setFormErr(error)
       console.log("SIGNUP ERROR: ", error)
@@ -106,6 +75,11 @@ const dispatch = useDispatch();
   };
 
 
+  useEffect(()=>{
+    if(user !== null){
+      signUpSuccess()
+    }
+  })
   return (
     <main className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="w-full max-w-md">

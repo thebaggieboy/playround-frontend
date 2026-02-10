@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { USER_TYPES, selectUser, setUser, setUserType } from '../features/user/userSlice'
 import fetchProfileData from '../lib/fetchProfileData'
 import { selectUserEmail } from '../features/user/userActiveEmail'
+ 
+import { selectToken, setToken } from '@/features/token/tokenSlice'
 
 
 
@@ -10,8 +12,10 @@ import { selectUserEmail } from '../features/user/userActiveEmail'
 const useSignUp = (url, successCallback, userType) => {
     const isBrand = userType === USER_TYPES.brand
     const user = useSelector(selectUser)
+    const token = useSelector(selectToken)
     const user_email = useSelector(selectUserEmail)
     const dispatch = useDispatch()  
+
 
     const mutation = useMutation({
         mutationFn: async ({ email, password}) => {
@@ -26,25 +30,48 @@ const useSignUp = (url, successCallback, userType) => {
 
             })
             const data = await res.json()
+            console.log("Data: ", data)
 
-            let filteredUsers = data?.filter((user) => {
-                return user.email === user_email;
+            const  url2 = "https://playground-backend-1t0f.onrender.com/api/users/"
+            const res2 =  await fetch(url2, {
+                method: "GET",
+                headers: {
+                
+                    "Content-Type": "application/json"
+                },
+            })
+        
+            const data2 = await res2.json()
+            const results = data2.results
+            console.log("Data 2: ", results)
+        
+
+            let filteredUsers = results.filter((user) => {
+                return user.email === data.email;
             });
           
-            
-            dispatch(setUser(filteredUsers))
-            console.log("Current User: ", user)
+            console.log("Filtered User: ", filteredUsers)
+         
 
-            if (res.status >= 200 & res.status <= 209) {
-				console.log("New User Registered.")
-				console.log(data)
-                const id = data.id
-                const profile = await fetchProfileData(id, USER_TYPES.user)
-                console.log("Signup profile: ", profile)
-                return profile
+            const res3 = await fetch('https://playground-backend-1t0f.onrender.com/auth/jwt/create/', {
+                method: "POST",
+                headers: {
+
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email, password}),
+                credentials: "include"
+
+            })
+            const data3 = await res3.json()
+            console.log("Token data: ", data3)
            
-                
-            }
+
+            
+            dispatch(setToken(data3))
+            dispatch(setUser(filteredUsers))
+            
+
 
             const error = { ...data }
             throw error
@@ -52,6 +79,7 @@ const useSignUp = (url, successCallback, userType) => {
 
         },
         onSuccess: (user) => {
+
             successCallback(user)
         }
     })

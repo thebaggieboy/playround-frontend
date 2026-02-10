@@ -2,6 +2,13 @@
 
 import { motion } from "framer-motion"
 import { BarChart3, TrendingUp, FileText, Plus } from "lucide-react"
+import {selectToken, setToken} from '../../features/token/tokenSlice'
+import {selectUser, setUser} from "../../features/user/userSlice"
+import { useDispatch, useSelector } from "react-redux";
+
+import { selectUserEmail, setUserEmail } from '../../features/user/userActiveEmail'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -24,6 +31,18 @@ const itemVariants = {
 }
 
 export default function DashboardPage() {
+  const user = useSelector(selectUser)
+  const user_email = useSelector(selectUserEmail)
+  const token = useSelector(selectToken)
+  const router = useRouter()
+  const dispatch = useDispatch()
+
+  useEffect(()=>{
+    if(user == null){
+      router.push("/signin")
+    }
+  })
+
   return (
     <motion.div
       className="flex flex-col overflow-hidden flex-1"

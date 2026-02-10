@@ -24,7 +24,7 @@ const useLogin = (url, successCallback, userType) => {
 	const [userResult, setUserResult] = useState([])
 
     const mutation = useMutation({
-        mutationFn: async ({ username, email, password }) => {
+        mutationFn: async ({ email, password }) => {
             const res = await fetch(url, {
                 method: "POST",
                 headers: {
@@ -54,15 +54,17 @@ const useLogin = (url, successCallback, userType) => {
                 })
             
                 const data2 = await res2.json()
+                const results = data2.results
+                console.log("Data 2: ", results)
             
                 if (user_email !== null){
-                    let filteredUsers = data2.filter((user) => {
+                    let filteredUsers = results.filter((user) => {
                         return user.email === user_email;
                     });
-                  
+                    console.log("LoggedIn User: ", filteredUsers)
                     
                     dispatch(setUser(filteredUsers))
-                    console.log("Current User: ", user)
+               
                 }
                
                 

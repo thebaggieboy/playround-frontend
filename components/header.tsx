@@ -18,6 +18,7 @@ import Head from "next/head"
 import { useRouter } from "next/navigation"
 import { useMutation } from "@tanstack/react-query";
 import useSignUp from "../hooks/useSignUp";
+import { selectToken, setToken } from "@/features/token/tokenSlice"
 
 
 
@@ -52,10 +53,13 @@ export function Header() {
    const router = useRouter(); 
   const [spinner, setSpinner] = useState(false);
  const [isLoading, setIsLoading] = useState(false)
+ const token = useSelector(selectToken)
 
 const dispatch = useDispatch();
   const [open, setOpen] = useState(false)
   const [companyOpen, setCompanyOpen] = useState(false)
+
+
 
   const companyLinks = [
     {
@@ -85,6 +89,24 @@ const dispatch = useDispatch();
     },
   ]
 
+  async function logout() {
+		try {
+		
+			document.cookie = ""
+
+			dispatch(setToken(null))
+			dispatch(setUser(null));
+		 
+		
+		
+			
+			
+		} catch (error) {
+			console.log(error);
+		}
+	}
+
+
   return (
     <header
       style={{ fontFamily: "Poppins, Sans-serif", lineHeight: 1 }}
@@ -103,8 +125,7 @@ const dispatch = useDispatch();
           </div>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center ml-10 gap-8 flex-1">
+        {user == null ?    <nav className="hidden md:flex items-center ml-10 gap-8 flex-1">
           <DropdownMenu open={open} onOpenChange={setOpen}>
             <DropdownMenuTrigger className="flex items-center text-white gap-1 text-foreground/70 hover:text-primary text-sm transition-smooth font-medium focus:outline-none">
               Solutions
@@ -149,7 +170,10 @@ const dispatch = useDispatch();
           </DropdownMenu>
       
         </nav>
+: ""}
 
+        {/* Desktop Navigation */}
+     
         {/* Action Buttons */}
         <div className="flex items-center gap-2 sm:gap-3">
        {user == null ?    <Link href="/demo">
@@ -163,14 +187,16 @@ const dispatch = useDispatch();
 
            {user !== null ?   <Link href="/dashboard">
             <Button className="bg-white  hover:bg-accent text-black-foreground rounded-full px-4 sm:px-6 py-2 transition-smooth-lg hover:shadow-lg hover:shadow-primary/20 text-sm sm:text-base">
-              Dashsboard
+              Dashboard
             </Button>
           </Link> :   <Link href="/signup">
             <Button className="bg-white  hover:bg-accent text-black-foreground rounded-full px-4 sm:px-6 py-2 transition-smooth-lg hover:shadow-lg hover:shadow-primary/20 text-sm sm:text-base">
               Get Started
             </Button>
           </Link>}
-              
+              {user !== null ?   <Button onClick={logout} className="bg-white text-red-500 rounded-full px-4 sm:px-6 py-2 transition-smooth-lg text-sm sm:text-base">
+              Logout
+            </Button> : ""}
         
              
         
