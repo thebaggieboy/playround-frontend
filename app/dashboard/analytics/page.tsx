@@ -1,12 +1,11 @@
 "use client"
 
+import { useState } from "react"
 import { motion } from "framer-motion"
 import DashboardHeader from "@/components/dashboard/header"
-import DashboardSidebar from "@/components/dashboard/sidebar"
-import { BarChart3, TrendingUp, Users, FileText, Calendar } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
   XAxis,
@@ -15,158 +14,233 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  PieChart,
+  Pie,
+  Cell
 } from "recharts"
+import {
+  TrendingUp,
+  Users,
+  Activity,
+  DollarSign,
+  ArrowUpRight,
+  ArrowDownRight
+} from "lucide-react"
 
-const chartData = [
-  { month: "Jan", models: 12, accuracy: 88 },
-  { month: "Feb", models: 19, accuracy: 90 },
-  { month: "Mar", models: 15, accuracy: 92 },
-  { month: "Apr", models: 25, accuracy: 91 },
-  { month: "May", models: 22, accuracy: 94 },
-  { month: "Jun", models: 30, accuracy: 93 },
+// Mock Data
+const revenueData = [
+  { name: "Jan", revenue: 4000, target: 2400 },
+  { name: "Feb", revenue: 3000, target: 1398 },
+  { name: "Mar", revenue: 2000, target: 9800 },
+  { name: "Apr", revenue: 2780, target: 3908 },
+  { name: "May", revenue: 1890, target: 4800 },
+  { name: "Jun", revenue: 2390, target: 3800 },
+  { name: "Jul", revenue: 3490, target: 4300 },
+  { name: "Aug", revenue: 4000, target: 2400 },
+  { name: "Sep", revenue: 3000, target: 1398 },
+  { name: "Oct", revenue: 2000, target: 9800 },
+  { name: "Nov", revenue: 2780, target: 3908 },
+  { name: "Dec", revenue: 3490, target: 4300 },
 ]
 
-const stats = [
-  { icon: FileText, label: "Total Models", value: "156", change: "+12%" },
-  { icon: Users, label: "Team Members", value: "8", change: "+2" },
-  { icon: TrendingUp, label: "Avg Accuracy", value: "92.1%", change: "+3.1%" },
-  { icon: BarChart3, label: "Reports Generated", value: "342", change: "+45" },
+const projectTypesData = [
+  { name: "Manufacturing", value: 400 },
+  { name: "Real Estate", value: 300 },
+  { name: "Energy", value: 300 },
+  { name: "General", value: 200 },
 ]
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
-    },
-  },
-}
+const COLORS = ["#0ea5e9", "#10b981", "#f59e0b", "#6366f1", "#ec4899"]
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: "easeOut" },
-  },
-}
+const StatCard = ({ title, value, change, isPositive, icon: Icon }: any) => (
+  <Card>
+    <CardContent className="p-6">
+      <div className="flex items-center justify-between space-y-0 pb-2">
+        <p className="text-sm font-medium text-muted-foreground">{title}</p>
+        <div className="p-2 bg-primary/10 rounded-full">
+          <Icon className="h-4 w-4 text-primary" />
+        </div>
+      </div>
+      <div className="flex items-center justify-between">
+        <div className="text-2xl font-bold">{value}</div>
+        <div className={`flex items-center text-xs px-2 py-1 rounded-full ${isPositive ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400" :
+            "bg-rose-100 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400"
+          }`}>
+          {isPositive ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
+          {change}
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+)
 
 export default function AnalyticsPage() {
+  const [timeRange, setTimeRange] = useState("year")
+
   return (
-    <div className="flex h-screen bg-background p-5" >
-       
+    <div className="flex flex-col h-full bg-background overflow-hidden">
+      <DashboardHeader />
 
-      <motion.main
-        className="flex-1 flex flex-col overflow-hidden"
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-      >
-        <DashboardHeader />
+      <main className="flex-1 overflow-auto p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto space-y-8">
 
-        <div className="flex-1 overflow-auto">
-          <div className="p-4 lg:p-8 space-y-6 lg:space-y-8">
-            {/* Header */}
-            <motion.div variants={itemVariants} className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                  <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Analytics</h1>
-                  <p className="text-sm lg:text-base text-muted-foreground mt-1">
-                    Track your platform usage and performance
-                  </p>
-                </div>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="flex items-center gap-2 px-3 lg:px-4 py-2 border border-border rounded-lg hover:bg-secondary transition-colors w-full sm:w-auto justify-center sm:justify-start"
-                >
-                  <Calendar className="w-4 h-4" />
-                  <span className="text-sm">Last 6 months</span>
-                </motion.button>
-              </div>
-            </motion.div>
-
-            {/* Stats Grid */}
-            <motion.div
-              variants={itemVariants}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4"
-            >
-              {stats.map((stat, index) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.1, duration: 0.4 }}
-                  whileHover={{ y: -2 }}
-                  className="bg-card border border-border rounded-xl p-4 lg:p-6 hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <stat.icon className="w-5 h-5 text-primary" />
-                    </div>
-                    <span className="text-xs font-medium text-green-600">{stat.change}</span>
-                  </div>
-                  <p className="text-xs lg:text-sm text-muted-foreground mb-1">{stat.label}</p>
-                  <p className="text-xl lg:text-2xl font-bold text-foreground">{stat.value}</p>
-                </motion.div>
-              ))}
-            </motion.div>
-
-            {/* Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-              {/* Line Chart */}
-              <motion.div variants={itemVariants} className="bg-card border border-border rounded-xl p-4 lg:p-6">
-                <h3 className="text-base lg:text-lg font-semibold text-foreground mb-4">Models Created Over Time</h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                    <XAxis dataKey="month" stroke="var(--color-muted-foreground)" />
-                    <YAxis stroke="var(--color-muted-foreground)" />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "var(--color-card)",
-                        border: "1px solid var(--color-border)",
-                        borderRadius: "8px",
-                      }}
-                    />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="models"
-                      stroke="var(--color-primary)"
-                      strokeWidth={2}
-                      dot={{ fill: "var(--color-primary)" }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </motion.div>
-
-              {/* Bar Chart */}
-              <motion.div variants={itemVariants} className="bg-card border border-border rounded-xl p-4 lg:p-6">
-                <h3 className="text-base lg:text-lg font-semibold text-foreground mb-4">Accuracy Trend</h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                    <XAxis dataKey="month" stroke="var(--color-muted-foreground)" />
-                    <YAxis stroke="var(--color-muted-foreground)" />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "var(--color-card)",
-                        border: "1px solid var(--color-border)",
-                        borderRadius: "8px",
-                      }}
-                    />
-                    <Legend />
-                    <Bar dataKey="accuracy" fill="var(--color-primary)" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </motion.div>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">Analytics Dashboard</h1>
+              <p className="text-sm text-muted-foreground">Comprehensive overview of your models and projects.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Tabs value={timeRange} onValueChange={setTimeRange} className="w-[300px] sm:w-[400px]">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="day">Day</TabsTrigger>
+                  <TabsTrigger value="week">Week</TabsTrigger>
+                  <TabsTrigger value="month">Month</TabsTrigger>
+                  <TabsTrigger value="year">Year</TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
           </div>
+
+          {/* Top Stats Row */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              title="Total Revenue Modeled"
+              value="$45.2M"
+              change="+20.1%"
+              isPositive={true}
+              icon={DollarSign}
+            />
+            <StatCard
+              title="Active Projects"
+              value="124"
+              change="+12"
+              isPositive={true}
+              icon={Activity}
+            />
+            <StatCard
+              title="Avg. Target IRR"
+              value="18.5%"
+              change="-0.5%"
+              isPositive={false}
+              icon={TrendingUp}
+            />
+            <StatCard
+              title="Models Generated"
+              value="892"
+              change="+14.2%"
+              isPositive={true}
+              icon={Users}
+            />
+          </div>
+
+          {/* Charts Row 1 */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+
+            <Card className="col-span-4 shadow-sm">
+              <CardHeader>
+                <CardTitle>Revenue Projections vs Targets</CardTitle>
+                <CardDescription>
+                  Comparison of calculated aggregate revenues across all your models.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pl-2">
+                <div className="h-[350px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={revenueData}
+                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="colorTarget" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#94a3b8" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis
+                        dataKey="name"
+                        stroke="#888888"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <YAxis
+                        stroke="#888888"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={(value) => `$${value}`}
+                      />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                      <Tooltip
+                        contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                        formatter={(value: number) => [`$${value}`, undefined]}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="target"
+                        stroke="#94a3b8"
+                        fillOpacity={1}
+                        fill="url(#colorTarget)"
+                        strokeWidth={2}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="revenue"
+                        stroke="#0ea5e9"
+                        fillOpacity={1}
+                        fill="url(#colorRevenue)"
+                        strokeWidth={2}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="col-span-3 shadow-sm">
+              <CardHeader>
+                <CardTitle>Projects by Industry</CardTitle>
+                <CardDescription>Distribution of financial models across sectors</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[350px] w-full flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={projectTypesData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={80}
+                        outerRadius={120}
+                        paddingAngle={5}
+                        dataKey="value"
+                        stroke="none"
+                      >
+                        {projectTypesData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      />
+                      <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
         </div>
-      </motion.main>
+      </main>
     </div>
   )
 }

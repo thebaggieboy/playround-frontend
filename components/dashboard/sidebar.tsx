@@ -2,14 +2,16 @@
 
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
-import { LayoutDashboard, FileText, BarChart3, Layout, Settings, LogOut, Menu, X, PenSquare } from "lucide-react"
+import { LayoutDashboard, FileText, BarChart3, Layout, Settings, LogOut, Menu, X, PenSquare, MessageSquare, PieChart, Layers } from "lucide-react"
 import { useState } from "react"
 import { usePathname } from "next/navigation"
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
- 
+  { icon: MessageSquare, label: "Chat", href: "/dashboard/chat" },
+  { icon: PieChart, label: "Analytics", href: "/dashboard/analytics" },
   { icon: PenSquare, label: "Input Model", href: "/dashboard/models/input/advanced" },
+  { icon: Layers, label: "Scenarios", href: "/dashboard/scenarios" },
   { icon: Layout, label: "Templates", href: "/dashboard/templates" },
   { icon: FileText, label: "Reports", href: "/dashboard/reports" },
   { icon: Settings, label: "Settings", href: "/dashboard/settings" },
@@ -83,9 +85,8 @@ export default function DashboardSidebar() {
                 <motion.button
                   whileHover={{ x: 4 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                    isActive(item.href) ? "bg-primary text-white shadow-sm" : "text-foreground hover:bg-secondary"
-                  }`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive(item.href) ? "bg-primary text-white shadow-sm" : "text-foreground hover:bg-secondary"
+                    }`}
                 >
                   <item.icon className="w-5 h-5 flex-shrink-0" />
                   <span className="font-medium text-sm">{item.label}</span>

@@ -37,12 +37,7 @@ export default function DashboardPage() {
   const router = useRouter()
   const dispatch = useDispatch()
 
-  useEffect(()=>{
-    if(user == null){
-      router.push("/signin")
-    }
-  })
-
+ 
   return (
     <motion.div
       className="flex flex-col overflow-hidden flex-1"

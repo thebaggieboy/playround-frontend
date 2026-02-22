@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, Menu, X } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import { useDispatch, useSelector } from "react-redux";
@@ -19,24 +19,23 @@ import { useRouter } from "next/navigation"
 import { useMutation } from "@tanstack/react-query";
 import useSignUp from "../hooks/useSignUp";
 import { selectToken, setToken } from "@/features/token/tokenSlice"
-
-
+import { motion, AnimatePresence } from "framer-motion"
 
 const solutions = [
   {
     name: "Financial Model",
     description: "Create and manage comprehensive financial models",
-    src:"/use-cases/financial-forecasting/"
+    src: "/use-cases/financial-forecasting/"
   },
   {
     name: "Economic Model",
     description: "Build and analyze economic forecasting models",
-     src:"/use-cases/financial-forecasting/"
+    src: "/use-cases/financial-forecasting/"
   },
   {
     name: "Portfolio Management",
     description: "Track and optimize investment portfolios",
-     src:"/use-cases/portfolio-management/"
+    src: "/use-cases/portfolio-management/"
   },
   {
     name: "AI Integration",
@@ -50,16 +49,15 @@ const solutions = [
 
 export function Header() {
   const user = useSelector(selectUser);
-   const router = useRouter(); 
+  const router = useRouter();
   const [spinner, setSpinner] = useState(false);
- const [isLoading, setIsLoading] = useState(false)
- const token = useSelector(selectToken)
+  const [isLoading, setIsLoading] = useState(false)
+  const token = useSelector(selectToken)
 
-const dispatch = useDispatch();
+  const dispatch = useDispatch();
   const [open, setOpen] = useState(false)
   const [companyOpen, setCompanyOpen] = useState(false)
-
-
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const companyLinks = [
     {
@@ -90,21 +88,21 @@ const dispatch = useDispatch();
   ]
 
   async function logout() {
-		try {
-		
-			document.cookie = ""
+    try {
 
-			dispatch(setToken(null))
-			dispatch(setUser(null));
-		 
-		
-		
-			
-			
-		} catch (error) {
-			console.log(error);
-		}
-	}
+      document.cookie = ""
+
+      dispatch(setToken(null))
+      dispatch(setUser(null));
+
+
+
+
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
 
   return (
@@ -116,16 +114,16 @@ const dispatch = useDispatch();
         {/* Logo */}
         <Link href={"/"}>
           <div className="flex items-center gap-2 group shrink-0">
-            
+
             <span style={{
-             color: "",
+              color: "",
             }} className="font-bold text-white text-sm text-foreground group-hover:text-primary  transition-smooth hidden sm:inline">
               Playground
             </span>
           </div>
         </Link>
 
-        {user == null ?    <nav className="hidden md:flex items-center ml-10 gap-8 flex-1">
+        {user == null ? <nav className="hidden md:flex items-center ml-10 gap-8 flex-1">
           <DropdownMenu open={open} onOpenChange={setOpen}>
             <DropdownMenuTrigger className="flex items-center text-white gap-1 text-foreground/70 hover:text-primary text-sm transition-smooth font-medium focus:outline-none">
               Solutions
@@ -144,7 +142,7 @@ const dispatch = useDispatch();
           </DropdownMenu>
 
           <a href="/use-cases/industry" className="text-foreground/70  text-white hover:text-primary text-sm transition-smooth font-medium">
-           Industry
+            Industry
           </a>
 
           <a href="/use-cases/customer-stories" className="text-foreground/70  text-white hover:text-primary text-sm transition-smooth font-medium">
@@ -168,73 +166,140 @@ const dispatch = useDispatch();
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-      
+
         </nav>
-: ""}
+          : ""}
 
         {/* Desktop Navigation */}
-     
+
         {/* Action Buttons */}
-        <div className="flex items-center gap-2 sm:gap-3">
-       {user == null ?    <Link href="/demo">
+        {/* Action Buttons (Desktop) */}
+        <div className="hidden md:flex items-center gap-2 sm:gap-3">
+          {user == null ? <Link href="/demo">
             <Button
-               
+
               className="hidden sm:inline-flex bg-blue-600 hover:bg-blue-700 text-white text-sm transition-colors duration-200"
             >
               Request Demo
             </Button>
           </Link> : ""}
 
-           {user !== null ?   <Link href="/dashboard">
-            <Button className="bg-white  hover:bg-accent text-black-foreground rounded-full px-4 sm:px-6 py-2 transition-smooth-lg hover:shadow-lg hover:shadow-primary/20 text-sm sm:text-base">
+          {user !== null ? <Link href="/dashboard">
+            <Button className="bg-white hover:bg-accent text-black-foreground rounded-full px-4 sm:px-6 py-2 transition-smooth-lg hover:shadow-lg hover:shadow-primary/20 text-sm sm:text-base">
               Dashboard
             </Button>
-          </Link> :   <Link href="/signup">
-            <Button className="bg-white  hover:bg-accent text-black-foreground rounded-full px-4 sm:px-6 py-2 transition-smooth-lg hover:shadow-lg hover:shadow-primary/20 text-sm sm:text-base">
+          </Link> : <Link href="/signup">
+            <Button className="bg-white hover:bg-accent text-black-foreground rounded-full px-4 sm:px-6 py-2 transition-smooth-lg hover:shadow-lg hover:shadow-primary/20 text-sm sm:text-base">
               Get Started
             </Button>
           </Link>}
-              {user !== null ?   <Button onClick={logout} className="bg-white text-red-500 rounded-full px-4 sm:px-6 py-2 transition-smooth-lg text-sm sm:text-base">
-              Logout
-            </Button> : ""}
-        
-             
-        
+          {user !== null ? <Button onClick={logout} className="bg-white text-red-500 rounded-full px-4 sm:px-6 py-2 transition-smooth-lg text-sm sm:text-base">
+            Logout
+          </Button> : ""}
+        </div>
+
+        {/* Mobile Menu Toggle */}
+        <div className="md:hidden flex items-center">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:bg-[#1a3264]"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </Button>
         </div>
       </div>
 
       {/* Mobile Navigation */}
-      <div className="md:hidden px-4 pb-2 flex flex-col gap-2">
-      <Link href={"/"}>
-          <div className="flex items-center gap-2 group shrink-0">
-            
-            <span style={{
-             color: "",
-            }} className="font-bold text-white text-sm text-foreground group-hover:text-primary  transition-smooth hidden sm:inline">
-              Playground
-            </span>
-          </div>
-        </Link>
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="md:hidden overflow-hidden bg-[#0c1630] border-t border-[#1d3a6e]"
+          >
+            <div className="px-4 py-4 flex flex-col gap-4">
+              {user == null && (
+                <>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="w-full text-left text-white flex items-center justify-between px-3 py-3 rounded-md text-foreground/70 hover:bg-[#1a3264] transition-smooth text-sm font-medium">
+                      Solutions
+                      <ChevronDown className="w-4 h-4" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-[calc(100vw-2rem)]">
+                      <DropdownMenuLabel>Platform Solutions</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {solutions.map((solution) => (
+                        <DropdownMenuItem key={solution.name} className="flex flex-col items-start gap-1 py-2">
+                          <span className="font-medium">{solution.name}</span>
+                          <span className="text-xs text-foreground/60">{solution.description}</span>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger className="w-full text-left text-white flex items-center justify-between px-3 py-2 rounded-md text-foreground/70 hover:bg-accent/50 transition-smooth text-sm font-medium">
-            Solutions
-            <ChevronDown className="w-4 h-4" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-full">
-            <DropdownMenuLabel>Platform Solutions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {solutions.map((solution) => (
-              <DropdownMenuItem key={solution.name} className="flex flex-col items-start gap-1 py-2">
-                <span className="font-medium">{solution.name}</span>
-                <span className="text-xs text-foreground/60">{solution.description}</span>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+                  <Link href="/use-cases/industry" className="px-3 py-3 block text-white hover:bg-[#1a3264] rounded-md text-sm font-medium transition-colors">
+                    Industry
+                  </Link>
 
-      
-      </div>
+                  <Link href="/use-cases/customer-stories" className="px-3 py-3 block text-white hover:bg-[#1a3264] rounded-md text-sm font-medium transition-colors">
+                    Customer Stories
+                  </Link>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="w-full text-left text-white flex items-center justify-between px-3 py-3 rounded-md text-foreground/70 hover:bg-[#1a3264] transition-smooth text-sm font-medium">
+                      Company
+                      <ChevronDown className="w-4 h-4" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-[calc(100vw-2rem)]">
+                      <DropdownMenuLabel>Company</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {companyLinks.map((link) => (
+                        <DropdownMenuItem key={link.name} asChild className="flex flex-col items-start gap-1 py-2">
+                          <Link href={link.src}>
+                            <span className="font-medium text-foreground">{link.name}</span>
+                            <span className="text-xs text-foreground/60">{link.description}</span>
+                          </Link>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </>
+              )}
+
+              <div className="flex flex-col gap-3 pt-4 border-t border-[#1d3a6e]">
+                {user == null ? (
+                  <>
+                    <Link href="/demo" className="w-full">
+                      <Button variant="outline" className="w-full border-[#264a82] bg-transparent text-white hover:bg-[#1a3264]">
+                        Request Demo
+                      </Button>
+                    </Link>
+                    <Link href="/signup" className="w-full">
+                      <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                        Get Started
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/dashboard" className="w-full">
+                      <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                        Dashboard
+                      </Button>
+                    </Link>
+                    <Button onClick={logout} variant="destructive" className="w-full mt-2">
+                      Logout
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   )
 }

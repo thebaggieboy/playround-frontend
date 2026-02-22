@@ -8,13 +8,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, Variants } from "framer-motion"
 import { useSelector, useDispatch } from "react-redux"
 import { selectUser, setUser } from "../../../features/user/userSlice"
 import { selectUserEmail } from "../../../features/user/userActiveEmail"
 import { selectToken } from "../../../features/token/tokenSlice"
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -25,21 +25,21 @@ const containerVariants = {
   },
 }
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 15 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.4, ease: "easeOut" },
+    transition: { duration: 0.4, ease: "easeOut" as const },
   },
 }
 
-const tabContentVariants = {
+const tabContentVariants: Variants = {
   initial: { opacity: 0, y: 10 },
   animate: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.3, ease: "easeOut" },
+    transition: { duration: 0.3, ease: "easeOut" as const },
   },
   exit: {
     opacity: 0,
@@ -53,13 +53,13 @@ export default function SettingsPage() {
   const user = useSelector(selectUser)
   const userEmail = useSelector(selectUserEmail)
   const token = useSelector(selectToken)
-  
+
   const [activeTab, setActiveTab] = useState("profile")
   const [showPassword, setShowPassword] = useState(false)
   const [profileImage, setProfileImage] = useState<string | null>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  
+
   // Loading and notification states
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -93,11 +93,13 @@ export default function SettingsPage() {
     const fetchUserData = async () => {
       try {
         setIsLoading(true)
+        const authString = typeof token === 'string' ? token : (token && typeof token === 'object' && token.access ? token.access : '')
+
         const response = await fetch("https://playground-backend-1t0f.onrender.com/api/users/", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            ...(token && { "Authorization": `Bearer ${token}` })
+            ...(authString && { "Authorization": `Bearer ${authString}` })
           },
         })
 
@@ -109,7 +111,7 @@ export default function SettingsPage() {
 
         // Filter user by email or id
         let filteredUser = null
-        
+
         if (Array.isArray(data)) {
           if (user?.id) {
             filteredUser = data.find((u: Record<string, unknown>) => u.id === user.id)
@@ -140,11 +142,11 @@ export default function SettingsPage() {
             state: filteredUser.state || "",
             zip: filteredUser.zip || "",
           })
-          
+
           if (filteredUser.display_picture) {
             setProfileImage(filteredUser.display_picture as string)
           }
-          
+
           dispatch(setUser(filteredUser))
         } else {
           showNotification("User not found", "error")
@@ -213,7 +215,7 @@ export default function SettingsPage() {
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!currentUser?.id) {
       showNotification("User ID not found", "error")
       return
@@ -223,7 +225,7 @@ export default function SettingsPage() {
       setIsSaving(true)
 
       const formDataToSend = new FormData()
-      
+
       Object.keys(formData).forEach(key => {
         if (key !== 'email' && formData[key as keyof typeof formData]) {
           formDataToSend.append(key, formData[key as keyof typeof formData])
@@ -234,12 +236,13 @@ export default function SettingsPage() {
         formDataToSend.append('display_picture', imageFile)
       }
 
+      const authString = typeof token === 'string' ? token : (token && typeof token === 'object' && token.access ? token.access : '')
       const response = await fetch(
         `https://playground-backend-1t0f.onrender.com/api/users/${currentUser.id}/`,
         {
           method: "PATCH",
           headers: {
-            ...(token && { "Authorization": `Bearer ${token}` })
+            ...(authString && { "Authorization": `Bearer ${authString}` })
           },
           body: formDataToSend,
         }
@@ -251,14 +254,14 @@ export default function SettingsPage() {
       }
 
       const updatedUser = await response.json()
-      
+
       setCurrentUser(updatedUser)
       dispatch(setUser(updatedUser))
-      
+
       if (updatedUser.display_picture) {
         setProfileImage(updatedUser.display_picture)
       }
-      
+
       setImageFile(null)
       showNotification("Profile updated successfully!", "success")
     } catch (error) {
@@ -271,7 +274,7 @@ export default function SettingsPage() {
 
   const handleSaveAddress = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!currentUser?.id) {
       showNotification("User ID not found", "error")
       return
@@ -287,13 +290,14 @@ export default function SettingsPage() {
         zip: formData.zip,
       }
 
+      const authString = typeof token === 'string' ? token : (token && typeof token === 'object' && token.access ? token.access : '')
       const response = await fetch(
         `https://playground-backend-1t0f.onrender.com/api/users/${currentUser.id}/`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
-            ...(token && { "Authorization": `Bearer ${token}` })
+            ...(authString && { "Authorization": `Bearer ${authString}` })
           },
           body: JSON.stringify(addressData),
         }
@@ -305,10 +309,10 @@ export default function SettingsPage() {
       }
 
       const updatedUser = await response.json()
-      
+
       setCurrentUser(updatedUser)
       dispatch(setUser(updatedUser))
-      
+
       showNotification("Address updated successfully!", "success")
     } catch (error) {
       console.error("Error updating address:", error)
@@ -320,7 +324,7 @@ export default function SettingsPage() {
 
   const handleSavePassword = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (passwordData.new_password !== passwordData.confirm_password) {
       showNotification("Passwords don't match!", "error")
       return
@@ -339,13 +343,14 @@ export default function SettingsPage() {
     try {
       setIsSaving(true)
 
+      const authString = typeof token === 'string' ? token : (token && typeof token === 'object' && token.access ? token.access : '')
       const response = await fetch(
         `https://playground-backend-1t0f.onrender.com/api/users/${currentUser.id}/change_password/`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ...(token && { "Authorization": `Bearer ${token}` })
+            ...(authString && { "Authorization": `Bearer ${authString}` })
           },
           body: JSON.stringify({
             current_password: passwordData.current_password,
@@ -386,7 +391,7 @@ export default function SettingsPage() {
         state: (currentUser.state as string) || "",
         zip: (currentUser.zip as string) || "",
       })
-      
+
       setProfileImage((currentUser.display_picture as string) || null)
       setImageFile(null)
       if (fileInputRef.current) {
@@ -408,7 +413,7 @@ export default function SettingsPage() {
 
   return (
     <motion.div
-      className="min-h-screen bg-background"
+      className="h-full overflow-y-auto bg-background/50 relative isolate scroll-smooth"
       initial="hidden"
       animate="visible"
       variants={containerVariants}
@@ -423,11 +428,10 @@ export default function SettingsPage() {
             className="fixed top-4 right-4 z-50 max-w-sm"
           >
             <div
-              className={`flex items-center gap-3 p-4 rounded-lg shadow-lg ${
-                notification.type === "success"
-                  ? "bg-green-50 text-green-800 border border-green-200"
-                  : "bg-red-50 text-red-800 border border-red-200"
-              }`}
+              className={`flex items-center gap-3 p-4 rounded-lg shadow-lg ${notification.type === "success"
+                ? "bg-green-50 text-green-800 border border-green-200"
+                : "bg-red-50 text-red-800 border border-red-200"
+                }`}
             >
               {notification.type === "success" ? (
                 <CheckCircle className="w-5 h-5 shrink-0" />
@@ -441,28 +445,28 @@ export default function SettingsPage() {
       </AnimatePresence>
 
       {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="border-b border-border/50 bg-card/30 backdrop-blur-xl sticky top-0 z-20">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <motion.div variants={itemVariants}>
-            <h1 className="text-xl sm:text-2xl font-semibold text-foreground">Settings</h1>
-            <p className="text-sm text-muted-foreground mt-1">Manage your account information</p>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Account Settings</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1.5">Manage your personal information and preferences</p>
           </motion.div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-6 sm:mb-8 bg-secondary/50 w-full sm:w-auto">
-            <TabsTrigger value="profile" className="gap-2 flex-1 sm:flex-initial">
+          <TabsList className="mb-8 sm:mb-10 bg-secondary/40 p-1.5 rounded-xl w-full sm:w-auto border border-border/50">
+            <TabsTrigger value="profile" className="gap-2 flex-1 sm:flex-initial rounded-lg data-[state=active]:shadow-sm">
               <User className="w-4 h-4 hidden sm:inline-block" />
               Profile
             </TabsTrigger>
-            <TabsTrigger value="address" className="gap-2 flex-1 sm:flex-initial">
+            <TabsTrigger value="address" className="gap-2 flex-1 sm:flex-initial rounded-lg data-[state=active]:shadow-sm">
               <MapPin className="w-4 h-4 hidden sm:inline-block" />
               Address
             </TabsTrigger>
-            <TabsTrigger value="security" className="gap-2 flex-1 sm:flex-initial">
+            <TabsTrigger value="security" className="gap-2 flex-1 sm:flex-initial rounded-lg data-[state=active]:shadow-sm">
               <Lock className="w-4 h-4 hidden sm:inline-block" />
               Security
             </TabsTrigger>
@@ -477,7 +481,7 @@ export default function SettingsPage() {
               animate="animate"
               exit="exit"
             >
-              <Card className="p-4 sm:p-6">
+              <Card className="p-5 sm:p-8 shadow-sm border-border/60 bg-card/50 backdrop-blur-sm rounded-2xl">
                 <form onSubmit={handleSaveProfile} className="space-y-6">
                   {/* Profile Picture Section */}
                   <div className="space-y-4">
@@ -485,14 +489,14 @@ export default function SettingsPage() {
                       <h3 className="text-lg font-semibold text-foreground mb-1">Profile Picture</h3>
                       <p className="text-sm text-muted-foreground">Upload a photo to personalize your account</p>
                     </div>
-                    
+
                     <div className="flex items-center gap-4">
                       <div className="relative shrink-0">
                         {profileImage ? (
                           <div className="relative w-20 h-20 rounded-full overflow-hidden ring-2 ring-border">
-                            <img 
-                              src={profileImage || "/placeholder.svg"} 
-                              alt="Profile" 
+                            <img
+                              src={profileImage || "/placeholder.svg"}
+                              alt="Profile"
                               className="w-full h-full object-cover"
                             />
                             <button
@@ -520,10 +524,10 @@ export default function SettingsPage() {
                           id="profile-picture"
                           aria-label="Upload profile picture"
                         />
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
                           className="gap-2 bg-transparent"
                           onClick={() => fileInputRef.current?.click()}
                         >
@@ -543,7 +547,7 @@ export default function SettingsPage() {
                       <h3 className="text-lg font-semibold text-foreground mb-1">Personal Information</h3>
                       <p className="text-sm text-muted-foreground">Update your personal details</p>
                     </div>
-                    
+
                     <div className="space-y-4">
                       {/* Email (Read-only) */}
                       <div className="space-y-2">
@@ -576,7 +580,7 @@ export default function SettingsPage() {
                             value={formData.first_name}
                             onChange={handleInputChange}
                             placeholder="Enter first name"
-                            className="bg-background border-border"
+                            className="bg-background/50 border-border/50 focus:bg-background transition-all focus:ring-primary/20 hover:border-border rounded-lg shadow-sm"
                           />
                         </div>
                         <div className="space-y-2">
@@ -590,7 +594,7 @@ export default function SettingsPage() {
                             value={formData.last_name}
                             onChange={handleInputChange}
                             placeholder="Enter last name"
-                            className="bg-background border-border"
+                            className="bg-background/50 border-border/50 focus:bg-background transition-all focus:ring-primary/20 hover:border-border rounded-lg shadow-sm"
                           />
                         </div>
                       </div>
@@ -607,7 +611,7 @@ export default function SettingsPage() {
                           value={formData.mobile_number}
                           onChange={handleInputChange}
                           placeholder="+1 (555) 000-0000"
-                          className="bg-background border-border"
+                          className="bg-background/50 border-border/50 focus:bg-background transition-all focus:ring-primary/20 hover:border-border rounded-lg shadow-sm"
                         />
                       </div>
                     </div>
@@ -628,8 +632,8 @@ export default function SettingsPage() {
                         </>
                       )}
                     </Button>
-                    <Button 
-                      type="button" 
+                    <Button
+                      type="button"
                       variant="outline"
                       onClick={handleCancelProfile}
                       disabled={isSaving}
@@ -651,14 +655,14 @@ export default function SettingsPage() {
               animate="animate"
               exit="exit"
             >
-              <Card className="p-4 sm:p-6">
+              <Card className="p-5 sm:p-8 shadow-sm border-border/60 bg-card/50 backdrop-blur-sm rounded-2xl">
                 <form onSubmit={handleSaveAddress} className="space-y-6">
                   <div className="space-y-4">
                     <div>
                       <h3 className="text-lg font-semibold text-foreground mb-1">Billing Address</h3>
                       <p className="text-sm text-muted-foreground">Update your billing and shipping information</p>
                     </div>
-                    
+
                     <div className="space-y-4">
                       {/* Street Address */}
                       <div className="space-y-2">
@@ -672,7 +676,7 @@ export default function SettingsPage() {
                           value={formData.billing_address}
                           onChange={handleInputChange}
                           placeholder="123 Main Street, Apt 4B"
-                          className="bg-background border-border"
+                          className="bg-background/50 border-border/50 focus:bg-background transition-all focus:ring-primary/20 hover:border-border rounded-lg shadow-sm"
                         />
                       </div>
 
@@ -688,7 +692,7 @@ export default function SettingsPage() {
                           value={formData.city}
                           onChange={handleInputChange}
                           placeholder="New York"
-                          className="bg-background border-border"
+                          className="bg-background/50 border-border/50 focus:bg-background transition-all focus:ring-primary/20 hover:border-border rounded-lg shadow-sm"
                         />
                       </div>
 
@@ -705,7 +709,7 @@ export default function SettingsPage() {
                             value={formData.state}
                             onChange={handleInputChange}
                             placeholder="NY"
-                            className="bg-background border-border"
+                            className="bg-background/50 border-border/50 focus:bg-background transition-all focus:ring-primary/20 hover:border-border rounded-lg shadow-sm"
                           />
                         </div>
                         <div className="space-y-2">
@@ -719,7 +723,7 @@ export default function SettingsPage() {
                             value={formData.zip}
                             onChange={handleInputChange}
                             placeholder="10001"
-                            className="bg-background border-border"
+                            className="bg-background/50 border-border/50 focus:bg-background transition-all focus:ring-primary/20 hover:border-border rounded-lg shadow-sm"
                           />
                         </div>
                       </div>
@@ -741,8 +745,8 @@ export default function SettingsPage() {
                         </>
                       )}
                     </Button>
-                    <Button 
-                      type="button" 
+                    <Button
+                      type="button"
                       variant="outline"
                       onClick={handleCancelProfile}
                       disabled={isSaving}
@@ -764,14 +768,14 @@ export default function SettingsPage() {
               animate="animate"
               exit="exit"
             >
-              <Card className="p-4 sm:p-6">
+              <Card className="p-5 sm:p-8 shadow-sm border-border/60 bg-card/50 backdrop-blur-sm rounded-2xl">
                 <form onSubmit={handleSavePassword} className="space-y-6">
                   <div className="space-y-4">
                     <div>
                       <h3 className="text-lg font-semibold text-foreground mb-1">Change Password</h3>
                       <p className="text-sm text-muted-foreground">Update your password to keep your account secure</p>
                     </div>
-                    
+
                     <div className="space-y-4">
                       {/* Current Password */}
                       <div className="space-y-2">
@@ -816,7 +820,7 @@ export default function SettingsPage() {
                           value={passwordData.new_password}
                           onChange={handlePasswordChange}
                           placeholder="Enter your new password"
-                          className="bg-background border-border"
+                          className="bg-background/50 border-border/50 focus:bg-background transition-all focus:ring-primary/20 hover:border-border rounded-lg shadow-sm"
                           required
                         />
                       </div>
@@ -833,7 +837,7 @@ export default function SettingsPage() {
                           value={passwordData.confirm_password}
                           onChange={handlePasswordChange}
                           placeholder="Confirm your new password"
-                          className="bg-background border-border"
+                          className="bg-background/50 border-border/50 focus:bg-background transition-all focus:ring-primary/20 hover:border-border rounded-lg shadow-sm"
                           required
                         />
                       </div>
@@ -866,8 +870,8 @@ export default function SettingsPage() {
                         </>
                       )}
                     </Button>
-                    <Button 
-                      type="button" 
+                    <Button
+                      type="button"
                       variant="outline"
                       onClick={() => setPasswordData({
                         current_password: "",

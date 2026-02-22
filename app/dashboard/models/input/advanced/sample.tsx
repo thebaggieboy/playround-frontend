@@ -38,7 +38,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
 
 // API Configuration
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
+const API_BASE_URL = process.env.NODE_ENV === 'production'
   ? 'https://playground-backend-1t0f.onrender.com/api'
   : 'http://localhost:8000/api'
 
@@ -73,7 +73,7 @@ interface FormData {
   maximumPlantAvailability: number
   availabilityDuringTam: number
   commissioningAvailability: number
-  
+
   // Macro Assumptions
   reportingCurrency: string
   exchangeRate: number
@@ -87,7 +87,7 @@ interface FormData {
   benchmarkRateType: string
   benchmarkRateValue: number
   terminalGrowthRate: number
-  
+
   // Revenue Products (dynamic)
   revenueProducts: Array<{
     productOrder: number
@@ -98,7 +98,7 @@ interface FormData {
     volumeGrowthRate: number
     priceEscalationRate: number
   }>
-  
+
   // Operating Expenses
   totalHeadcount: number
   averageAnnualSalary: number
@@ -109,7 +109,7 @@ interface FormData {
   regularMaintenancePctRevenue: number
   insuranceAnnual: number
   marketingSalesPctRevenue: number
-  
+
   // Capital Expenditure
   landCost: number
   constructionBuildingCost: number
@@ -119,7 +119,7 @@ interface FormData {
   professionalFeesPct: number
   permitsApprovalsPct: number
   vatOnConstructionPct: number
-  
+
   // Debt Financing
   equityPercentage: number
   debtPercentage: number
@@ -127,22 +127,22 @@ interface FormData {
   baseRateValue: number
   interestMarginSpread: number
   loanTenorYears: number
-  
+
   // Tax Assumptions
   corporateIncomeTaxRate: number
   vatSalesTaxRate: number
-  
+
   // Working Capital
   receivablesDaysDso: number
   inventoryDaysDio: number
   payablesDaysDpo: number
-  
+
   // Depreciation (simplified)
   depreciationMethod: string
-  
+
   // Dividend Policy
   dividendPayoutRatioPct: number
-  
+
   // Exit Valuation
   exitYear: number
   exitMultipleEvEbitda: number
@@ -156,23 +156,23 @@ export default function InputModelPage() {
   const [activeScenario, setActiveScenario] = useState<ScenarioType>("base")
   const [detailMode, setDetailMode] = useState(false)
   const [projectType, setProjectType] = useState<"manufacturing" | "real-estate" | "energy" | "general">("general")
-  
+
   // Loading states
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSavingTemplate, setIsSavingTemplate] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [isSavingDraft, setIsSavingDraft] = useState(false)
-  
+
   // Model and scenario IDs
   const [modelId, setModelId] = useState<number | null>(null)
   const [scenarioId, setScenarioId] = useState<number | null>(null)
-  
+
   // Progress tracking
   const [completionPercentage, setCompletionPercentage] = useState(0)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
-  
+
   const { toast } = useToast()
-  
+
   // Initialize form data with default values
   const [formData, setFormData] = useState<FormData>({
     // Project Information
@@ -190,7 +190,7 @@ export default function InputModelPage() {
     maximumPlantAvailability: 90,
     availabilityDuringTam: 80,
     commissioningAvailability: 60,
-    
+
     // Macro Assumptions
     reportingCurrency: "USD ($)",
     exchangeRate: 1470,
@@ -204,7 +204,7 @@ export default function InputModelPage() {
     benchmarkRateType: "SOFR",
     benchmarkRateValue: 5.0,
     terminalGrowthRate: 3.0,
-    
+
     // Revenue Products
     revenueProducts: [{
       productOrder: 1,
@@ -215,7 +215,7 @@ export default function InputModelPage() {
       volumeGrowthRate: 5.0,
       priceEscalationRate: 2.5
     }],
-    
+
     // Operating Expenses
     totalHeadcount: 250,
     averageAnnualSalary: 45000,
@@ -226,7 +226,7 @@ export default function InputModelPage() {
     regularMaintenancePctRevenue: 2.5,
     insuranceAnnual: 200000,
     marketingSalesPctRevenue: 8.0,
-    
+
     // Capital Expenditure
     landCost: 13711180,
     constructionBuildingCost: 109626400,
@@ -236,7 +236,7 @@ export default function InputModelPage() {
     professionalFeesPct: 5.0,
     permitsApprovalsPct: 1.0,
     vatOnConstructionPct: 7.5,
-    
+
     // Debt Financing
     equityPercentage: 23.9,
     debtPercentage: 43.0,
@@ -244,22 +244,22 @@ export default function InputModelPage() {
     baseRateValue: 5.0,
     interestMarginSpread: 3.5,
     loanTenorYears: 15,
-    
+
     // Tax Assumptions
     corporateIncomeTaxRate: 30.0,
     vatSalesTaxRate: 7.5,
-    
+
     // Working Capital
     receivablesDaysDso: 45,
     inventoryDaysDio: 60,
     payablesDaysDpo: 30,
-    
+
     // Depreciation
     depreciationMethod: "Straight Line",
-    
+
     // Dividend Policy
     dividendPayoutRatioPct: 15.0,
-    
+
     // Exit Valuation
     exitYear: 10,
     exitMultipleEvEbitda: 8.5,
@@ -267,7 +267,7 @@ export default function InputModelPage() {
     discountRateNpvPct: 12.5,
     targetIrrPct: 18.0,
   })
-  
+
   // Calculate completion percentage based on filled fields
   useEffect(() => {
     const totalFields = Object.keys(formData).length
@@ -277,11 +277,11 @@ export default function InputModelPage() {
       if (typeof value === 'number') return value !== 0
       return !!value
     }).length
-    
+
     const percentage = Math.round((filledFields / totalFields) * 100)
     setCompletionPercentage(percentage)
   }, [formData])
-  
+
   // Update form data handler
   const updateFormData = (field: string, value: any) => {
     setFormData(prev => ({
@@ -289,17 +289,17 @@ export default function InputModelPage() {
       [field]: value
     }))
   }
-  
+
   // Update nested form data (for revenue products)
   const updateRevenueProduct = (index: number, field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
-      revenueProducts: prev.revenueProducts.map((product, i) => 
+      revenueProducts: prev.revenueProducts.map((product, i) =>
         i === index ? { ...product, [field]: value } : product
       )
     }))
   }
-  
+
   // Add revenue product
   const addRevenueProduct = () => {
     if (formData.revenueProducts.length >= 10) {
@@ -310,7 +310,7 @@ export default function InputModelPage() {
       })
       return
     }
-    
+
     setFormData(prev => ({
       ...prev,
       revenueProducts: [...prev.revenueProducts, {
@@ -324,7 +324,7 @@ export default function InputModelPage() {
       }]
     }))
   }
-  
+
   // Remove revenue product
   const removeRevenueProduct = (index: number) => {
     if (formData.revenueProducts.length <= 1) {
@@ -335,19 +335,19 @@ export default function InputModelPage() {
       })
       return
     }
-    
+
     setFormData(prev => ({
       ...prev,
       revenueProducts: prev.revenueProducts.filter((_, i) => i !== index)
     }))
   }
-  
+
   // Get auth token (adjust based on your auth implementation)
   const getAuthToken = () => {
     // Replace with your actual auth token retrieval
     return localStorage.getItem('authToken') || ''
   }
-  
+
   // Transform form data to API format
   const transformToAPIFormat = () => {
     return {
@@ -530,90 +530,95 @@ export default function InputModelPage() {
       }
     }
   }
-  
+
   // Generate Model (Main function)
   const handleGenerateModel = async () => {
     setIsGenerating(true)
-    
+
     try {
+      let currentModelId = modelId;
+      let currentScenarioId = scenarioId;
+
       // Step 1: Create model if it doesn't exist
-      if (!modelId) {
+      if (!currentModelId) {
         const createModelResponse = await fetch(`${API_BASE_URL}/models/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${getAuthToken()}`
+            'Authorization': `JWT ${getAuthToken()}`
           },
           body: JSON.stringify({
             name: formData.projectName,
             project_type: projectType
           })
         })
-        
+
         if (!createModelResponse.ok) {
           throw new Error('Failed to create model')
         }
-        
+
         const modelData = await createModelResponse.json()
-        setModelId(modelData.id)
-        
+        currentModelId = modelData.id
+        setModelId(currentModelId)
+
         // Get base scenario ID
         if (modelData.scenarios && modelData.scenarios.length > 0) {
-          setScenarioId(modelData.scenarios[0].id)
+          currentScenarioId = modelData.scenarios[0].id
+          setScenarioId(currentScenarioId)
         }
       }
-      
+
       // Step 2: Save scenario data
       const scenarioData = {
         ...transformToAPIFormat(),
-        name: activeScenario === 'base' ? 'Base Case' : 
-              activeScenario === 'upside' ? 'Upside Case' : 'Downside Case',
+        name: activeScenario === 'base' ? 'Base Case' :
+          activeScenario === 'upside' ? 'Upside Case' : 'Downside Case',
         scenario_type: activeScenario,
-        model: modelId
+        model: currentModelId
       }
-      
+
       const saveResponse = await fetch(
-        `${API_BASE_URL}/scenarios/${scenarioId}/`, 
+        `${API_BASE_URL}/scenarios/${currentScenarioId}/`,
         {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${getAuthToken()}`
+            'Authorization': `JWT ${getAuthToken()}`
           },
           body: JSON.stringify(scenarioData)
         }
       )
-      
+
       if (!saveResponse.ok) {
         throw new Error('Failed to save scenario data')
       }
-      
+
       // Step 3: Trigger calculation
       const calculateResponse = await fetch(
-        `${API_BASE_URL}/models/${modelId}/calculate/`,
+        `${API_BASE_URL}/models/${currentModelId}/calculate/`,
         {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${getAuthToken()}`
+            'Authorization': `JWT ${getAuthToken()}`
           }
         }
       )
-      
+
       if (!calculateResponse.ok) {
         throw new Error('Failed to calculate model')
       }
-      
+
       const result = await calculateResponse.json()
-      
+
       toast({
         title: "Success!",
         description: "Model generated successfully with all financial statements.",
         variant: "default"
       })
-      
+
       // Redirect to results page or show success
       // window.location.href = `/models/${modelId}/results`
-      
+
     } catch (error) {
       console.error('Generation error:', error)
       toast({
@@ -625,7 +630,7 @@ export default function InputModelPage() {
       setIsGenerating(false)
     }
   }
-  
+
   // Save as Template
   const handleSaveAsTemplate = async () => {
     if (!modelId) {
@@ -636,9 +641,9 @@ export default function InputModelPage() {
       })
       return
     }
-    
+
     setIsSavingTemplate(true)
-    
+
     try {
       const response = await fetch(
         `${API_BASE_URL}/models/${modelId}/save_as_template/`,
@@ -646,7 +651,7 @@ export default function InputModelPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${getAuthToken()}`
+            'Authorization': `JWT ${getAuthToken()}`
           },
           body: JSON.stringify({
             name: `${formData.projectName} Template`,
@@ -655,18 +660,23 @@ export default function InputModelPage() {
           })
         }
       )
-      
+
       if (!response.ok) {
         throw new Error('Failed to save template')
       }
-      
-      const template = await response.json()
-      
+
       toast({
-        title: "Template saved!",
-        description: `"${template.name}" has been saved successfully.`,
+        title: "✨ Template Successfully Saved",
+        description: (
+          <div className="flex flex-col gap-1 mt-1">
+            <span className="text-sm font-medium">"{template.name}"</span>
+            <span className="text-xs text-muted-foreground">Ready to be used for your next model.</span>
+          </div>
+        ) as any,
+        className: "bg-gradient-to-br from-green-50 to-green-100 border-green-200 dark:from-green-900/40 dark:to-green-900/20 dark:border-green-800",
+        duration: 4000,
       })
-      
+
     } catch (error) {
       console.error('Save template error:', error)
       toast({
@@ -678,7 +688,7 @@ export default function InputModelPage() {
       setIsSavingTemplate(false)
     }
   }
-  
+
   // Export to Excel
   const handleExportExcel = async () => {
     if (!modelId) {
@@ -689,24 +699,24 @@ export default function InputModelPage() {
       })
       return
     }
-    
+
     setIsExporting(true)
-    
+
     try {
       const response = await fetch(
         `${API_BASE_URL}/models/${modelId}/export_excel/`,
         {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${getAuthToken()}`
+            'Authorization': `JWT ${getAuthToken()}`
           }
         }
       )
-      
+
       if (!response.ok) {
         throw new Error('Failed to export to Excel')
       }
-      
+
       // Download the file
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
@@ -717,12 +727,12 @@ export default function InputModelPage() {
       a.click()
       document.body.removeChild(a)
       window.URL.revokeObjectURL(url)
-      
+
       toast({
         title: "Export successful!",
         description: "Excel file has been downloaded.",
       })
-      
+
     } catch (error) {
       console.error('Export error:', error)
       toast({
@@ -734,11 +744,11 @@ export default function InputModelPage() {
       setIsExporting(false)
     }
   }
-  
+
   // Save Draft
   const handleSaveDraft = async () => {
     setIsSavingDraft(true)
-    
+
     try {
       // Create model if doesn't exist
       if (!modelId) {
@@ -746,21 +756,21 @@ export default function InputModelPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${getAuthToken()}`
+            'Authorization': `JWT ${getAuthToken()}`
           },
           body: JSON.stringify({
             name: formData.projectName,
             project_type: projectType
           })
         })
-        
+
         if (!createResponse.ok) throw new Error('Failed to create model')
-        
+
         const modelData = await createResponse.json()
         setModelId(modelData.id)
         if (modelData.scenarios?.[0]) setScenarioId(modelData.scenarios[0].id)
       }
-      
+
       // Save scenario data
       if (scenarioId) {
         const scenarioData = {
@@ -769,24 +779,24 @@ export default function InputModelPage() {
           scenario_type: 'base',
           model: modelId
         }
-        
+
         await fetch(`${API_BASE_URL}/scenarios/${scenarioId}/`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${getAuthToken()}`
+            'Authorization': `JWT ${getAuthToken()}`
           },
           body: JSON.stringify(scenarioData)
         })
       }
-      
+
       setLastSaved(new Date())
-      
+
       toast({
         title: "Draft saved",
         description: "Your work has been saved successfully.",
       })
-      
+
     } catch (error) {
       console.error('Save draft error:', error)
       toast({
@@ -798,7 +808,7 @@ export default function InputModelPage() {
       setIsSavingDraft(false)
     }
   }
-  
+
   // Auto-save every 2 minutes
   useEffect(() => {
     const autoSave = setInterval(() => {
@@ -806,7 +816,7 @@ export default function InputModelPage() {
         handleSaveDraft()
       }
     }, 120000) // 2 minutes
-    
+
     return () => clearInterval(autoSave)
   }, [modelId, scenarioId, formData])
 
@@ -900,11 +910,10 @@ export default function InputModelPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                    activeTab === tab.id
-                      ? "border-primary text-primary"
-                      : "border-transparent text-muted-foreground hover:text-foreground"
-                  }`}
+                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.id
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                    }`}
                 >
                   <Icon className="w-4 h-4" />
                   {tab.label}
@@ -947,27 +956,27 @@ export default function InputModelPage() {
               transition={{ duration: 0.2 }}
             >
               {activeTab === "project" && (
-                <ProjectForm 
-                  formData={formData} 
+                <ProjectForm
+                  formData={formData}
                   updateFormData={updateFormData}
-                  detailMode={detailMode} 
+                  detailMode={detailMode}
                 />
               )}
               {activeTab === "macro" && (
-                <MacroForm 
-                  formData={formData} 
+                <MacroForm
+                  formData={formData}
                   updateFormData={updateFormData}
-                  detailMode={detailMode} 
+                  detailMode={detailMode}
                 />
               )}
               {activeTab === "revenue" && (
-                <RevenueForm 
-                  formData={formData} 
+                <RevenueForm
+                  formData={formData}
                   updateFormData={updateFormData}
                   updateRevenueProduct={updateRevenueProduct}
                   addRevenueProduct={addRevenueProduct}
                   removeRevenueProduct={removeRevenueProduct}
-                  detailMode={detailMode} 
+                  detailMode={detailMode}
                 />
               )}
               {/* Add other form components similarly */}
@@ -978,8 +987,8 @@ export default function InputModelPage() {
           <Card className="p-6">
             <div className="flex flex-col sm:flex-row gap-3 justify-between">
               <div className="flex gap-3">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="gap-2"
                   onClick={handleExportExcel}
                   disabled={isExporting || !modelId}
@@ -991,8 +1000,8 @@ export default function InputModelPage() {
                   )}
                   Export to Excel
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="gap-2"
                   onClick={handleSaveAsTemplate}
                   disabled={isSavingTemplate || !modelId}
@@ -1006,8 +1015,8 @@ export default function InputModelPage() {
                 </Button>
               </div>
               <div className="flex gap-3">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="gap-2"
                   onClick={handleSaveDraft}
                   disabled={isSavingDraft}
@@ -1019,7 +1028,7 @@ export default function InputModelPage() {
                   )}
                   Save Draft
                 </Button>
-                <Button 
+                <Button
                   className="gap-2"
                   onClick={handleGenerateModel}
                   disabled={isGenerating}
@@ -1043,14 +1052,14 @@ export default function InputModelPage() {
 // Simplified form components with onChange handlers
 // (I'll show the pattern for one - apply to all)
 
-function ProjectForm({ 
-  formData, 
-  updateFormData, 
-  detailMode 
-}: { 
+function ProjectForm({
+  formData,
+  updateFormData,
+  detailMode
+}: {
   formData: FormData
   updateFormData: (field: string, value: any) => void
-  detailMode: boolean 
+  detailMode: boolean
 }) {
   return (
     <Card className="p-6 space-y-6">
@@ -1060,15 +1069,15 @@ function ProjectForm({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField 
-          label="Project Name" 
-          type="text" 
+        <InputField
+          label="Project Name"
+          type="text"
           value={formData.projectName}
           onChange={(value) => updateFormData('projectName', value)}
         />
-        <InputField 
-          label="Project Location" 
-          type="text" 
+        <InputField
+          label="Project Location"
+          type="text"
           value={formData.projectLocation}
           onChange={(value) => updateFormData('projectLocation', value)}
         />
@@ -1078,14 +1087,14 @@ function ProjectForm({
   )
 }
 
-function MacroForm({ 
-  formData, 
-  updateFormData, 
-  detailMode 
-}: { 
+function MacroForm({
+  formData,
+  updateFormData,
+  detailMode
+}: {
   formData: FormData
   updateFormData: (field: string, value: any) => void
-  detailMode: boolean 
+  detailMode: boolean
 }) {
   return (
     <Card className="p-6 space-y-6">
@@ -1095,9 +1104,9 @@ function MacroForm({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField 
-          label="Base Year" 
-          type="number" 
+        <InputField
+          label="Base Year"
+          type="number"
           value={formData.baseYear}
           onChange={(value) => updateFormData('baseYear', Number(value))}
         />
@@ -1107,20 +1116,20 @@ function MacroForm({
   )
 }
 
-function RevenueForm({ 
-  formData, 
+function RevenueForm({
+  formData,
   updateFormData,
   updateRevenueProduct,
   addRevenueProduct,
   removeRevenueProduct,
-  detailMode 
-}: { 
+  detailMode
+}: {
   formData: FormData
   updateFormData: (field: string, value: any) => void
   updateRevenueProduct: (index: number, field: string, value: any) => void
   addRevenueProduct: () => void
   removeRevenueProduct: (index: number) => void
-  detailMode: boolean 
+  detailMode: boolean
 }) {
   return (
     <Card className="p-6 space-y-6">
@@ -1140,9 +1149,9 @@ function RevenueForm({
           <div className="flex items-center justify-between">
             <h4 className="font-medium">Product {index + 1}</h4>
             {formData.revenueProducts.length > 1 && (
-              <Button 
-                onClick={() => removeRevenueProduct(index)} 
-                variant="ghost" 
+              <Button
+                onClick={() => removeRevenueProduct(index)}
+                variant="ghost"
                 size="sm"
                 className="text-red-600"
               >
@@ -1150,17 +1159,17 @@ function RevenueForm({
               </Button>
             )}
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InputField 
-              label="Product Name" 
-              type="text" 
+            <InputField
+              label="Product Name"
+              type="text"
               value={product.productName}
               onChange={(value) => updateRevenueProduct(index, 'productName', value)}
             />
-            <InputField 
-              label="Year 1 Volume" 
-              type="number" 
+            <InputField
+              label="Year 1 Volume"
+              type="number"
               value={product.year1SalesVolume}
               onChange={(value) => updateRevenueProduct(index, 'year1SalesVolume', Number(value))}
             />
@@ -1231,11 +1240,10 @@ function InputField({
         )}
         {type === "select" ? (
           <select
-            className={`w-full px-3 ${inputClasses} border rounded-lg ${
-              calculated
-                ? "bg-gray-100 text-gray-600 cursor-not-allowed border-gray-300"
-                : "bg-blue-50 border-blue-200 text-foreground focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-            }`}
+            className={`w-full px-3 ${inputClasses} border rounded-lg ${calculated
+              ? "bg-gray-100 text-gray-600 cursor-not-allowed border-gray-300"
+              : "bg-blue-50 border-blue-200 text-foreground focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+              }`}
             value={value}
             disabled={calculated}
             onChange={(e) => onChange?.(e.target.value)}
@@ -1250,11 +1258,10 @@ function InputField({
           <input
             type={type}
             placeholder={placeholder}
-            className={`w-full ${prefix ? "pl-8" : "pl-3"} ${suffix ? "pr-20" : "pr-3"} ${inputClasses} border rounded-lg ${
-              calculated
-                ? "bg-gray-100 text-gray-600 cursor-not-allowed border-gray-300"
-                : "bg-blue-50 border-blue-200 text-foreground focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-            }`}
+            className={`w-full ${prefix ? "pl-8" : "pl-3"} ${suffix ? "pr-20" : "pr-3"} ${inputClasses} border rounded-lg ${calculated
+              ? "bg-gray-100 text-gray-600 cursor-not-allowed border-gray-300"
+              : "bg-blue-50 border-blue-200 text-foreground focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+              }`}
             value={value}
             disabled={calculated}
             readOnly={calculated}

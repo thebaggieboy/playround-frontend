@@ -86,7 +86,7 @@ const dispatch = useDispatch();
         {/* Logo and branding */}
         <div className="mb-4 text-center">
         
-          <h1 className="text-3xl font-bold text-foreground mb-2">Create your account</h1>
+          <h1 className="text-2xl font-bold text-foreground mb-2">Create your account</h1>
           <p className="text-foreground/60">Join Playground and start analyzing financial models</p>
         </div>
 
@@ -101,7 +101,7 @@ const dispatch = useDispatch();
                 type="email"
                 name="email"
                 onChange={inputChangeHandler}
-                placeholder="you@example.com"
+           
                 required
                 className="bg-secondary border-border text-foreground placeholder:text-foreground/40"
               />
@@ -116,7 +116,7 @@ const dispatch = useDispatch();
                   name="password1"
                   type="password"
                   onChange={inputChangeHandler}
-                  placeholder="••••••••"
+                
                   required
                   className="bg-secondary border-border text-foreground placeholder:text-foreground/40"
                 />
@@ -131,7 +131,7 @@ const dispatch = useDispatch();
                   name="password2"
                   type="password"
                   onChange={inputChangeHandler}
-                  placeholder="••••••••"
+               
                   required
                   className="bg-secondary border-border text-foreground placeholder:text-foreground/40"
                 />
@@ -139,15 +139,9 @@ const dispatch = useDispatch();
 
               <div className="flex items-start gap-2">
                 <Checkbox id="terms" required className="mt-1" />
-                <Label htmlFor="terms" className="text-sm text-foreground/70 font-normal cursor-pointer">
-                  I agree to the{" "}
-                  <a href="#" className="text-primary hover:text-accent transition-colors">
-                    Terms of Service
-                  </a>{" "}
-                  and{" "}
-                  <a href="#" className="text-primary hover:text-accent transition-colors">
-                    Privacy Policy
-                  </a>
+                <Label htmlFor="terms" className="text-xs text-foreground/70 font-normal cursor-pointer">
+                  I agree to the Terms of Service and  Privacy Policy
+                
                 </Label>
               </div>
 

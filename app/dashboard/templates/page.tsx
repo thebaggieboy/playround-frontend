@@ -109,11 +109,10 @@ export default function TemplatesPage() {
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-                  selectedCategory === category
+                className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${selectedCategory === category
                     ? "bg-primary text-primary-foreground"
                     : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                }`}
+                  }`}
               >
                 {category}
               </button>
@@ -139,47 +138,47 @@ export default function TemplatesPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
                 >
-                  <Card className="p-6 hover:shadow-lg transition-shadow h-full flex flex-col">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <Icon className="w-6 h-6 text-blue-600" />
+                  <Link href={`/dashboard/templates/category/${template.category.toLowerCase().replace(/\s+/g, '-')}`}>
+                    <Card className="p-6 hover:shadow-lg transition-shadow h-full flex flex-col cursor-pointer border hover:border-primary/50">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <Icon className="w-6 h-6 text-blue-600" />
+                        </div>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          className="text-muted-foreground hover:text-yellow-500"
+                        >
+                          <Star className="w-5 h-5" />
+                        </motion.button>
                       </div>
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        className="text-muted-foreground hover:text-yellow-500"
-                      >
-                        <Star className="w-5 h-5" />
-                      </motion.button>
-                    </div>
 
-                    <h3 className="text-lg font-semibold text-foreground mb-2">{template.name}</h3>
-                    <p className="text-sm text-muted-foreground mb-4 flex-1">{template.description}</p>
+                      <h3 className="text-lg font-semibold text-foreground mb-2">{template.name}</h3>
+                      <p className="text-sm text-muted-foreground mb-4 flex-1">{template.description}</p>
 
-                    <div className="flex items-center gap-2 mb-4">
-                      <span className="text-xs px-2 py-1 bg-secondary rounded text-secondary-foreground">
-                        {template.category}
-                      </span>
-                      <span
-                        className={`text-xs px-2 py-1 rounded ${
-                          template.complexity === "Beginner"
-                            ? "bg-green-100 text-green-700"
-                            : template.complexity === "Intermediate"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-red-100 text-red-700"
-                        }`}
-                      >
-                        {template.complexity}
-                      </span>
-                    </div>
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="text-xs px-2 py-1 bg-secondary rounded text-secondary-foreground">
+                          {template.category}
+                        </span>
+                        <span
+                          className={`text-xs px-2 py-1 rounded ${template.complexity === "Beginner"
+                              ? "bg-green-100 text-green-700"
+                              : template.complexity === "Intermediate"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : "bg-red-100 text-red-700"
+                            }`}
+                        >
+                          {template.complexity}
+                        </span>
+                      </div>
 
-                    <div className="flex items-center justify-between pt-4 border-t border-border">
-                      <span className="text-xs text-muted-foreground">{template.useCount} uses</span>
-                      <Button size="sm" variant="outline">
-                        Use Template
-                      </Button>
-                    </div>
-                  </Card>
+                      <div className="flex items-center justify-between pt-4 border-t border-border">
+                        <span className="text-xs text-muted-foreground">{template.useCount} uses</span>
+                        <Button size="sm" variant="outline">
+                          Use Template
+                        </Button>
+                      </div>
+                    </Card>
                 </motion.div>
               )
             })}
