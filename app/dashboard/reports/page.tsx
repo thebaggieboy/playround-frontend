@@ -11,7 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useToast } from "@/components/ui/use-toast"
 import { useSelector } from "react-redux"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-
+import { selectToken } from "@/features/token/tokenSlice"
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
@@ -34,7 +34,7 @@ export default function ReportsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const { toast } = useToast()
 
-  const token = useSelector((state: any) => state.auth.token)
+  const token = useSelector(selectToken)
 
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false)
 
@@ -58,7 +58,7 @@ export default function ReportsPage() {
       })
       if (!res.ok) throw new Error("Failed to fetch reports")
       const data = await res.json()
-      setReports(data)
+      setReports(data.results || data)
     } catch (error) {
       console.error(error)
       toast({
@@ -78,8 +78,14 @@ export default function ReportsPage() {
         fetch(`${API_BASE_URL}/models/`, { headers }),
         fetch(`${API_BASE_URL}/scenarios/`, { headers })
       ])
-      if (modelsRes.ok) setModels(await modelsRes.json())
-      if (scenariosRes.ok) setScenarios(await scenariosRes.json())
+      if (modelsRes.ok) {
+        const data = await modelsRes.json()
+        setModels(data.results || data)
+      }
+      if (scenariosRes.ok) {
+        const data = await scenariosRes.json()
+        setScenarios(data.results || data)
+      }
     } catch (e) {
       console.error(e)
     }
@@ -110,7 +116,11 @@ export default function ReportsPage() {
 
       if (!res.ok) throw new Error("Failed to generate report")
 
-      toast({ title: "Success", description: "Report generated successfully" })
+      toast({
+        title: "✨ Report Generated Successfully!",
+        description: `Your report "${reportName}" has been created and is now available in your dashboard.`,
+        variant: "default"
+      })
       setIsGenerateModalOpen(false)
       fetchReports() // Refresh list
     } catch (e) {

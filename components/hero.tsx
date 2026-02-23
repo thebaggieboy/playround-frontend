@@ -10,7 +10,7 @@ const heroVideoUrl =
 
 export function Hero() {
   return (
-    <section className="relative py-20 md:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[#0f1b3d]">
+    <section className="relative py-10 md:py-16 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[#0f1b3d]">
       {/* Subtle ambient accents -- no gradients, just soft diffused shapes */}
       <div className="absolute top-0 left-0 right-0 h-px bg-[#1d3a6e]" />
       <div className="absolute top-20 right-0 w-[480px] h-[480px] rounded-full bg-[#1a3264]/30 blur-[120px] pointer-events-none" />

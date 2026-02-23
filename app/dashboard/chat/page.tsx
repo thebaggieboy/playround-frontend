@@ -16,9 +16,10 @@ import {
     Mic,
     Settings
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import { Card } from "@/components/ui/card"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
@@ -185,12 +186,40 @@ export default function ChatPage() {
                                 {/* Message Bubble */}
                                 <div className={`flex flex-col gap-2 max-w-[85%] md:max-w-[80%] ${message.role === "user" ? "items-end" : "items-start"}`}>
                                     <div
-                                        className={`px-5 py-3.5 shadow-sm text-[15px] leading-relaxed ${message.role === "user"
+                                        className={`px-5 py-3.5 shadow-sm text-[15px] leading-relaxed overflow-x-auto ${message.role === "user"
                                             ? "bg-primary text-primary-foreground rounded-2xl rounded-tr-sm"
-                                            : "bg-[#f4f4f5] dark:bg-[#27272a] text-foreground rounded-2xl rounded-tl-sm"
+                                            : "bg-[#f4f4f5] dark:bg-[#27272a] text-foreground rounded-2xl rounded-tl-sm w-full"
                                             }`}
                                     >
-                                        {message.content}
+                                        {message.role === "user" ? (
+                                            <div className="whitespace-pre-wrap">{message.content}</div>
+                                        ) : (
+                                            <ReactMarkdown
+                                                remarkPlugins={[remarkGfm]}
+                                                components={{
+                                                    h1: ({ node, ...props }) => <h1 className="text-xl font-bold mb-3 mt-4" {...props} />,
+                                                    h2: ({ node, ...props }) => <h2 className="text-lg font-bold mb-3 mt-4" {...props} />,
+                                                    h3: ({ node, ...props }) => <h3 className="text-base font-bold mb-2 mt-3" {...props} />,
+                                                    p: ({ node, ...props }) => <p className="mb-3 last:mb-0" {...props} />,
+                                                    ul: ({ node, ...props }) => <ul className="list-disc ml-6 mb-3 space-y-2" {...props} />,
+                                                    ol: ({ node, ...props }) => <ol className="list-decimal ml-6 mb-3 space-y-2" {...props} />,
+                                                    li: ({ node, ...props }) => <li className="pl-1" {...props} />,
+                                                    strong: ({ node, ...props }) => <strong className="font-bold text-foreground" {...props} />,
+                                                    table: ({ node, ...props }) => (
+                                                        <div className="overflow-x-auto mb-4 bg-background/50 rounded-lg">
+                                                            <table className="border-collapse border border-border w-full text-sm my-2 text-left" {...props} />
+                                                        </div>
+                                                    ),
+                                                    thead: ({ node, ...props }) => <thead className="bg-muted text-muted-foreground font-semibold" {...props} />,
+                                                    th: ({ node, ...props }) => <th className="border border-border px-3 py-2 whitespace-nowrap" {...props} />,
+                                                    td: ({ node, ...props }) => <td className="border border-border px-3 py-2" {...props} />,
+                                                    code: ({ node, ...props }) => <code className="bg-muted px-1.5 py-0.5 rounded text-sm text-primary" {...props} />,
+                                                    pre: ({ node, ...props }) => <pre className="bg-muted p-4 rounded-lg overflow-x-auto mb-3 text-sm" {...props} />,
+                                                }}
+                                            >
+                                                {message.content}
+                                            </ReactMarkdown>
+                                        )}
                                     </div>
 
                                     {/* Action Buttons (only for assistant) */}

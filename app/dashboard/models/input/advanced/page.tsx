@@ -784,6 +784,8 @@ export default function InputModelPage() {
     setIsSavingTemplate(true)
 
     try {
+      const formattedProjectType = formData.industrySector.toLowerCase().replace(/ & | /g, "_")
+
       const response = await fetch(
         `${API_BASE_URL}/models/${modelId}/save_as_template/`,
         {
@@ -795,7 +797,8 @@ export default function InputModelPage() {
           body: JSON.stringify({
             name: `${formData.projectName} Template`,
             description: `Template created from ${formData.projectName}`,
-            is_public: false
+            is_public: false,
+            project_type: formattedProjectType
           })
         }
       )

@@ -1,6 +1,7 @@
 "use server"
 
 import { GoogleGenAI } from "@google/genai"
+import * as XLSX from "xlsx"
 
 export async function submitChat(formData: FormData) {
     const apiKey = process.env.NEXT_GEMINI_API_KEY || process.env.GEMINI_API_KEY || ""
@@ -29,20 +30,44 @@ export async function submitChat(formData: FormData) {
         // Add file to the most recent user message
         if (file && file.size > 0) {
             const buffer = await file.arrayBuffer()
-            const base64 = Buffer.from(buffer).toString('base64')
-
-            // Ensure the mime type is supported or fallback to octet-stream
             const mimeType = file.type || "application/octet-stream"
+            const fileName = file.name.toLowerCase()
 
-            // Add inline data
-            const lastUserMessageIndex = contents.map(c => c.role).lastIndexOf('user');
+            const lastUserMessageIndex = contents.map((c: any) => c.role).lastIndexOf('user')
+
             if (lastUserMessageIndex !== -1) {
-                contents[lastUserMessageIndex].parts.push({
-                    inlineData: {
-                        data: base64,
-                        mimeType: mimeType
+                // Determine file type and parse accordingly
+                if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.csv')) {
+                    const workbook = XLSX.read(buffer, { type: 'buffer' });
+                    let spreadsheetText = `--- Attached Spreadsheet (${file.name}) ---\n\n`;
+                    for (const sheetName of workbook.SheetNames) {
+                        const worksheet = workbook.Sheets[sheetName];
+                        const csv = XLSX.utils.sheet_to_csv(worksheet);
+                        spreadsheetText += `[Sheet: ${sheetName}]\n${csv}\n\n`;
                     }
-                })
+                    spreadsheetText += `--- End Attached Spreadsheet ---\n`;
+
+                    contents[lastUserMessageIndex].parts.push({
+                        text: spreadsheetText
+                    })
+                }
+                else if (mimeType.startsWith('text/') || fileName.endsWith('.txt') || fileName.endsWith('.json')) {
+                    const textData = Buffer.from(buffer).toString('utf-8');
+                    contents[lastUserMessageIndex].parts.push({
+                        text: `\n\n--- Attached File (${file.name}) ---\n${textData}\n--- End Attached File ---\n`
+                    })
+                }
+                else if (fileName.endsWith('.pdf') || mimeType.startsWith('image/')) {
+                    const base64 = Buffer.from(buffer).toString('base64')
+                    contents[lastUserMessageIndex].parts.push({
+                        inlineData: {
+                            data: base64,
+                            mimeType: mimeType === "application/pdf" ? "application/pdf" : mimeType
+                        }
+                    })
+                } else {
+                    return { success: false, error: "Unsupported file type. Please upload CSV, Excel, Image, PDF, or Text files." }
+                }
             }
         }
 
@@ -50,7 +75,7 @@ export async function submitChat(formData: FormData) {
             model: 'gemini-2.5-flash',
             contents: contents,
             config: {
-                systemInstruction: "You are a helpful financial AI assistant. Provide concise, insightful, and accurate answers regarding financial models, reports, and data.",
+                systemInstruction: "You are a highly capable financial AI assistant. Provide concise, insightful, and highly accurate answers with proper markdown formatting regarding financial models, reports, and data. Use bolding to highlight key terms and properly space your output.",
             }
         })
 
