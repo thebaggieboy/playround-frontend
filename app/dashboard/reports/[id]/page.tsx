@@ -1,37 +1,68 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ArrowLeft, MoreVertical, Share2, Download, Settings, TrendingUp, BarChart3 } from "lucide-react"
+import { ArrowLeft, MoreVertical, Share2, Download, Settings, TrendingUp, BarChart3, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useSelector } from "react-redux"
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
 
 export default function ReportDetailPage({ params }: { params: { id: string } }) {
-  const [isEditing, setIsEditing] = useState(false)
+  const [report, setReport] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const token = useSelector((state: any) => state.auth.token)
 
-  // Sample report data
-  const report = {
-    id: params.id,
-    name: "Q4 2024 Financial Summary",
-    description: "Comprehensive financial overview with revenue, expenses, and profitability metrics",
-    model: "Revenue Forecasting Model",
-    type: "Summary",
-    createdDate: "2025-01-18",
-    lastModified: "2025-01-20",
-    status: "completed",
-    generatedBy: "John Doe",
-    metrics: {
-      totalRevenue: "$2,450,000",
-      totalExpenses: "$1,680,000",
-      netProfit: "$770,000",
-      profitMargin: "31.4%",
-    },
+  useEffect(() => {
+    const fetchReport = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/reports/${params.id}/`, {
+          headers: {
+            'Authorization': `JWT ${token}`
+          }
+        })
+        if (res.ok) setReport(await res.json())
+      } catch (error) {
+        console.error("Failed to fetch report:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    if (token) fetchReport()
+  }, [params.id, token])
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (!report) {
+    return (
+      <div className="flex h-[50vh] flex-col items-center justify-center space-y-4">
+        <p className="text-muted-foreground">Report not found</p>
+        <Link href="/dashboard/reports">
+          <Button variant="outline">Back to Reports</Button>
+        </Link>
+      </div>
+    )
+  }
+
+  // Sample static metrics until AI generation populates actuals
+  const metrics = {
+    totalRevenue: "$2,450,000",
+    totalExpenses: "$1,680,000",
+    netProfit: "$770,000",
+    profitMargin: "31.4%",
   }
 
   return (
-    <div className="space-y-6 p-5">
+    <div className="flex flex-col flex-1 overflow-auto h-full space-y-6 p-5">
       {/* Header */}
       <div className="space-y-4">
         <Link href="/dashboard/reports">
@@ -43,14 +74,14 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
 
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-foreground">{report.name}</h1>
-            <p className="text-muted-foreground">{report.description}</p>
+            <h1 className="text-3xl font-bold text-foreground">{report.name || "Untitled Report"}</h1>
+            <p className="text-muted-foreground">{report.description || "No description provided."}</p>
             <div className="flex flex-wrap gap-2 mt-4 text-sm">
-              <span className="px-3 py-1 bg-primary/10 text-primary rounded-full font-medium">{report.type}</span>
+              <span className="px-3 py-1 bg-primary/10 text-primary rounded-full font-medium">{report.report_type}</span>
               <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full font-medium">
                 {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
               </span>
-              <span className="px-3 py-1 bg-secondary text-foreground rounded-full">{report.model}</span>
+              <span className="px-3 py-1 bg-secondary text-foreground rounded-full">{report.model_name || report.scenario_name || "N/A"}</span>
             </div>
           </div>
           <div className="flex gap-2">

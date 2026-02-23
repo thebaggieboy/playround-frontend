@@ -36,12 +36,16 @@ const INITIAL_MESSAGE: Message = {
     timestamp: new Date()
 }
 
+import { submitChat } from "./actions"
+
 export default function ChatPage() {
     const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE])
     const [input, setInput] = useState("")
     const [isLoading, setIsLoading] = useState(false)
+    const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const textareaRef = useRef<HTMLTextAreaElement>(null)
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -53,7 +57,6 @@ export default function ChatPage() {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setInput(e.target.value)
-        // Auto-resize textarea
         if (textareaRef.current) {
             textareaRef.current.style.height = "auto"
             textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`
@@ -67,36 +70,81 @@ export default function ChatPage() {
         }
     }
 
-    const handleSendMessage = () => {
-        if (!input.trim() || isLoading) return
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            setSelectedFile(e.target.files[0])
+        }
+    }
+
+    const handleSendMessage = async () => {
+        if ((!input.trim() && !selectedFile) || isLoading) return
 
         const userMessage: Message = {
             id: Date.now().toString(),
             role: "user",
-            content: input.trim(),
+            content: input.trim() + (selectedFile ? `\n[Attached File: ${selectedFile.name}]` : ""),
             timestamp: new Date()
         }
 
-        setMessages(prev => [...prev, userMessage])
+        const newMessages = [...messages, userMessage]
+        setMessages(newMessages)
         setInput("")
         setIsLoading(true)
 
-        // Reset textarea height
         if (textareaRef.current) {
             textareaRef.current.style.height = "auto"
         }
 
-        // Simulate AI response
-        setTimeout(() => {
-            const assistantMessage: Message = {
+        try {
+            const formData = new FormData()
+            // Pass all messages excluding this latest one (if you prefer, or pass all and Gemini models it)
+            // Actually pass all newMessages
+            // Strip out [Attached File: ...] in the data sent to gemini if needed, but it's fine
+            const historyForApi = newMessages.map(m => ({
+                role: m.role,
+                content: m.content
+            }))
+            formData.append("messages", JSON.stringify(historyForApi))
+
+            if (selectedFile) {
+                formData.append("file", selectedFile)
+            }
+
+            const response = await submitChat(formData)
+
+            if (response.success && response.text) {
+                const assistantMessage: Message = {
+                    id: (Date.now() + 1).toString(),
+                    role: "assistant",
+                    content: response.text,
+                    timestamp: new Date()
+                }
+                setMessages(prev => [...prev, assistantMessage])
+            } else {
+                const errorMessage: Message = {
+                    id: (Date.now() + 1).toString(),
+                    role: "assistant",
+                    content: `Error: ${response.error || "Failed to get a response."}`,
+                    timestamp: new Date()
+                }
+                setMessages(prev => [...prev, errorMessage])
+            }
+        } catch (error) {
+            console.error("Chat error:", error)
+            const errorMessage: Message = {
                 id: (Date.now() + 1).toString(),
                 role: "assistant",
-                content: "I'm a simulated AI assistant for this demo. In a real application, this is where I would process your request and provide a detailed response using the models and data available in the platform.",
+                content: "An unexpected error occurred. Please try again.",
                 timestamp: new Date()
             }
-            setMessages(prev => [...prev, assistantMessage])
+            setMessages(prev => [...prev, errorMessage])
+        } finally {
             setIsLoading(false)
-        }, 1500)
+            setSelectedFile(null)
+            if (fileInputRef.current) {
+                fileInputRef.current.value = ""
+            }
+        }
     }
 
     return (
@@ -235,11 +283,33 @@ export default function ChatPage() {
                             rows={1}
                         />
 
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileChange}
+                            className="hidden"
+                            accept=".pdf,.xlsx,.xls,.csv,image/*"
+                        />
+
+                        {selectedFile && (
+                            <div className="absolute top-2 left-4 px-3 py-1 bg-primary/10 text-primary text-xs rounded-full flex items-center gap-2">
+                                <span className="truncate max-w-[150px] font-medium">{selectedFile.name}</span>
+                                <button onClick={() => setSelectedFile(null)} className="hover:text-primary/70">
+                                    ×
+                                </button>
+                            </div>
+                        )}
+
                         <div className="absolute bottom-3 left-4 flex items-center gap-1.5">
                             <TooltipProvider delayDuration={300}>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-xl">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-xl"
+                                            onClick={() => fileInputRef.current?.click()}
+                                        >
                                             <Paperclip className="h-4 w-4" />
                                         </Button>
                                     </TooltipTrigger>

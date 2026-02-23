@@ -11,24 +11,24 @@ interface ReportCardProps {
   id: string
   name: string
   description: string
-  model: string
-  type: string
-  createdDate: string
+  model_name: string
+  scenario_name: string
+  report_type: string
+  date_created: string
   status: "completed" | "processing" | "failed"
-  isFavorite?: boolean
 }
 
 export function ReportCard({
   id,
   name,
   description,
-  model,
-  type,
-  createdDate,
+  model_name,
+  scenario_name,
+  report_type,
+  date_created,
   status,
-  isFavorite = false,
 }: ReportCardProps) {
-  const [favorite, setFavorite] = useState(isFavorite)
+  const [favorite, setFavorite] = useState(false)
 
   const statusColors = {
     completed: "bg-green-100 text-green-700",
@@ -89,11 +89,15 @@ export function ReportCard({
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Model:</span>
-              <span className="font-medium text-foreground">{model}</span>
+              <span className="font-medium text-foreground">{model_name || 'N/A'}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Scenario:</span>
+              <span className="font-medium text-foreground">{scenario_name || 'N/A'}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Type:</span>
-              <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full font-medium">{type}</span>
+              <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full font-medium">{report_type}</span>
             </div>
           </div>
 
@@ -102,16 +106,11 @@ export function ReportCard({
             <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[status]}`}>
               {status.charAt(0).toUpperCase() + status.slice(1)}
             </span>
-            <span className="text-xs text-muted-foreground">Created {createdDate}</span>
+            <span className="text-xs text-muted-foreground">
+              Created {new Date(date_created).toLocaleDateString("en-US", { year: 'numeric', month: 'short', day: 'numeric' })}
+            </span>
           </div>
         </div>
-
-        {/* Favorite Star Indicator */}
-        {favorite && (
-          <div className="absolute top-4 right-4 text-yellow-500">
-            <Star className="w-4 h-4 fill-current" />
-          </div>
-        )}
       </Card>
     </Link>
   )
