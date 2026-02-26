@@ -318,7 +318,7 @@ export default function ChatPage() {
                             ref={fileInputRef}
                             onChange={handleFileChange}
                             className="hidden"
-                            accept=".pdf,.xlsx,.xls,.csv,image/*"
+                            accept=".pdf,.xlsx,.xls,.xlsm,.csv,.json,image/*"
                         />
 
                         {selectedFile && (

@@ -37,7 +37,7 @@ export async function submitChat(formData: FormData) {
 
             if (lastUserMessageIndex !== -1) {
                 // Determine file type and parse accordingly
-                if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.csv')) {
+                if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.xlsm') || fileName.endsWith('.csv')) {
                     const workbook = XLSX.read(buffer, { type: 'buffer' });
                     let spreadsheetText = `--- Attached Spreadsheet (${file.name}) ---\n\n`;
                     for (const sheetName of workbook.SheetNames) {
@@ -66,7 +66,7 @@ export async function submitChat(formData: FormData) {
                         }
                     })
                 } else {
-                    return { success: false, error: "Unsupported file type. Please upload CSV, Excel, Image, PDF, or Text files." }
+                    return { success: false, error: "Unsupported file type. Please upload Excel (xls, xlsx, xlsm), CSV, JSON, Image, PDF, or Text files." }
                 }
             }
         }
