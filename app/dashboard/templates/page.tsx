@@ -38,7 +38,7 @@ export default function TemplatesPage() {
         if (res.ok) {
           const data = await res.json()
           if (isMounted) {
-            setTemplates(data)
+            setTemplates(Array.isArray(data) ? data : (data?.results || []))
           }
         }
       } catch (error) {

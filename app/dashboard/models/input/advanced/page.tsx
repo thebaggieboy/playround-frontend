@@ -750,9 +750,15 @@ export default function InputModelPage() {
       const result = await calculateResponse.json()
 
       toast({
-        title: "Success!",
-        description: "Model generated successfully with all financial statements.",
-        variant: "default"
+        title: "✨ Model Generated Successfully",
+        description: (
+          <div className="flex flex-col gap-1 mt-1">
+            <span className="text-sm font-medium">All financial statements are ready.</span>
+            <span className="text-xs text-green-700/80 dark:text-green-300">You can now view your model results.</span>
+          </div>
+        ) as any,
+        className: "bg-gradient-to-br from-green-50 to-green-100 border-green-200 dark:from-green-900/40 dark:to-green-900/20 dark:border-green-800",
+        duration: 4000,
       })
 
       // Redirect to results page or show success
@@ -871,8 +877,15 @@ export default function InputModelPage() {
       window.URL.revokeObjectURL(url)
 
       toast({
-        title: "Export successful!",
-        description: "Excel file has been downloaded.",
+        title: "📊 Export Successful",
+        description: (
+          <div className="flex flex-col gap-1 mt-1">
+            <span className="text-sm font-medium">{formData.projectName}.xlsx downloaded.</span>
+            <span className="text-xs text-blue-700/80 dark:text-blue-300">Your model is ready for Excel.</span>
+          </div>
+        ) as any,
+        className: "bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 dark:from-blue-900/40 dark:to-blue-900/20 dark:border-blue-800",
+        duration: 4000,
       })
 
     } catch (error) {
@@ -935,8 +948,15 @@ export default function InputModelPage() {
       setLastSaved(new Date())
 
       toast({
-        title: "Draft saved",
-        description: "Your work has been saved successfully.",
+        title: "💾 Draft Saved",
+        description: (
+          <div className="flex flex-col gap-1 mt-1">
+            <span className="text-sm font-medium">Your work has been securely saved.</span>
+            <span className="text-xs text-slate-500">You can safely leave this page.</span>
+          </div>
+        ) as any,
+        className: "bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200 dark:from-slate-900/40 dark:to-slate-900/20 dark:border-slate-800",
+        duration: 3000,
       })
 
     } catch (error) {

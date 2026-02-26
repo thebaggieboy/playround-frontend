@@ -74,7 +74,7 @@ export default function CompareScenariosPage() {
                 })
                 if (response.ok) {
                     const data = await response.json()
-                    setAllScenarios(data)
+                    setAllScenarios(Array.isArray(data) ? data : (data?.results || []))
                 }
             } catch (error) {
                 console.error("Failed to load scenario list", error)

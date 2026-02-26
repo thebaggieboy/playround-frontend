@@ -38,7 +38,7 @@ export async function submitChat(formData: FormData) {
             if (lastUserMessageIndex !== -1) {
                 // Determine file type and parse accordingly
                 if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.xlsm') || fileName.endsWith('.csv')) {
-                    const workbook = XLSX.read(buffer, { type: 'buffer' });
+                    const workbook = XLSX.read(new Uint8Array(buffer), { type: 'array' });
                     let spreadsheetText = `--- Attached Spreadsheet (${file.name}) ---\n\n`;
                     for (const sheetName of workbook.SheetNames) {
                         const worksheet = workbook.Sheets[sheetName];

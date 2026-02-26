@@ -10,6 +10,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: MessageSquare, label: "Chat", href: "/dashboard/chat" },
   { icon: PieChart, label: "Analytics", href: "/dashboard/analytics" },
+  { icon: BarChart3, label: "Models", href: "/dashboard/models" },
   { icon: PenSquare, label: "Input Model", href: "/dashboard/models/input/advanced" },
   { icon: Layers, label: "Scenarios", href: "/dashboard/scenarios" },
   { icon: Layout, label: "Templates", href: "/dashboard/templates" },
