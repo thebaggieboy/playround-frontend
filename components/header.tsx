@@ -31,12 +31,7 @@ const solutions = [
     src: "/use-cases/economic-modeling/",
     icon: Activity,
   },
-  {
-    name: "Portfolio Management",
-    description: "Track and optimize investment portfolios with real-time analytics.",
-    src: "/use-cases/portfolio-management/",
-    icon: PieChart,
-  },
+
   {
     name: "AI Integration",
     description: "Leverage AI to enhance analysis and predictive modeling capabilities.",
@@ -114,7 +109,7 @@ export function Header() {
         <Link href={"/"}>
           <div className="flex items-center gap-2 group shrink-0">
             <span className="font-bold text-slate-900 text-lg group-hover:text-blue-600 transition-colors duration-200 hidden sm:inline tracking-tight">
-              Playground
+              Plyground
             </span>
             <span className="font-bold text-slate-900 text-lg group-hover:text-blue-600 transition-colors duration-200 sm:hidden tracking-tight">
               P
