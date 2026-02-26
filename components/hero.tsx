@@ -10,11 +10,11 @@ const heroVideoUrl =
 
 export function Hero() {
   return (
-    <section className="relative py-10 md:py-16 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[#0f1b3d]">
-      {/* Subtle ambient accents -- no gradients, just soft diffused shapes */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-[#1d3a6e]" />
-      <div className="absolute top-20 right-0 w-[480px] h-[480px] rounded-full bg-[#1a3264]/30 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[320px] h-[320px] rounded-full bg-[#162d5a]/40 blur-[100px] pointer-events-none" />
+    <section className="relative py-20 md:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden bg-transparent">
+      {/* Subtle ambient accents */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      <div className="absolute top-20 right-0 w-[480px] h-[480px] rounded-full bg-blue-500/10 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[320px] h-[320px] rounded-full bg-indigo-500/10 blur-[100px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="grid md:grid-cols-2 gap-12 lg:gap-16 items-center">
@@ -26,27 +26,27 @@ export function Hero() {
               transition={{ duration: 0.5 }}
               className="inline-block"
             >
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-[#1a3264] text-blue-300 border border-[#264a82]">
-                <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-white/[0.03] text-blue-300 border border-white/[0.08] shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5)] backdrop-blur-md">
+                <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse shadow-[0_0_8px_rgba(96,165,250,0.8)]" />
                 Financial modeling made simple
-              </span>
+              </div>
             </motion.div>
 
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-3xl md:text-5xl lg:text-[3.5rem] font-bold text-white leading-tight tracking-tight text-balance"
+              className="text-4xl md:text-5xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight text-balance"
             >
               Financial Analysis for{" "}
-              <span className="text-blue-400">Everyone</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300 drop-shadow-[0_0_16px_rgba(96,165,250,0.3)]">Everyone</span>
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-lg text-slate-400 max-w-xl leading-relaxed text-balance"
+              className="text-lg text-white/60 max-w-xl leading-relaxed text-balance font-light"
             >
               Playground is a one-stop financial analysis platform that makes
               complex financial modeling accessible to both experienced
@@ -62,7 +62,7 @@ export function Hero() {
               <Link href="/signup">
                 <Button
                   size="lg"
-                  className="rounded-lg px-8 h-12 text-base font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200 w-full sm:w-auto"
+                  className="rounded-xl px-8 h-14 text-base font-semibold bg-white text-black hover:bg-white/90 shadow-[0_0_24px_rgba(255,255,255,0.2)] transition-all duration-300 w-full sm:w-auto hover:scale-105"
                 >
                   Get Started Free
                   <ArrowRight className="w-4 h-4 ml-2" />
@@ -72,7 +72,7 @@ export function Hero() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="rounded-lg px-8 h-12 text-base font-semibold border-[#264a82] bg-transparent text-slate-300 hover:bg-[#1a3264] hover:text-white transition-all duration-200 w-full sm:w-auto"
+                  className="rounded-xl px-8 h-14 text-base font-semibold border-white/10 bg-white/[0.03] backdrop-blur-md text-white hover:bg-white/[0.08] hover:text-white transition-all duration-300 w-full sm:w-auto hover:shadow-[0_0_20px_rgba(255,255,255,0.05)]"
                 >
                   <Play className="w-4 h-4 mr-2" />
                   View Demo
@@ -84,55 +84,58 @@ export function Hero() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.45 }}
-              className="flex items-center gap-8 pt-6 border-t border-[#1d3a6e]"
+              className="flex items-center gap-8 pt-8 mt-4 border-t border-white/[0.08]"
             >
               <div>
-                <p className="text-2xl font-bold text-white">2,900+</p>
-                <p className="text-sm text-slate-500">Companies</p>
+                <p className="text-3xl font-bold text-white drop-shadow-md">2,900+</p>
+                <p className="text-sm text-white/50 mt-1 font-medium">Companies</p>
               </div>
-              <div className="w-px h-10 bg-[#1d3a6e]" />
+              <div className="w-px h-12 bg-white/[0.08]" />
               <div>
-                <p className="text-2xl font-bold text-white">10K+</p>
-                <p className="text-sm text-slate-500">Active analysts</p>
+                <p className="text-3xl font-bold text-white drop-shadow-md">10K+</p>
+                <p className="text-sm text-white/50 mt-1 font-medium">Active analysts</p>
               </div>
-              <div className="w-px h-10 bg-[#1d3a6e]" />
+              <div className="w-px h-12 bg-white/[0.08]" />
               <div>
-                <p className="text-2xl font-bold text-white">99.9%</p>
-                <p className="text-sm text-slate-500">Uptime</p>
+                <p className="text-3xl font-bold text-white drop-shadow-md">99.9%</p>
+                <p className="text-sm text-white/50 mt-1 font-medium">Uptime</p>
               </div>
             </motion.div>
           </div>
 
-          {/* Right visual - Cloudinary collection embed */}
+          {/* Right visual - Glass container */}
           <motion.div
             initial={{ opacity: 0, scale: 0.96, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.3 }}
             className="relative"
           >
-            <div className="rounded-xl overflow-hidden border border-[#264a82] bg-[#0c1630] shadow-2xl shadow-blue-950/30">
-              {/* Browser-style top bar */}
-              <div className="flex items-center gap-2 px-4 py-3 bg-[#0a1328] border-b border-[#1d3a6e]">
+            {/* Outer glass glow */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/30 to-purple-500/30 rounded-2xl blur-xl opacity-50" />
+
+            <div className="relative rounded-2xl overflow-hidden border border-white/[0.1] bg-black/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.4)]">
+              {/* Browser-style top bar - Glassy */}
+              <div className="flex items-center gap-2 px-4 py-3 bg-white/[0.02] border-b border-white/[0.08]">
                 <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-[#1d3a6e]" />
-                  <div className="w-3 h-3 rounded-full bg-[#1d3a6e]" />
-                  <div className="w-3 h-3 rounded-full bg-[#1d3a6e]" />
+                  <div className="w-3 h-3 rounded-full bg-white/20" />
+                  <div className="w-3 h-3 rounded-full bg-white/20" />
+                  <div className="w-3 h-3 rounded-full bg-white/20" />
                 </div>
                 <div className="flex-1 mx-4">
-                  <div className="bg-[#162d5a]/60 rounded-md px-3 py-1 text-xs text-slate-500 truncate max-w-xs">
+                  <div className="bg-white/[0.04] rounded-md px-3 py-1.5 text-xs text-white/40 truncate max-w-xs text-center border border-white/[0.02]">
                     playground.finance/demo
                   </div>
                 </div>
               </div>
               {/* Video player */}
-              <div className="aspect-video bg-[#080e20]">
+              <div className="aspect-video bg-black/50">
                 <video
                   src={heroVideoUrl}
                   autoPlay
                   muted
                   loop
                   playsInline
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover mix-blend-lighten opacity-90"
                   title="Playground financial platform demo"
                 />
               </div>

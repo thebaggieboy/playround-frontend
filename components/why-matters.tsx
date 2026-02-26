@@ -33,12 +33,12 @@ export function WhyMatters() {
     <section
       ref={ref}
       id="why"
-      className="relative overflow-hidden py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-[#faf9f7]"
+      className="relative overflow-hidden py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-transparent"
     >
       {/* Subtle decorative pigments */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-[#e8e4df]" />
-      <div className="absolute -top-32 -right-32 w-64 h-64 rounded-full bg-[#f0ece7]/50 blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-24 -left-24 w-48 h-48 rounded-full bg-blue-50/40 blur-3xl pointer-events-none" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-white/10" />
+      <div className="absolute -top-32 -right-32 w-64 h-64 rounded-full bg-white/[0.02] blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-24 -left-24 w-48 h-48 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
 
       <div className="max-w-4xl mx-auto relative z-10">
         {/* Header */}
@@ -48,13 +48,13 @@ export function WhyMatters() {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <div className="inline-flex items-center gap-2 mb-5 px-4 py-2 rounded-full bg-blue-50 border border-blue-100">
-            <Target className="w-4 h-4 text-blue-600" />
-            <span className="text-lg font-medium text-blue-600">
+          <div className="inline-flex items-center gap-2 mb-5 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 backdrop-blur-md shadow-[0_0_16px_rgba(59,130,246,0.15)]">
+            <Target className="w-4 h-4 text-blue-400" />
+            <span className="text-lg font-medium text-blue-400">
               Why It Matters
             </span>
           </div>
-         
+
         </motion.div>
 
         {/* Card */}
@@ -62,15 +62,15 @@ export function WhyMatters() {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="bg-white rounded-2xl p-8 md:p-10 border border-[#e8e4df] shadow-sm shadow-[#e8e4df]/30"
+          className="bg-black/40 backdrop-blur-xl rounded-3xl p-8 md:p-10 border border-white/[0.08] shadow-[0_16px_40px_-8px_rgba(0,0,0,0.5)]"
         >
-          <p className="text-base md:text-lg text-slate-500 mb-8 leading-relaxed">
+          <p className="text-base md:text-lg text-white/60 mb-8 leading-relaxed font-light">
             Our goal is to empower finance teams with flexible tools to
             customize, visualize, and interpret complex models easily. Transform
             your financial workflows with enterprise-grade modeling capabilities.
           </p>
 
-          <p className="text-slate-900 font-semibold mb-5 text-sm uppercase tracking-wide">
+          <p className="text-white/80 font-semibold mb-5 text-sm uppercase tracking-wider">
             This improves:
           </p>
 
@@ -85,22 +85,20 @@ export function WhyMatters() {
                 transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
                 onMouseEnter={() => setHoveredIndex(index)}
                 onMouseLeave={() => setHoveredIndex(null)}
-                className={`flex items-start gap-3 p-3 rounded-lg transition-all duration-300 cursor-pointer ${
-                  hoveredIndex === index
-                    ? "bg-[#f5f0ea] translate-x-1"
-                    : "bg-transparent"
-                }`}
+                className={`flex items-start gap-3 p-3 rounded-xl transition-all duration-300 cursor-pointer ${hoveredIndex === index
+                    ? "bg-white/10 translate-x-2 shadow-[0_0_12px_rgba(255,255,255,0.05)] border-white/10 border"
+                    : "bg-transparent border border-transparent"
+                  }`}
               >
                 <CheckCircle2
-                  className={`w-5 h-5 mt-0.5 flex-shrink-0 text-blue-600 transition-transform duration-300 ${
-                    hoveredIndex === index ? "scale-110" : "scale-100"
-                  }`}
+                  className={`w-5 h-5 mt-0.5 flex-shrink-0 text-blue-400 transition-transform duration-300 ${hoveredIndex === index ? "scale-110 drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]" : "scale-100"
+                    }`}
                 />
                 <div>
-                  <div className="text-slate-900 font-semibold text-sm md:text-base">
+                  <div className="text-white font-semibold flex items-center gap-2">
                     {benefit.title}
                   </div>
-                  <div className="text-slate-500 text-xs md:text-sm mt-0.5">
+                  <div className="text-white/50 text-xs md:text-sm mt-1">
                     {benefit.description}
                   </div>
                 </div>

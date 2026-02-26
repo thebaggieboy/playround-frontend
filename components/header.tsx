@@ -108,7 +108,7 @@ export function Header() {
   return (
     <header
       style={{ fontFamily: "Poppins, Sans-serif", lineHeight: 1 }}
-      className="sticky top-0 z-50 text-xs bg-[#0f1b3d] border-b border-[#1d3a6e] transition-smooth"
+      className="sticky top-0 z-50 text-xs bg-black/20 backdrop-blur-xl border-b border-white/10 transition-smooth"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
         {/* Logo */}
@@ -203,7 +203,7 @@ export function Header() {
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-[#1a3264]"
+            className="text-white hover:bg-white/10"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -218,13 +218,13 @@ export function Header() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="md:hidden overflow-hidden bg-[#0c1630] border-t border-[#1d3a6e]"
+            className="md:hidden overflow-hidden bg-black/60 backdrop-blur-2xl border-t border-white/10"
           >
             <div className="px-4 py-4 flex flex-col gap-4">
               {user == null && (
                 <>
                   <DropdownMenu>
-                    <DropdownMenuTrigger className="w-full text-left text-white flex items-center justify-between px-3 py-3 rounded-md text-foreground/70 hover:bg-[#1a3264] transition-smooth text-sm font-medium">
+                    <DropdownMenuTrigger className="w-full text-left text-white flex items-center justify-between px-3 py-3 rounded-md text-foreground/70 hover:bg-white/10 transition-smooth text-sm font-medium">
                       Solutions
                       <ChevronDown className="w-4 h-4" />
                     </DropdownMenuTrigger>
@@ -240,16 +240,16 @@ export function Header() {
                     </DropdownMenuContent>
                   </DropdownMenu>
 
-                  <Link href="/use-cases/industry" className="px-3 py-3 block text-white hover:bg-[#1a3264] rounded-md text-sm font-medium transition-colors">
+                  <Link href="/use-cases/industry" className="px-3 py-3 block text-white hover:bg-white/10 rounded-md text-sm font-medium transition-colors">
                     Industry
                   </Link>
 
-                  <Link href="/use-cases/customer-stories" className="px-3 py-3 block text-white hover:bg-[#1a3264] rounded-md text-sm font-medium transition-colors">
+                  <Link href="/use-cases/customer-stories" className="px-3 py-3 block text-white hover:bg-white/10 rounded-md text-sm font-medium transition-colors">
                     Customer Stories
                   </Link>
 
                   <DropdownMenu>
-                    <DropdownMenuTrigger className="w-full text-left text-white flex items-center justify-between px-3 py-3 rounded-md text-foreground/70 hover:bg-[#1a3264] transition-smooth text-sm font-medium">
+                    <DropdownMenuTrigger className="w-full text-left text-white flex items-center justify-between px-3 py-3 rounded-md text-foreground/70 hover:bg-white/10 transition-smooth text-sm font-medium">
                       Company
                       <ChevronDown className="w-4 h-4" />
                     </DropdownMenuTrigger>
@@ -269,11 +269,11 @@ export function Header() {
                 </>
               )}
 
-              <div className="flex flex-col gap-3 pt-4 border-t border-[#1d3a6e]">
+              <div className="flex flex-col gap-3 pt-4 border-t border-white/10">
                 {user == null ? (
                   <>
                     <Link href="/demo" className="w-full">
-                      <Button variant="outline" className="w-full border-[#264a82] bg-transparent text-white hover:bg-[#1a3264]">
+                      <Button variant="outline" className="w-full border-white/20 bg-transparent text-white hover:bg-white/10">
                         Request Demo
                       </Button>
                     </Link>

@@ -85,16 +85,20 @@ export default function DashboardPage() {
         }
 
         if (isMounted) {
+          const mData = Array.isArray(modelsData) ? modelsData : (modelsData?.results || []);
+          const rData = Array.isArray(reportsData) ? reportsData : (reportsData?.results || []);
+          const sData = Array.isArray(scenariosData) ? scenariosData : (scenariosData?.results || []);
+
           setStats({
-            activeModels: Array.isArray(modelsData) ? modelsData.length : 0,
-            totalReports: Array.isArray(reportsData) ? reportsData.length : 0,
-            completedReports: Array.isArray(reportsData) ? reportsData.filter((r: any) => r.status === 'completed').length : 0,
-            scenarios: Array.isArray(scenariosData) ? scenariosData.length : 0,
+            activeModels: mData.length || (modelsData?.count || 0),
+            totalReports: rData.length || (reportsData?.count || 0),
+            completedReports: rData.filter((r: any) => r.status === 'completed').length || 0,
+            scenarios: sData.length || (scenariosData?.count || 0),
           })
 
           // Get 3 most recent reports
-          if (Array.isArray(reportsData)) {
-            const sortedReports = reportsData.sort((a: any, b: any) =>
+          if (rData.length > 0) {
+            const sortedReports = rData.sort((a: any, b: any) =>
               new Date(b.date_created || b.created_at || 0).getTime() - new Date(a.date_created || a.created_at || 0).getTime()
             ).slice(0, 3)
 
