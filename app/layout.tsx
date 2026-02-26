@@ -1,17 +1,8 @@
-"use client"
 import type React from "react"
 import Providers from "@/features/Providers"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { Header } from "@/components/header"
-
-import { Poppins } from "next/font/google"
-
-const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-poppins",
-})
 
 export default function RootLayout({
   children,
@@ -20,7 +11,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${poppins.className} font-sans antialiased `}>
+      <body className="font-sans antialiased">
         <Providers>
           <Header />
           {children}

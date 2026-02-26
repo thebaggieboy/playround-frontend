@@ -83,8 +83,9 @@ export default function ScenariosPage() {
             }
 
             const data = await response.json()
+            const results = Array.isArray(data) ? data : (data.results || [])
             // Sort to have the newest first
-            const sortedData = data.sort((a: Scenario, b: Scenario) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+            const sortedData = results.sort((a: Scenario, b: Scenario) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
             setScenarios(sortedData)
         } catch (error) {
             console.error('Error fetching scenarios:', error)

@@ -1,83 +1,101 @@
 "use client"
 
-import { useState } from "react"
-import { Plus, Search, Filter } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Plus, Search, Filter, Loader2, Layers } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ModelCard } from "@/components/model-card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useSelector } from "react-redux"
+import { selectToken } from "@/features/token/tokenSlice"
+import { useToast } from "@/hooks/use-toast"
+import Link from 'next/link'
 
-// Sample data
-const MODELS = [
-  {
-    id: "1",
-    name: "Revenue Forecasting Model",
-    description: "Advanced revenue projection with seasonal adjustments and growth scenarios",
-    category: "Financial",
-    lastModified: "2 days ago",
-    type: "custom" as const,
-  },
-  {
-    id: "2",
-    name: "Cash Flow Analysis",
-    description: "Monthly cash flow projections with multiple scenarios",
-    category: "Liquidity",
-    lastModified: "5 days ago",
-    type: "custom" as const,
-  },
-  {
-    id: "3",
-    name: "Startup Financial Projection",
-    description: "Complete startup financial model template",
-    category: "Template",
-    lastModified: "Today",
-    type: "template" as const,
-  },
-  {
-    id: "4",
-    name: "Break-even Analysis",
-    description: "Determine break-even point and profitability timeline",
-    category: "Analysis",
-    lastModified: "1 week ago",
-    type: "template" as const,
-  },
-  {
-    id: "5",
-    name: "Budget Planning 2025",
-    description: "Department-wise budget allocation and tracking",
-    category: "Planning",
-    lastModified: "3 days ago",
-    type: "custom" as const,
-  },
-  {
-    id: "6",
-    name: "Expense Tracking",
-    description: "Monthly expense monitoring and variance analysis",
-    category: "Tracking",
-    lastModified: "1 day ago",
-    type: "custom" as const,
-  },
-]
+const API_BASE_URL = process.env.NODE_ENV === 'production'
+  ? 'https://playground-backend-1t0f.onrender.com/api'
+  : 'http://localhost:8000/api'
+
+interface ModelData {
+  id: string
+  name: string
+  description?: string
+  category?: string
+  created_at?: string
+  updated_at?: string
+  model_type?: string
+  type?: string
+}
 
 export default function ModelsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [activeTab, setActiveTab] = useState("all")
+  const [models, setModels] = useState<ModelData[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  const filteredModels = MODELS.filter((model) => {
-    const matchesSearch =
-      model.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      model.description.toLowerCase().includes(searchTerm.toLowerCase())
+  const token = useSelector(selectToken)
+  const { toast } = useToast()
+
+  const getAuthToken = () => {
+    if (!token) return '';
+    if (typeof token === 'string') return token;
+    if (typeof token === 'object' && token.access) return token.access;
+    return '';
+  }
+
+  useEffect(() => {
+    fetchModels()
+  }, [])
+
+  const fetchModels = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch(`${API_BASE_URL}/models/`, {
+        headers: {
+          'Authorization': `JWT ${getAuthToken()}`
+        }
+      })
+
+      if (!response.ok) throw new Error('Failed to fetch models')
+
+      const data = await response.json()
+      const results = Array.isArray(data) ? data : (data.results || [])
+
+      // Sort to have the newest first
+      const sortedData = results.sort((a: any, b: any) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+      setModels(sortedData)
+    } catch (error) {
+      console.error('Error fetching models:', error)
+      toast({
+        title: "Error",
+        description: "Failed to load models. Please try again later.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const filteredModels = models.filter((model) => {
+    const nameMatch = model.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false
+    const descMatch = model.description?.toLowerCase().includes(searchTerm.toLowerCase()) || false
+    const matchesSearch = nameMatch || descMatch
+
+    // In our simplified mock, we treat all fetched as "custom" unless specified
+    const mType = model.model_type || model.type || "custom"
+    const isTemplate = mType === "template"
+
     const matchesTab =
       activeTab === "all" ||
-      (activeTab === "custom" && model.type === "custom") ||
-      (activeTab === "template" && model.type === "template")
+      (activeTab === "custom" && !isTemplate) ||
+      (activeTab === "template" && isTemplate)
+
     return matchesSearch && matchesTab
   })
 
   return (
-    <div className="space-y-8 p-5">
+    <div className="space-y-8 p-5 md:p-8 pt-6">
       {/* Header */}
       <div className="space-y-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -86,10 +104,12 @@ export default function ModelsPage() {
             <p className="text-muted-foreground mt-1">Create, manage, and analyze your financial models</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
-            <Button className="gap-2">
-              <Plus className="w-4 h-4" />
-              New Model
-            </Button>
+            <Link href="/dashboard/models/input/basic">
+              <Button className="gap-2 w-full">
+                <Plus className="w-4 h-4" />
+                New Model
+              </Button>
+            </Link>
             <Button variant="outline" className="gap-2 bg-transparent">
               <Plus className="w-4 h-4" />
               Import
@@ -103,7 +123,7 @@ export default function ModelsPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Search models..."
-              className="pl-10"
+              className="pl-10 bg-background"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -116,6 +136,7 @@ export default function ModelsPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={fetchModels}>Refresh Items</DropdownMenuItem>
               <DropdownMenuItem>Financial</DropdownMenuItem>
               <DropdownMenuItem>Liquidity</DropdownMenuItem>
               <DropdownMenuItem>Analysis</DropdownMenuItem>
@@ -134,15 +155,40 @@ export default function ModelsPage() {
         </TabsList>
 
         <TabsContent value={activeTab} className="space-y-6 mt-6">
-          {filteredModels.length > 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : filteredModels.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredModels.map((model) => (
-                <ModelCard key={model.id} {...model} />
+                <ModelCard
+                  key={model.id}
+                  id={model.id.toString()}
+                  name={model.name || "Untitled Model"}
+                  description={model.description || "No description provided."}
+                  category={model.category || "Financial"}
+                  lastModified={model.updated_at ? new Date(model.updated_at).toLocaleDateString() : (model.created_at ? new Date(model.created_at).toLocaleDateString() : "Recently")}
+                  type={model.model_type === "template" || model.type === "template" ? "template" : "custom"}
+                />
               ))}
             </div>
           ) : (
-            <Card className="p-12 text-center">
-              <p className="text-muted-foreground">No models found. Try adjusting your search or create a new model.</p>
+            <Card className="border-dashed border-2 bg-transparent">
+              <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Layers className="w-8 h-8 text-primary" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">No models found</h3>
+                <p className="text-muted-foreground max-w-sm mb-6">
+                  {searchTerm ? "No models match your search query." : "You haven't generated any financial models yet."}
+                </p>
+                {!searchTerm && (
+                  <Link href="/dashboard/models/input/basic">
+                    <Button>Create Your First Model</Button>
+                  </Link>
+                )}
+              </CardContent>
             </Card>
           )}
         </TabsContent>
