@@ -41,7 +41,7 @@ export default function CategoryTemplatesPage() {
                 if (res.ok) {
                     const data = await res.json()
                     if (isMounted) {
-                        setAllTemplates(data)
+                        setAllTemplates(Array.isArray(data) ? data : (data?.results || []))
                     }
                 }
             } catch (error) {
