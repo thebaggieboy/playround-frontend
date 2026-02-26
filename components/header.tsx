@@ -197,7 +197,7 @@ export function Header() {
         <div className="hidden md:flex items-center gap-3 ml-auto">
           {user == null ? (
             <>
-              <Link href="/login" className="text-slate-700 hover:text-blue-600 text-sm font-semibold transition-colors duration-200 px-2 py-2">
+              <Link href="/signin" className="text-slate-700 hover:text-blue-600 text-sm font-semibold transition-colors duration-200 px-2 py-2">
                 Sign In
               </Link>
               <Link href="/demo">
