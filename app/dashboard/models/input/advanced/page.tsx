@@ -817,7 +817,7 @@ export default function InputModelPage() {
         title: "✨ Template Successfully Saved",
         description: (
           <div className="flex flex-col gap-1 mt-1">
-            <span className="text-sm font-medium">"{template.name}"</span>
+            <span className="text-sm font-medium">"{formData.projectName} Template"</span>
             <span className="text-xs text-muted-foreground">Ready to be used for your next model.</span>
           </div>
         ) as any,

@@ -10,7 +10,9 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Button } from "@/components/ui/button"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
+const API_BASE_URL = process.env.NODE_ENV === 'production'
+  ? 'https://playground-backend-1t0f.onrender.com/api'
+  : 'http://localhost:8000/api'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -46,6 +48,8 @@ export default function DashboardPage() {
     totalReports: 0,
     completedReports: 0,
     scenarios: 0,
+    avgIrr: "0.0%",
+    totalCapex: "$0"
   })
 
   const [recentReports, setRecentReports] = useState([])
@@ -59,7 +63,8 @@ export default function DashboardPage() {
     const fetchDashboardData = async () => {
       try {
         setIsLoading(true)
-        const headers = { 'Authorization': `JWT ${token}` }
+        const actualToken = typeof token === 'object' && token?.access ? token.access : token
+        const headers = { 'Authorization': `JWT ${actualToken}` }
 
         const [modelsRes, reportsRes, scenariosRes] = await Promise.all([
           fetch(`${API_BASE_URL}/models/`, { headers }).catch(() => null),
@@ -89,11 +94,29 @@ export default function DashboardPage() {
           const rData = Array.isArray(reportsData) ? reportsData : (reportsData?.results || []);
           const sData = Array.isArray(scenariosData) ? scenariosData : (scenariosData?.results || []);
 
+          let totalIrr = 0;
+          let irrCount = 0;
+          let totalCapex = 0;
+
+          sData.forEach((s: any) => {
+            if (s.exit_valuation && s.exit_valuation.target_irr_pct) {
+              totalIrr += parseFloat(s.exit_valuation.target_irr_pct);
+              irrCount++;
+            }
+            if (s.capital_expenditure) {
+              const ce = s.capital_expenditure;
+              const capex = (parseFloat(ce.land_cost) || 0) + (parseFloat(ce.construction_building_cost) || 0) + (parseFloat(ce.equipment_machinery_cost) || 0) + (parseFloat(ce.ffe_cost) || 0) || (parseFloat(ce.total_capex) || 0);
+              if (capex > 0) totalCapex += capex;
+            }
+          });
+
           setStats({
             activeModels: mData.length || (modelsData?.count || 0),
             totalReports: rData.length || (reportsData?.count || 0),
             completedReports: rData.filter((r: any) => r.status === 'completed').length || 0,
             scenarios: sData.length || (scenariosData?.count || 0),
+            avgIrr: irrCount > 0 ? `${(totalIrr / irrCount).toFixed(1)}%` : "0.0%",
+            totalCapex: totalCapex > 0 ? `$${(totalCapex / 1000000).toFixed(1)}M` : "$0M"
           })
 
           // Get 3 most recent reports
@@ -176,12 +199,14 @@ export default function DashboardPage() {
           {/* Quick Stats */}
           <motion.section variants={itemVariants} className="space-y-4">
             <h2 className="text-lg font-semibold text-foreground">Quick Overview</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {[
                 { label: "Active Models", value: isLoading ? "..." : stats.activeModels, icon: BarChart3, color: "bg-blue-50" },
                 { label: "Total Reports", value: isLoading ? "..." : stats.totalReports, icon: FileText, color: "bg-purple-50" },
-                { label: "Completed Reports", value: isLoading ? "..." : stats.completedReports, icon: Activity, color: "bg-green-50" },
-                { label: "Scenarios Used", value: isLoading ? "..." : stats.scenarios, icon: TrendingUp, color: "bg-orange-50" },
+                { label: "Scenarios Used", value: isLoading ? "..." : stats.scenarios, icon: Activity, color: "bg-green-50" },
+                { label: "Avg. Target IRR", value: isLoading ? "..." : stats.avgIrr, icon: TrendingUp, color: "bg-orange-50" },
+                { label: "Total Modeled Capex", value: isLoading ? "..." : stats.totalCapex, icon: BarChart3, color: "bg-pink-50" },
+                { label: "Completed Reports", value: isLoading ? "..." : stats.completedReports, icon: Activity, color: "bg-indigo-50" },
               ].map((stat, idx) => (
                 <motion.div
                   key={idx}

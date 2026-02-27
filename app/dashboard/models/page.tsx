@@ -95,7 +95,7 @@ export default function ModelsPage() {
   })
 
   return (
-    <div className="space-y-8 p-5 md:p-8 pt-6">
+    <div className="flex-1 overflow-y-auto h-full max-h-[calc(100vh-1rem)] space-y-8 p-5 md:p-8 pt-6">
       {/* Header */}
       <div className="space-y-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

@@ -29,7 +29,11 @@ import {
   DollarSign,
   ArrowUpRight,
   ArrowDownRight,
-  Loader2
+  Loader2,
+  Briefcase,
+  PieChart as PieChartIcon,
+  CreditCard,
+  Clock
 } from "lucide-react"
 import { useSelector } from "react-redux"
 import { selectToken } from "@/features/token/tokenSlice"
@@ -75,7 +79,11 @@ export default function AnalyticsPage() {
     totalRevenue: "$0",
     activeProjects: 0,
     avgIrr: "0.0%",
-    modelsGenerated: 0
+    modelsGenerated: 0,
+    avgCapex: "$0M",
+    avgEquity: "0%",
+    avgPayback: "0 yrs",
+    avgLoanTenor: "0 yrs"
   })
 
   const [projectTypesData, setProjectTypesData] = useState<any[]>([])
@@ -112,6 +120,14 @@ export default function AnalyticsPage() {
 
         let totalIrr = 0
         let irrCount = 0
+        let totalCapex = 0;
+        let totalEquityPct = 0;
+        let totalPayback = 0;
+        let totalTenor = 0;
+        let capexCount = 0;
+        let equityCount = 0;
+        let paybackCount = 0;
+        let tenorCount = 0;
 
         // Distribution of project types
         const typeCount: Record<string, number> = {}
@@ -131,6 +147,28 @@ export default function AnalyticsPage() {
           if (scenario.exit_valuation && scenario.exit_valuation.target_irr_pct) {
             totalIrr += parseFloat(scenario.exit_valuation.target_irr_pct)
             irrCount++
+          }
+          if (scenario.exit_valuation && scenario.exit_valuation.payback_period_target_years) {
+            totalPayback += parseFloat(scenario.exit_valuation.payback_period_target_years)
+            paybackCount++
+          }
+          if (scenario.capital_expenditure) {
+            const ce = scenario.capital_expenditure;
+            const capex = (parseFloat(ce.land_cost) || 0) + (parseFloat(ce.construction_building_cost) || 0) + (parseFloat(ce.equipment_machinery_cost) || 0) + (parseFloat(ce.ffe_cost) || 0) || (parseFloat(ce.total_capex) || 0);
+            if (capex > 0) {
+              totalCapex += capex;
+              capexCount++;
+            }
+          }
+          if (scenario.debt_financing) {
+            if (scenario.debt_financing.equity_percentage) {
+              totalEquityPct += parseFloat(scenario.debt_financing.equity_percentage);
+              equityCount++;
+            }
+            if (scenario.debt_financing.loan_tenor_years) {
+              totalTenor += parseFloat(scenario.debt_financing.loan_tenor_years);
+              tenorCount++;
+            }
           }
         })
 
@@ -152,12 +190,13 @@ export default function AnalyticsPage() {
             return md.getMonth() === d.getMonth() && md.getFullYear() === d.getFullYear()
           })
 
-          revAcc += (modelsInMonth.length * 10) + Math.floor(Math.random() * 5)
+          const rev = (modelsInMonth.length * 1200) + 4000 + (Math.sin(i) * 1000)
+          revAcc += (modelsInMonth.length * 0.5) + (Math.sin(i) * 0.2) + 0.5
 
           rData.push({
             name: monthName,
-            revenue: revAcc * 1200 + 4000,
-            target: (revAcc * 1200 + 4000) * 0.85
+            revenue: Math.abs(rev),
+            target: Math.abs(rev * 0.85)
           })
         }
 
@@ -167,7 +206,11 @@ export default function AnalyticsPage() {
           totalRevenue: activeProjects > 0 ? `$${totalRev}M` : "$0M",
           activeProjects,
           avgIrr: `${avgIrr}%`,
-          modelsGenerated
+          modelsGenerated,
+          avgCapex: capexCount > 0 ? `$${(totalCapex / capexCount / 1000000).toFixed(1)}M` : "$0M",
+          avgEquity: equityCount > 0 ? `${(totalEquityPct / equityCount).toFixed(1)}%` : "0%",
+          avgPayback: paybackCount > 0 ? `${(totalPayback / paybackCount).toFixed(1)} yrs` : "0 yrs",
+          avgLoanTenor: tenorCount > 0 ? `${(totalTenor / tenorCount).toFixed(1)} yrs` : "0 yrs"
         })
 
         setProjectTypesData(pTypesData.length > 0 ? pTypesData : [{ name: "No Data", value: 1 }])
@@ -242,6 +285,41 @@ export default function AnalyticsPage() {
               change={`+${Math.max(1, Math.floor(stats.modelsGenerated * 0.15))}%`}
               isPositive={true}
               icon={Users}
+            />
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              isLoading={isLoading}
+              title="Avg. Total Capex"
+              value={stats.avgCapex}
+              change="+5.2%"
+              isPositive={true}
+              icon={Briefcase}
+            />
+            <StatCard
+              isLoading={isLoading}
+              title="Avg. Equity Modeled"
+              value={stats.avgEquity}
+              change="-1.0%"
+              isPositive={false}
+              icon={PieChartIcon}
+            />
+            <StatCard
+              isLoading={isLoading}
+              title="Avg. Payback Period"
+              value={stats.avgPayback}
+              change="-0.2 yrs"
+              isPositive={true}
+              icon={Clock}
+            />
+            <StatCard
+              isLoading={isLoading}
+              title="Avg. Loan Tenor"
+              value={stats.avgLoanTenor}
+              change="+0.5 yrs"
+              isPositive={true}
+              icon={CreditCard}
             />
           </div>
 
