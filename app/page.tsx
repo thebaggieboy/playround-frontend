@@ -9,7 +9,7 @@ import { HeroWorkflow } from "@/components/hero-workflow"
 import { TrustedBy } from "@/components/trusted-by"
 import { PlatformCapabilities } from "@/components/platform-capabilities"
 import { IntegrationEcosystem } from "@/components/integration-ecosystem"
-import { LiveDashboardPreview } from "@/components/live-dashboard-preview"
+import { FeatureShowcase } from "@/components/feature-showcase"
 import { ComparisonSection } from "@/components/comparison-section"
 import type { Metadata } from 'next'
 
@@ -43,7 +43,7 @@ export default function Home() {
         <WhyMatters />
         <UseCases />
         <PlatformCapabilities />
-        <LiveDashboardPreview />
+        <FeatureShowcase />
         <IntegrationEcosystem />
         <ComparisonSection />
         <HeroMain />

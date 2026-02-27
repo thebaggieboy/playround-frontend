@@ -77,16 +77,13 @@ export default function DashboardPage() {
         let scenariosData = []
 
         if (modelsRes?.ok) {
-          const data = await modelsRes.json()
-          modelsData = data.results || data
+          modelsData = await modelsRes.json()
         }
         if (reportsRes?.ok) {
-          const data = await reportsRes.json()
-          reportsData = data.results || data
+          reportsData = await reportsRes.json()
         }
         if (scenariosRes?.ok) {
-          const data = await scenariosRes.json()
-          scenariosData = data.results || data
+          scenariosData = await scenariosRes.json()
         }
 
         if (isMounted) {
@@ -97,6 +94,15 @@ export default function DashboardPage() {
           let totalIrr = 0;
           let irrCount = 0;
           let totalCapex = 0;
+
+          setStats({
+            activeModels: modelsData?.count ?? mData.length,
+            totalReports: reportsData?.count ?? rData.length,
+            completedReports: rData.filter((r: any) => r.status === 'completed').length || 0,
+            scenarios: scenariosData?.count ?? sData.length,
+            avgIrr: "0.0%",  // Will calculate below
+            totalCapex: "$0M" // Will calculate below
+          })
 
           sData.forEach((s: any) => {
             if (s.exit_valuation && s.exit_valuation.target_irr_pct) {
@@ -110,14 +116,11 @@ export default function DashboardPage() {
             }
           });
 
-          setStats({
-            activeModels: mData.length || (modelsData?.count || 0),
-            totalReports: rData.length || (reportsData?.count || 0),
-            completedReports: rData.filter((r: any) => r.status === 'completed').length || 0,
-            scenarios: sData.length || (scenariosData?.count || 0),
+          setStats(prev => ({
+            ...prev,
             avgIrr: irrCount > 0 ? `${(totalIrr / irrCount).toFixed(1)}%` : "0.0%",
             totalCapex: totalCapex > 0 ? `$${(totalCapex / 1000000).toFixed(1)}M` : "$0M"
-          })
+          }))
 
           // Get 3 most recent reports
           if (rData.length > 0) {

@@ -115,8 +115,8 @@ export default function AnalyticsPage() {
         const sData = Array.isArray(scenariosData) ? scenariosData : (scenariosData?.results || [])
 
         // Calculate Stats
-        const activeProjects = mData.length || (modelsData?.count || 0)
-        const modelsGenerated = sData.length || (scenariosData?.count || 0)
+        const activeProjects = modelsData?.count ?? mData.length
+        const modelsGenerated = scenariosData?.count ?? sData.length
 
         let totalIrr = 0
         let irrCount = 0
@@ -172,7 +172,7 @@ export default function AnalyticsPage() {
           }
         })
 
-        const avgIrr = irrCount > 0 ? (totalIrr / irrCount).toFixed(1) : "18.5" // fallback if no irr
+        const avgIrr = irrCount > 0 ? (totalIrr / irrCount).toFixed(1) : "0.0" // fallback if no irr
 
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
         const currentMonth = new Date().getMonth()
@@ -190,8 +190,10 @@ export default function AnalyticsPage() {
             return md.getMonth() === d.getMonth() && md.getFullYear() === d.getFullYear()
           })
 
-          const rev = (modelsInMonth.length * 1200) + 4000 + (Math.sin(i) * 1000)
-          revAcc += (modelsInMonth.length * 0.5) + (Math.sin(i) * 0.2) + 0.5
+          const rev = modelsInMonth.length > 0 ? (modelsInMonth.length * 1200) + 4000 + (Math.sin(i) * 1000) : 0
+          if (modelsInMonth.length > 0) {
+            revAcc += (modelsInMonth.length * 0.5) + (Math.sin(i) * 0.2) + 0.5
+          }
 
           rData.push({
             name: monthName,
@@ -200,7 +202,7 @@ export default function AnalyticsPage() {
           })
         }
 
-        let totalRev = (revAcc * 1.2 + 45.2).toFixed(1)
+        let totalRev = activeProjects > 0 ? (revAcc * 1.2 + 45.2).toFixed(1) : "0.0"
 
         setStats({
           totalRevenue: activeProjects > 0 ? `$${totalRev}M` : "$0M",

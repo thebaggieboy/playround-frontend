@@ -158,6 +158,11 @@ export default function ReportsPage() {
     return date.toLocaleDateString("en-US", { year: 'numeric', month: 'short', day: 'numeric' })
   }
 
+  // Calculate dynamic stats
+  const completedCount = reports.filter(r => r.status === 'completed').length
+  const processingCount = reports.filter(r => r.status === 'processing').length
+  const successRate = reports.length > 0 ? ((completedCount / reports.length) * 100).toFixed(1) : "0.0"
+
   return (
     <div className="flex flex-col flex-1 overflow-auto h-full space-y-8 p-5 md:p-8">
       {/* Header */}
@@ -313,22 +318,22 @@ export default function ReportsPage() {
         <Card className="p-6 border-l-4 border-l-primary">
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">Total Reports</p>
-            <p className="text-3xl font-bold text-foreground">48</p>
-            <p className="text-xs text-muted-foreground">+8 this month</p>
+            <p className="text-3xl font-bold text-foreground">{isLoading ? "..." : reports.length}</p>
+            <p className="text-xs text-muted-foreground">Generated to date</p>
           </div>
         </Card>
         <Card className="p-6 border-l-4 border-l-green-500">
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">Completed</p>
-            <p className="text-3xl font-bold text-foreground">45</p>
-            <p className="text-xs text-green-600">93.75% success rate</p>
+            <p className="text-3xl font-bold text-foreground">{isLoading ? "..." : completedCount}</p>
+            <p className="text-xs text-green-600">{successRate}% success rate</p>
           </div>
         </Card>
         <Card className="p-6 border-l-4 border-l-blue-500">
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">Processing</p>
-            <p className="text-3xl font-bold text-foreground">3</p>
-            <p className="text-xs text-blue-600">Avg. 5 min per report</p>
+            <p className="text-3xl font-bold text-foreground">{isLoading ? "..." : processingCount}</p>
+            <p className="text-xs text-blue-600">Currently generating</p>
           </div>
         </Card>
       </div>
