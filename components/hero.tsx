@@ -17,7 +17,7 @@ export function Hero() {
       <div className="absolute bottom-0 left-0 w-[320px] h-[320px] rounded-full bg-indigo-500/10 blur-[100px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto relative z-10">
-        <div className="grid md:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div className="grid md:grid-cols-2 gap-12 lg:gap-12 items-center">
           {/* Left content */}
           <div className="space-y-8">
             <motion.div
@@ -26,8 +26,8 @@ export function Hero() {
               transition={{ duration: 0.5 }}
               className="inline-block"
             >
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-white/[0.03] text-blue-300 border border-white/[0.08] shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5)] backdrop-blur-md">
-                <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse shadow-[0_0_8px_rgba(96,165,250,0.8)]" />
+              <div className="inline-flex items-center gap-2 px-4  rounded-full text-xs font-xs bg-white/[0.03] text-blue-300 border border-white/[0.08] shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5)] backdrop-blur-md">
+                <span className="w-2 h-2 text-xs rounded-full bg-blue-400 animate-pulse shadow-[0_0_8px_rgba(96,165,250,0.8)]" />
                 Financial modeling made simple
               </div>
             </motion.div>
