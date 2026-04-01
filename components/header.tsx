@@ -94,6 +94,7 @@ export function Header() {
       document.cookie = ""
       dispatch(setToken(null))
       dispatch(setUser(null))
+      router.push("/signin")
     } catch (error) {
       console.log(error)
     }

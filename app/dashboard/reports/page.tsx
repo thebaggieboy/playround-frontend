@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Plus, Search, Filter, Download, Loader2 } from "lucide-react"
+import { motion } from "framer-motion"
+import { Plus, Search, Filter, Download, Loader2, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
@@ -304,11 +305,33 @@ export default function ReportsPage() {
               ))}
             </div>
           ) : (
-            <Card className="p-12 text-center">
-              <p className="text-muted-foreground">
-                No reports found. Try adjusting your search or generate a new report.
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className="col-span-1 md:col-span-2 lg:col-span-3 border-dashed border-2 border-border/60 bg-card rounded-xl p-10 flex flex-col items-center justify-center text-center shadow-sm"
+            >
+              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-5 ring-8 ring-primary/5">
+                <FileText className="w-10 h-10 text-primary" />
+              </div>
+              <h3 className="text-2xl font-semibold tracking-tight mb-2">No reports found</h3>
+              <p className="text-muted-foreground max-w-md mb-8 leading-relaxed">
+                {searchTerm 
+                  ? "We couldn't find any reports matching your search query. Try adjusting your filters." 
+                  : "You haven't generated any financial reports yet. Generate a report from your models to gain automated insights."}
               </p>
-            </Card>
+              {!searchTerm && (
+                <motion.button 
+                  onClick={() => setIsGenerateModalOpen(true)}
+                  whileHover={{ scale: 1.05 }} 
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-primary text-primary-foreground font-medium px-6 py-2.5 rounded-lg shadow-md flex items-center gap-2 hover:bg-primary/90 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Generate First Report
+                </motion.button>
+              )}
+            </motion.div>
           )}
         </TabsContent>
       </Tabs>

@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&display=swap');
 @import "tailwindcss";
  
 @import "tw-animate-css";
@@ -124,6 +125,34 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Compact, minimalistic dashboard scope */
+.dashboard {
+  font-family: 'DM Sans', 'Poppins', sans-serif;
+  font-size: 13px;
+  letter-spacing: -0.01em;
+}
+
+.dashboard h1 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.dashboard h2 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: oklch(0.55 0 0);
+}
+
+.dashboard .stat-value {
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
 }
 
 @layer utilities {

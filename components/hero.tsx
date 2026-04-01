@@ -1,16 +1,29 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Play } from "lucide-react"
 import Link from "next/link"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 
 const heroVideoUrl =
   "https://res.cloudinary.com/baggieboy/video/upload/v1770388607/plyground_input_variables_ivbvxn.mp4"
 
 export function Hero() {
+  const [titleIndex, setTitleIndex] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTitleIndex((prev) => (prev + 1) % 3)
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [])
+
   return (
-    <section className="relative py-20 md:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden bg-transparent">
+    <section className="relative py-6 md:py-6 px-4 sm:px-6 lg:px-8 overflow-hidden bg-transparent">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&display=swap');
+      ` }} />
       {/* Subtle ambient accents */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
       <div className="absolute top-20 right-0 w-[480px] h-[480px] rounded-full bg-blue-500/10 blur-[120px] pointer-events-none" />
@@ -32,15 +45,33 @@ export function Hero() {
               </div>
             </motion.div>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-4xl md:text-5xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight text-balance"
-            >
-              Financial Analysis for{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300 drop-shadow-[0_0_16px_rgba(96,165,250,0.3)]">Everyone</span>
-            </motion.h1>
+            <div className="flex flex-col gap-2 relative z-20">
+              <div className="h-[56px] sm:h-[64px] md:h-[72px] lg:h-[76px] w-full relative -ml-1 overflow-hidden">
+                <AnimatePresence>
+                  <motion.div
+                    key={titleIndex}
+                    initial={{ opacity: 0, y: 50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -50 }}
+                    transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }} /* Custom spring-like easing */
+                    className="absolute inset-0 text-[3rem] sm:text-[3.5rem] md:text-[4rem] lg:text-[4.25rem] whitespace-nowrap text-white tracking-tight flex items-center"
+                    style={{ fontFamily: "'Instrument Serif', serif", fontStyle: "italic", lineHeight: 1 }}
+                  >
+                    {["Financial Analysis", "Financial Forecasting", "Financial Modelling"][titleIndex]}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="text-5xl font-bold text-white leading-[1.1] tracking-tight text-balance mt-2"
+                style={{fontFamily:"Poppins, Sans-serif", fontWeight:"600", lineHeight:1}}
+              >
+                for{" "}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300 drop-shadow-[0_0_16px_rgba(96,165,250,0.3)]">Everyone</span>
+              </motion.h1>
+            </div>
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -115,14 +146,14 @@ export function Hero() {
 
             <div className="relative rounded-2xl overflow-hidden border border-white/[0.1] bg-black/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.4)]">
               {/* Browser-style top bar - Glassy */}
-              <div className="flex items-center gap-2 px-4 py-3 bg-white/[0.02] border-b border-white/[0.08]">
+              <div className="flex items-center gap-2 px-4 py-1 bg-white/[0.02] border-b border-white/[0.08]">
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded-full bg-white/20" />
                   <div className="w-3 h-3 rounded-full bg-white/20" />
                   <div className="w-3 h-3 rounded-full bg-white/20" />
                 </div>
                 <div className="flex-1 mx-4">
-                  <div className="bg-white/[0.04] rounded-md px-3 py-1.5 text-xs text-white/40 truncate max-w-xs text-center border border-white/[0.02]">
+                  <div className="bg-white/[0.04] rounded-md px-3 py-1 text-xs text-white/40 truncate max-w-xs text-center border border-white/[0.02]">
                     playground.finance/demo
                   </div>
                 </div>

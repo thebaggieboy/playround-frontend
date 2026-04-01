@@ -12,6 +12,7 @@ import { useSelector } from "react-redux"
 import { selectToken } from "@/features/token/tokenSlice"
 import { useToast } from "@/hooks/use-toast"
 import Link from 'next/link'
+import { motion } from "framer-motion"
 
 const API_BASE_URL = process.env.NODE_ENV === 'production'
   ? 'https://playground-backend-1t0f.onrender.com/api'
@@ -174,22 +175,34 @@ export default function ModelsPage() {
               ))}
             </div>
           ) : (
-            <Card className="border-dashed border-2 bg-transparent">
-              <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <Layers className="w-8 h-8 text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">No models found</h3>
-                <p className="text-muted-foreground max-w-sm mb-6">
-                  {searchTerm ? "No models match your search query." : "You haven't generated any financial models yet."}
-                </p>
-                {!searchTerm && (
-                  <Link href="/dashboard/models/input/basic">
-                    <Button>Create Your First Model</Button>
-                  </Link>
-                )}
-              </CardContent>
-            </Card>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className="col-span-1 md:col-span-2 lg:col-span-3 border-dashed border-2 bg-card rounded-xl p-10 flex flex-col items-center justify-center text-center shadow-sm"
+            >
+              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-5 ring-8 ring-primary/5">
+                <Layers className="w-10 h-10 text-primary" />
+              </div>
+              <h3 className="text-2xl font-semibold tracking-tight mb-2">No models found</h3>
+              <p className="text-muted-foreground max-w-md mb-8 leading-relaxed">
+                {searchTerm 
+                  ? "We couldn't find any models matching your search query. Try adjusting your filters." 
+                  : "You haven't generated any financial models yet. Create your first model to start projecting your company's future."}
+              </p>
+              {!searchTerm && (
+                <Link href="/dashboard/models/input/basic">
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }} 
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-primary text-primary-foreground font-medium px-6 py-2.5 rounded-lg shadow-md flex items-center gap-2 hover:bg-primary/90 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Create Your First Model
+                  </motion.button>
+                </Link>
+              )}
+            </motion.div>
           )}
         </TabsContent>
       </Tabs>

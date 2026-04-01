@@ -4,6 +4,11 @@ import type React from "react"
 
 import { motion } from "framer-motion"
 import DashboardSidebar from "@/components/dashboard/sidebar"
+import { CommandPalette } from "@/components/CommandPalette"
+import { useSelector } from "react-redux"
+import { selectToken } from "@/features/token/tokenSlice"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -30,12 +35,24 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
+  const token = useSelector(selectToken)
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!token || token.trim() === "") {
+      router.push("/signin")
+    }
+  }, [token, router])
+
   return (
-    <div className="flex h-screen bg-background ">
-      <DashboardSidebar />
+    <div className="dashboard flex h-screen bg-background print:h-auto print:bg-white text-foreground print:text-black print:overflow-visible">
+      <CommandPalette />
+      <div className="print:hidden">
+        <DashboardSidebar />
+      </div>
 
       <motion.main
-        className="flex-1 flex flex-col overflow-hidden"
+        className="flex-1 flex flex-col overflow-hidden print:overflow-visible print:bg-white print:text-black"
         initial="hidden"
         animate="visible"
         variants={containerVariants}

@@ -71,11 +71,23 @@ export async function submitChat(formData: FormData) {
             }
         }
 
+    const modelContext = formData.get("modelContext") as string | null
+
+    const systemInstruction = modelContext
+        ? `You are a highly capable financial AI assistant. Provide concise, insightful, and highly accurate answers with proper markdown formatting regarding financial models, reports, and data. Use bolding to highlight key terms and properly space your output.
+
+The user has loaded the following financial model data as context. Use these numbers to answer their questions precisely:
+
+${modelContext}
+
+When answering questions about the model, reference specific line items and figures from the data above.`
+        : "You are a highly capable financial AI assistant. Provide concise, insightful, and highly accurate answers with proper markdown formatting regarding financial models, reports, and data. Use bolding to highlight key terms and properly space your output."
+
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: contents,
             config: {
-                systemInstruction: "You are a highly capable financial AI assistant. Provide concise, insightful, and highly accurate answers with proper markdown formatting regarding financial models, reports, and data. Use bolding to highlight key terms and properly space your output.",
+                systemInstruction,
             }
         })
 

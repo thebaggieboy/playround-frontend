@@ -2,9 +2,16 @@
 
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
-import { LayoutDashboard, FileText, BarChart3, Layout, Settings, LogOut, Menu, X, PenSquare, MessageSquare, PieChart, Layers } from "lucide-react"
-import { useState } from "react"
+import {
+  LayoutDashboard, FileText, BarChart3, Layout, Settings,
+  LogOut, Menu, X, PenSquare, MessageSquare, PieChart,
+  Layers, ChevronLeft, ChevronRight
+} from "lucide-react"
+import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
+import { useDispatch } from "react-redux"
+import { setToken } from "@/features/token/tokenSlice"
+import { setUser } from "@/features/user/userSlice"
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
@@ -20,19 +27,40 @@ const menuItems = [
 
 export default function DashboardSidebar() {
   const [isOpen, setIsOpen] = useState(true)
+  const [isCollapsed, setIsCollapsed] = useState(false)
   const pathname = usePathname()
+  const dispatch = useDispatch()
+
+  // Persist collapse state
+  useEffect(() => {
+    const stored = localStorage.getItem("sidebar-collapsed")
+    if (stored === "true") setIsCollapsed(true)
+  }, [])
+
+  const toggleCollapse = () => {
+    setIsCollapsed(prev => {
+      localStorage.setItem("sidebar-collapsed", String(!prev))
+      return !prev
+    })
+  }
 
   const closeSidebar = () => setIsOpen(false)
 
-  const isActive = (href: string) => {
-    if (href === "/dashboard") {
-      return pathname === "/dashboard"
+  const handleLogout = () => {
+    try {
+      document.cookie = ""
+      dispatch(setToken(null))
+      dispatch(setUser(null))
+    } catch (error) {
+      console.log(error)
     }
-    return pathname.startsWith(href)
   }
+
+  const isActive = (href: string) => pathname === href
 
   return (
     <>
+      {/* Mobile hamburger */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed top-5 left-5 z-50 p-2.5 rounded-lg bg-primary text-primary-foreground lg:hidden shadow-sm hover:shadow-md transition-shadow"
@@ -43,6 +71,7 @@ export default function DashboardSidebar() {
         {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
       </motion.button>
 
+      {/* Mobile overlay */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -55,58 +84,131 @@ export default function DashboardSidebar() {
         )}
       </AnimatePresence>
 
+      {/* Sidebar */}
       <motion.aside
-        initial={{ x: 0 }}
-        animate={{ x: 0 }}
-        transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 30 }}
-        className={`${isOpen ? "fixed lg:static" : "fixed lg:static"} w-64 h-screen border-r border-border bg-white lg:bg-white flex flex-col z-40 overflow-y-auto ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
+        animate={{ width: isCollapsed ? 56 : 208 }}
+        transition={{ duration: 0.25, ease: "easeInOut" }}
+        className={`${isOpen ? "fixed lg:static" : "fixed lg:static"} h-screen border-r border-border bg-white flex flex-col z-40 overflow-hidden ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
-        {/* Logo Section */}
-        <div className="p-6 border-b border-border sticky top-0 bg-white">
-          <Link href="/dashboard">
-            <motion.div whileHover={{ scale: 1.02 }} className="flex items-center gap-3 cursor-pointer">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shadow-sm">
-                <span className="text-primary-foreground font-bold">P</span>
-              </div>
-              <span className="font-bold text-lg text-foreground">Playground</span>
-            </motion.div>
+        {/* Logo */}
+        <div className="p-3 border-b border-border sticky top-0 bg-white flex items-center gap-2 overflow-hidden">
+          <Link href="/dashboard" className="flex items-center gap-2 min-w-0">
+            <div className="w-7 h-7 bg-primary rounded-md flex items-center justify-center shadow-sm flex-shrink-0">
+              <span className="text-primary-foreground font-bold text-xs">P</span>
+            </div>
+            <AnimatePresence>
+              {!isCollapsed && (
+                <motion.span
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: "auto" }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="font-bold text-sm text-foreground whitespace-nowrap overflow-hidden"
+                >
+                  Playground
+                </motion.span>
+              )}
+            </AnimatePresence>
           </Link>
         </div>
 
-        {/* Menu Items */}
-        <nav className="flex-1 p-4 space-y-1.5">
+        {/* Nav Items */}
+        <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto overflow-x-hidden">
           {menuItems.map((item, index) => (
             <motion.div
               key={item.href}
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: index * 0.05, duration: 0.3 }}
+              transition={{ delay: index * 0.04, duration: 0.25 }}
             >
               <Link href={item.href} onClick={closeSidebar}>
-                <motion.button
-                  whileHover={{ x: 4 }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive(item.href) ? "bg-primary text-white shadow-sm" : "text-foreground hover:bg-secondary"
+                <div
+                  title={isCollapsed ? item.label : undefined}
+                  className={`relative w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md transition-all duration-200 cursor-pointer group
+                    ${isActive(item.href)
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-foreground hover:bg-secondary"
                     }`}
                 >
-                  <item.icon className="w-5 h-5 flex-shrink-0" />
-                  <span className="font-medium text-sm">{item.label}</span>
-                </motion.button>
+                  <item.icon className="w-4 h-4 flex-shrink-0" />
+                  <AnimatePresence>
+                    {!isCollapsed && (
+                      <motion.span
+                        initial={{ opacity: 0, width: 0 }}
+                        animate={{ opacity: 1, width: "auto" }}
+                        exit={{ opacity: 0, width: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="font-medium text-xs whitespace-nowrap overflow-hidden"
+                      >
+                        {item.label}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Tooltip when collapsed */}
+                  {isCollapsed && (
+                    <div className="absolute left-full ml-2 py-1 px-2 bg-foreground text-background text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-md">
+                      {item.label}
+                    </div>
+                  )}
+                </div>
               </Link>
             </motion.div>
           ))}
         </nav>
 
-        {/* Logout Section */}
-        <div className="p-4 border-t border-border space-y-3">
-          <motion.button
-            whileHover={{ x: 4 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors"
+        {/* Bottom: Logout + Collapse toggle */}
+        <div className="p-2 border-t border-border space-y-1">
+          <button
+            onClick={handleLogout}
+            title={isCollapsed ? "Logout" : undefined}
+            className="relative w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-foreground hover:bg-secondary transition-colors group"
           >
-            <LogOut className="w-5 h-5 flex-shrink-0" />
-            <span className="font-medium text-sm">Logout</span>
-          </motion.button>
+            <LogOut className="w-4 h-4 flex-shrink-0" />
+            <AnimatePresence>
+              {!isCollapsed && (
+                <motion.span
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: "auto" }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="font-medium text-xs whitespace-nowrap overflow-hidden"
+                >
+                  Logout
+                </motion.span>
+              )}
+            </AnimatePresence>
+            {isCollapsed && (
+              <div className="absolute left-full ml-2 py-1 px-2 bg-foreground text-background text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-md">
+                Logout
+              </div>
+            )}
+          </button>
+
+          {/* Collapse toggle — desktop only */}
+          <button
+            onClick={toggleCollapse}
+            className="hidden lg:flex w-full items-center gap-2.5 px-2.5 py-2 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+            title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {isCollapsed
+              ? <ChevronRight className="w-4 h-4 flex-shrink-0" />
+              : <ChevronLeft className="w-4 h-4 flex-shrink-0" />
+            }
+            <AnimatePresence>
+              {!isCollapsed && (
+                <motion.span
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: "auto" }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="font-medium text-xs whitespace-nowrap overflow-hidden"
+                >
+                  Collapse
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </button>
         </div>
       </motion.aside>
     </>

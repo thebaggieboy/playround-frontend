@@ -282,6 +282,7 @@ export default function InputModelPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSavingTemplate, setIsSavingTemplate] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
+  const [isExportingPdf, setIsExportingPdf] = useState(false)
   const [isSavingDraft, setIsSavingDraft] = useState(false)
 
   // Model and scenario IDs
@@ -291,6 +292,7 @@ export default function InputModelPage() {
   // Progress tracking
   const [completionPercentage, setCompletionPercentage] = useState(0)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
+  const [calcStep, setCalcStep] = useState<number>(-1)  // -1 = idle
 
   const { toast } = useToast()
 
@@ -541,7 +543,7 @@ export default function InputModelPage() {
         utilities_escalation_rate: formData.utilitiesEscalationRate,
         regular_maintenance_pct_revenue: formData.regularMaintenancePctRevenue,
         insurance_annual: formData.insuranceAnnual,
-        tam_cost: formData.turnAroundMaintenanceTamCost || formData.tamCost || null,
+        tam_cost: formData.turnAroundMaintenanceTamCost || null,
         tam_frequency_years: formData.tamFrequency || null,
         marketing_sales_pct_revenue: formData.marketingSalesPctRevenue,
         administrative_expenses_annual: 150000,
@@ -670,15 +672,37 @@ export default function InputModelPage() {
     }
   }
 
-  // Generate Model (Main function)
+  const CALC_STEPS = [
+    "Creating model...",
+    "Saving scenario data...",
+    "Building Revenue forecast...",
+    "Computing Operating Expenses...",
+    "Calculating Depreciation...",
+    "Structuring Debt & Financing...",
+    "Building Income Statement...",
+    "Building Cash Flow Statement...",
+    "Constructing Balance Sheet...",
+    "Calculating Financial Ratios...",
+    "Running Valuation models...",
+    "Finalizing results...",
+  ]
+
+  // Generate Model (#6 — step-by-step progress)
   const handleGenerateModel = async () => {
     setIsGenerating(true)
+    setCalcStep(0)
+
+    const advanceStep = (step: number) => {
+      return new Promise<void>(resolve => {
+        setTimeout(() => { setCalcStep(step); resolve() }, 800)
+      })
+    }
 
     try {
       let currentModelId = modelId;
       let currentScenarioId = scenarioId;
 
-      // Step 1: Create model if it doesn't exist
+      // Step 0: Create model if it doesn't exist
       if (!currentModelId) {
         const createModelResponse = await fetch(`${API_BASE_URL}/models/`, {
           method: 'POST',
@@ -692,22 +716,21 @@ export default function InputModelPage() {
           })
         })
 
-        if (!createModelResponse.ok) {
-          throw new Error('Failed to create model')
-        }
+        if (!createModelResponse.ok) throw new Error('Failed to create model')
 
         const modelData = await createModelResponse.json()
         currentModelId = modelData.id
         setModelId(currentModelId)
 
-        // Get base scenario ID
         if (modelData.scenarios && modelData.scenarios.length > 0) {
           currentScenarioId = modelData.scenarios[0].id
           setScenarioId(currentScenarioId)
         }
       }
 
-      // Step 2: Save scenario data
+      await advanceStep(1)
+
+      // Step 1: Save scenario data
       const scenarioData = {
         ...transformToAPIFormat(),
         name: activeScenario === 'base' ? 'Base Case' :
@@ -728,41 +751,59 @@ export default function InputModelPage() {
         }
       )
 
-      if (!saveResponse.ok) {
-        throw new Error('Failed to save scenario data')
-      }
+      if (!saveResponse.ok) throw new Error('Failed to save scenario data')
 
-      // Step 3: Trigger calculation
-      const calculateResponse = await fetch(
+      // Animate through calculation steps while API call runs
+      await advanceStep(2)
+      await advanceStep(3)
+      await advanceStep(4)
+      await advanceStep(5)
+      await advanceStep(6)
+
+      // Step 3: Trigger calculation (the real async work)
+      const calcPromise = fetch(
         `${API_BASE_URL}/models/${currentModelId}/calculate/`,
         {
           method: 'POST',
-          headers: {
-            'Authorization': `JWT ${getAuthToken()}`
-          }
+          headers: { 'Authorization': `JWT ${getAuthToken()}` }
         }
       )
 
-      if (!calculateResponse.ok) {
-        throw new Error('Failed to calculate model')
-      }
+      await advanceStep(7)
+      await advanceStep(8)
+      await advanceStep(9)
+      await advanceStep(10)
+
+      const calculateResponse = await calcPromise
+
+      if (!calculateResponse.ok) throw new Error('Failed to calculate model')
 
       const result = await calculateResponse.json()
 
-      toast({
-        title: "✨ Model Generated Successfully",
-        description: (
-          <div className="flex flex-col gap-1 mt-1">
-            <span className="text-sm font-medium">All financial statements are ready.</span>
-            <span className="text-xs text-green-700/80 dark:text-green-300">You can now view your model results.</span>
-          </div>
-        ) as any,
-        className: "bg-gradient-to-br from-green-50 to-green-100 border-green-200 dark:from-green-900/40 dark:to-green-900/20 dark:border-green-800",
-        duration: 4000,
-      })
+      // Check for partial failures in the result
+      const failedSteps = result?.failed_steps || []
+      await advanceStep(11)
 
-      // Redirect to results page or show success
-      // window.location.href = `/models/${modelId}/results`
+      if (failedSteps.length > 0) {
+        toast({
+          title: "⚠️ Model Generated with Warnings",
+          description: `Some steps had issues: ${failedSteps.join(', ')}. Other statements completed successfully.`,
+          variant: "destructive",
+          duration: 6000,
+        })
+      } else {
+        toast({
+          title: "✨ Model Generated Successfully",
+          description: (
+            <div className="flex flex-col gap-1 mt-1">
+              <span className="text-sm font-medium">All financial statements are ready.</span>
+              <span className="text-xs text-green-700/80 dark:text-green-300">You can now view your model results.</span>
+            </div>
+          ) as any,
+          className: "bg-gradient-to-br from-green-50 to-green-100 border-green-200 dark:from-green-900/40 dark:to-green-900/20 dark:border-green-800",
+          duration: 4000,
+        })
+      }
 
     } catch (error) {
       console.error('Generation error:', error)
@@ -773,6 +814,7 @@ export default function InputModelPage() {
       })
     } finally {
       setIsGenerating(false)
+      setTimeout(() => setCalcStep(-1), 2000)
     }
   }
 
@@ -839,7 +881,7 @@ export default function InputModelPage() {
 
   // Export to Excel
   const handleExportExcel = async () => {
-    if (!modelId) {
+    if (!scenarioId) {
       toast({
         title: "No model to export",
         description: "Please generate a model first before exporting.",
@@ -852,7 +894,7 @@ export default function InputModelPage() {
 
     try {
       const response = await fetch(
-        `${API_BASE_URL}/models/${modelId}/export_excel/`,
+        `${API_BASE_URL}/scenarios/${scenarioId}/export_excel/`,
         {
           method: 'GET',
           headers: {
@@ -897,6 +939,69 @@ export default function InputModelPage() {
       })
     } finally {
       setIsExporting(false)
+    }
+  }
+
+  // Export to PDF
+  const handleExportPdf = async () => {
+    if (!scenarioId) {
+      toast({
+        title: "No model to export",
+        description: "Please generate a model first before exporting.",
+        variant: "destructive"
+      })
+      return
+    }
+
+    setIsExportingPdf(true)
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/scenarios/${scenarioId}/export_pdf/`,
+        {
+          method: 'GET',
+          headers: {
+            'Authorization': `JWT ${getAuthToken()}`
+          }
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error('Failed to export to PDF')
+      }
+
+      // Download the file
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${formData.projectName}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+
+      toast({
+        title: "📄 Export Successful",
+        description: (
+          <div className="flex flex-col gap-1 mt-1">
+            <span className="text-sm font-medium">{formData.projectName}.pdf downloaded.</span>
+            <span className="text-xs text-red-700/80 dark:text-red-300">Your PDF report is ready.</span>
+          </div>
+        ) as any,
+        className: "bg-gradient-to-br from-red-50 to-red-100 border-red-200 dark:from-red-900/40 dark:to-red-900/20 dark:border-red-800",
+        duration: 4000,
+      })
+
+    } catch (error) {
+      console.error('Export error:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to export to PDF",
+        variant: "destructive"
+      })
+    } finally {
+      setIsExportingPdf(false)
     }
   }
 
@@ -971,14 +1076,19 @@ export default function InputModelPage() {
     }
   }
 
-  // Auto-save every 2 minutes
+  // Auto-save to localStorage every 30 seconds (#9)
+  useEffect(() => {
+    const draftKey = `plyground_draft_${modelId || 'unsaved'}`
+    localStorage.setItem(draftKey, JSON.stringify(formData))
+  }, [formData, modelId])
+
+  // Auto-save to backend every 30 seconds if model exists (#9)
   useEffect(() => {
     const autoSave = setInterval(() => {
       if (modelId && scenarioId) {
         handleSaveDraft()
       }
-    }, 120000) // 2 minutes
-
+    }, 30000) // 30 seconds
     return () => clearInterval(autoSave)
   }, [modelId, scenarioId, formData])
 
@@ -1032,7 +1142,16 @@ export default function InputModelPage() {
                 return (
                   <Button
                     key={scenario.id}
-                    onClick={() => setActiveScenario(scenario.id)}
+                    onClick={() => {
+                      if (activeScenario !== scenario.id) {
+                        setActiveScenario(scenario.id)
+                        toast({
+                          title: `Switched to ${scenario.label}`,
+                          description: `You are now editing the ${scenario.label} assumptions.`,
+                          duration: 2500,
+                        })
+                      }
+                    }}
                     variant={activeScenario === scenario.id ? "default" : "outline"}
                     size="sm"
                     className="gap-2"
@@ -1046,30 +1165,47 @@ export default function InputModelPage() {
           </div>
         </div>
 
-        {/* Progress Indicator */}
-        <div className="mt-4 flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <BarChart3 className="w-4 h-4" />
+        {/* Progress Indicators */}
+        <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <BarChart3 className="w-3.5 h-3.5" />
             <span>Completion: {completionPercentage}%</span>
           </div>
           {lastSaved && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <CheckCircle className="w-4 h-4 text-green-600" />
-              <span>Last saved: {lastSaved.toLocaleTimeString()}</span>
-            </div>
-          )}
-          {(isGenerating || isSavingDraft || isSavingTemplate || isExporting) && (
-            <div className="flex items-center gap-2 text-sm text-blue-600">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>
-                {isGenerating && "Generating model..."}
-                {isSavingDraft && "Saving..."}
-                {isSavingTemplate && "Saving template..."}
-                {isExporting && "Exporting..."}
-              </span>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+              <span>Saved: {lastSaved.toLocaleTimeString()}</span>
             </div>
           )}
         </div>
+
+        {/* Step-by-step calculation progress (#6) */}
+        {isGenerating && calcStep >= 0 && (
+          <div className="mt-3 overflow-x-auto">
+            <div className="flex items-center gap-1 min-w-max">
+              {CALC_STEPS.map((step, i) => (
+                <div key={i} className="flex items-center gap-1">
+                  <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-medium transition-all duration-300 ${
+                    i < calcStep ? 'bg-green-100 text-green-700' :
+                    i === calcStep ? 'bg-primary text-primary-foreground' :
+                    'bg-muted text-muted-foreground'
+                  }`}>
+                    {i < calcStep ? (
+                      <CheckCircle className="w-2.5 h-2.5" />
+                    ) : i === calcStep ? (
+                      <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                    ) : null}
+                    <span className="hidden sm:inline">{step}</span>
+                    <span className="sm:hidden">{i + 1}</span>
+                  </div>
+                  {i < CALC_STEPS.length - 1 && (
+                    <div className={`w-3 h-px ${ i < calcStep ? 'bg-green-400' : 'bg-border' }`} />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Tab Navigation */}
@@ -1111,7 +1247,22 @@ export default function InputModelPage() {
                   </p>
                 </div>
               </div>
-              <Button onClick={() => setDetailMode(!detailMode)} variant="outline" size="sm" className="gap-2">
+              <Button
+                onClick={() => {
+                  const next = !detailMode
+                  setDetailMode(next)
+                  toast({
+                    title: next ? "Detailed Mode" : "Simple Mode",
+                    description: next
+                      ? "Showing all advanced input fields."
+                      : "Showing essential fields only.",
+                    duration: 2000,
+                  })
+                }}
+                variant="outline"
+                size="sm"
+                className="gap-2"
+              >
                 {detailMode ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 {detailMode ? "Simple" : "Detailed"}
               </Button>
@@ -1222,7 +1373,7 @@ export default function InputModelPage() {
                   variant="outline"
                   className="gap-2"
                   onClick={handleExportExcel}
-                  disabled={isExporting || !modelId}
+                  disabled={isExporting || !scenarioId}
                 >
                   {isExporting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -1230,6 +1381,19 @@ export default function InputModelPage() {
                     <Download className="w-4 h-4" />
                   )}
                   Export to Excel
+                </Button>
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  onClick={handleExportPdf}
+                  disabled={isExportingPdf || !scenarioId}
+                >
+                  {isExportingPdf ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <FileText className="w-4 h-4" />
+                  )}
+                  Export to PDF
                 </Button>
                 <Button
                   variant="outline"
@@ -1305,14 +1469,16 @@ function ProjectForm({
           type="text"
           name="projectName"
           value={formData?.projectName}
+          tooltip="The full legal or operational name of the project."
           onChange={(value) => updateFormData('projectName', value)}
           placeholder="e.g., Eghudu Refinery Project" />
 
-        <InputField label="Project Location" value={formData?.projectLocation} type="text" onChange={(value) => updateFormData('projectLocation', value)} placeholder="e.g., Edo State, Nigeria" />
+        <InputField label="Project Location" value={formData?.projectLocation} type="text" tooltip="The geographical area where the project is situated." onChange={(value) => updateFormData('projectLocation', value)} placeholder="e.g., Edo State, Nigeria" />
         <InputField
           label="Industry/Sector"
           type="select"
           value={formData?.industrySector}
+          tooltip="The primary economic sector the project belongs to."
           options={["Manufacturing", "Real Estate", "Energy & Power", "Oil & Gas", "Healthcare", "Technology", "Agriculture", "Infrastructure", "Other"]}
           defaultValue="Manufacturing"
           onChange={(val) => {
@@ -1322,18 +1488,18 @@ function ProjectForm({
             else onProjectTypeChange("general")
           }}
         />
-        <InputField label="Project Type" value={formData?.projectType} type="select" options={["Greenfield", "Brownfield", "Expansion", "Acquisition", "Development"]} onChange={(value) => updateFormData('projectType', value)} defaultValue="Greenfield" />
+        <InputField label="Project Type" value={formData?.projectType} type="select" tooltip="Classification of the project development stage (e.g., Greenfield for new builds)." options={["Greenfield", "Brownfield", "Expansion", "Acquisition", "Development"]} onChange={(value) => updateFormData('projectType', value)} defaultValue="Greenfield" />
       </div>
 
       <div className="pt-6 border-t border-border">
         <h4 className="text-sm font-semibold text-foreground mb-4">Project Timeline</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <InputField label="Project Commencement Date" type="date" value={formData?.projectCommencementDate} onChange={(value) => updateFormData('projectCommencementDate', value)} defaultValue="2026-07-01" />
-          <InputField label="Construction Start Date" type="date" value={formData?.constructionStartDate} onChange={(value) => updateFormData('constructionStartDate', value)} defaultValue="2026-07-01" />
-          <InputField label="Construction Duration" type="number" value={formData?.constructionDurationMonths} onChange={(value) => updateFormData('constructionDuration', value)} suffix="months" defaultValue="36" tooltip="Total construction period in months" />
-          <InputField label="Construction End Date" type="date" value={formData?.constructionEndDate} onChange={(value) => updateFormData('constructionEndDate', value)} defaultValue="2029-07-01" calculated />
-          <InputField label="Operations Start Date" type="date" value={formData?.operationsStartDate} onChange={(value) => updateFormData('operationsStartDate', value)} defaultValue="2029-07-01" />
-          <InputField label="Operations Duration" type="number" value={formData?.operationsDurationYears} suffix="years" onChange={(value) => updateFormData('operationsDurationDate', value)} defaultValue="25" tooltip="Operational life of the project" />
+          <InputField label="Project Commencement Date" type="date" value={formData?.projectCommencementDate} tooltip="The date project planning and administrative activities begin." onChange={(value) => updateFormData('projectCommencementDate', value)} defaultValue="2026-07-01" />
+          <InputField label="Construction Start Date" type="date" value={formData?.constructionStartDate} tooltip="The date physical construction on-site is expected to start." onChange={(value) => updateFormData('constructionStartDate', value)} defaultValue="2026-07-01" />
+          <InputField label="Construction Duration" type="number" value={formData?.constructionDurationMonths} onChange={(value) => updateFormData('constructionDuration', value)} suffix="months" defaultValue="36" tooltip="Total time allocated for the construction phase in months." />
+          <InputField label="Construction End Date" type="date" value={formData?.constructionEndDate} tooltip="The calculated date when construction completes." onChange={(value) => updateFormData('constructionEndDate', value)} defaultValue="2029-07-01" calculated />
+          <InputField label="Operations Start Date" type="date" value={formData?.operationsStartDate} tooltip="The date commercial operations and revenue generation begin." onChange={(value) => updateFormData('operationsStartDate', value)} defaultValue="2029-07-01" />
+          <InputField label="Operations Duration" type="number" value={formData?.operationsDurationYears} suffix="years" onChange={(value) => updateFormData('operationsDurationDate', value)} defaultValue="25" tooltip="The total operational life span of the project used for the model." />
         </div>
       </div>
 
@@ -1350,13 +1516,14 @@ function ProjectForm({
               type="number"
               defaultValue="100000"
               value={formData?.totalCapacity}
-              tooltip="Maximum production capacity"
+              tooltip="The maximum production output the plant is designed for (at 100% load)."
               onChange={(value) => updateFormData('totalCapacity', value)}
             />
             <InputField
               label="Capacity Unit"
               type="select"
               value={formData?.capacityUnit}
+              tooltip="The unit of measurement for your project's output capacity."
               options={["bpd (barrels per day)", "tons/day", "MW (Megawatts)", "units/month", "sq.ft", "sq.m", "kg/day", "liters/day", "other"]}
               defaultValue="bpd (barrels per day)"
               onChange={(value) => updateFormData('capacityUnit', value)}
@@ -1367,7 +1534,7 @@ function ProjectForm({
               suffix="%"
               defaultValue="90"
               value={formData?.maximumPlantAvailability}
-              tooltip="Normal operating availability %"
+              tooltip="The percentage of time the plant is operational after factoring in routine maintenance."
               onChange={(value) => updateFormData('maximumPlantAvailability', value)}
             />
             <InputField
@@ -1376,7 +1543,7 @@ function ProjectForm({
               suffix="%"
               defaultValue="80"
               value={formData?.availabilityDuringTam}
-              tooltip="Turn Around Maintenance year availability"
+              tooltip="Plant availability during years where Turn Around Maintenance (TAM) occurs."
               onChange={(value) => updateFormData('availabilityDuringTam', value)}
             />
             <InputField
@@ -1385,7 +1552,7 @@ function ProjectForm({
               suffix="%"
               defaultValue="60"
               value={formData?.commissioningAvailability}
-              tooltip="Availability during ramp-up period"
+              tooltip="Expected availability during the initial ramp-up or commissioning period."
               onChange={(value) => updateFormData('commissioningAvailability', value)}
             />
             <InputField
@@ -1393,7 +1560,7 @@ function ProjectForm({
               type="number"
               defaultValue="0.25"
 
-              tooltip="Capacity adjustment factor"
+              tooltip="A scaling factor applied to the total capacity for specific calculation adjustments."
 
               value={formData?.factoryCapacityMultiplier}
               onChange={(val) => updateFormData('factoryCapacityMultiplier', Number(val))}
@@ -1403,19 +1570,21 @@ function ProjectForm({
           <div className="pt-6 border-t border-border">
             <h4 className="text-sm font-semibold text-foreground mb-4">Phase Implementation (if applicable)</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <InputField label="Number of Phases" type="select" options={["Single Phase", "2 Phases", "3 Phases", "4+ Phases"]} defaultValue="Single Phase"
+              <InputField label="Number of Phases" type="select" tooltip="Select if the project is built in a single stage or multiple stages." options={["Single Phase", "2 Phases", "3 Phases", "4+ Phases"]} defaultValue="Single Phase"
                 value={formData?.numberOfPhases}
                 onChange={(val) => updateFormData('numberOfPhases', val)}
               />
               <InputField label="Phase I Capacity" type="number" defaultValue="100000"
+                tooltip="Output capacity specifically for the first phase of development."
                 value={formData?.phaseICapacity}
                 onChange={(val) => updateFormData('phaseICapacity', Number(val))}
               />
               <InputField label="Phase II Capacity" type="number" defaultValue="0"
+                tooltip="Additional output capacity added during the second phase expansion."
                 value={formData?.phaseIiCapacity}
                 onChange={(val) => updateFormData('phaseIiCapacity', Number(val))}
               />
-              <InputField label="Total Capacity (All Phases)" type="number" defaultValue="100000" calculated />
+              <InputField label="Total Capacity (All Phases)" type="number" tooltip="The cumulative capacity once all phases are complete." defaultValue="100000" calculated />
             </div>
           </div>
 
@@ -1423,14 +1592,16 @@ function ProjectForm({
             <h4 className="text-sm font-semibold text-foreground mb-4">Time Constraints</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <InputField label="Days in Year" type="number" defaultValue="365" size="sm"
+                tooltip="Number of days in a year used for financial and operational indexing."
                 value={formData?.daysInYear}
                 onChange={(val) => updateFormData('daysInYear', Number(val))}
               />
               <InputField label="Hours in Day" type="number" defaultValue="24" size="sm"
+                tooltip="Number of operational hours in a standard production day."
                 value={formData?.hoursInDay}
                 onChange={(val) => updateFormData('hoursInDay', Number(val))}
               />
-              <InputField label="Hours in Year" type="number" defaultValue="8760" calculated size="sm" />
+              <InputField label="Hours in Year" tooltip="Total hours operating in a standard calendar year." type="number" defaultValue="8760" calculated size="sm" />
             </div>
           </div>
         </motion.div>
@@ -1463,6 +1634,7 @@ function MacroForm({
           options={["USD ($)", "NGN (₦)", "EUR (€)", "GBP (£)", "JPY (¥)"]}
           defaultValue="USD ($)"
           value={formData?.reportingCurrency}
+          tooltip="The primary currency used for all financial statements and calculations."
           onChange={(value) => updateFormData('reportingCurrency', value)}
 
         />
@@ -1471,20 +1643,21 @@ function MacroForm({
           type="number"
           defaultValue="1470"
           value={formData?.exchangeRate}
-          tooltip="Local currency units per 1 USD"
+          tooltip="Local currency units per 1 USD (e.g., NGN/USD)."
           onChange={(value) => updateFormData('exchangeRate', value)}
         />
-        <InputField label="Base Year" type="number" value={formData?.baseYear} defaultValue="2025" onChange={(value) => updateFormData('baseYear', value)} />
+        <InputField label="Base Year" type="number" tooltip="The first year of the financial model (Year 0/1)." value={formData?.baseYear} defaultValue="2025" onChange={(value) => updateFormData('baseYear', value)} />
         <InputField
           label="Periodicity"
           type="select"
           options={["Monthly", "Quarterly", "Semi-Annually", "Annually"]}
           defaultValue="Annually"
           value={formData?.periodicity}
+          tooltip="The time frequency for generated financial reports (e.g., Annual vs Quarterly updates)."
           onChange={(value) => updateFormData('periodicity', value)}
         />
-        <InputField label="Number of Years in Model" type="number" value={formData?.numberOfYears} onChange={(value) => updateFormData('numberOfYears', value)} defaultValue="28" tooltip="Total model duration" />
-        <InputField label="Model Tolerance" type="number" defaultValue="0.001" value={formData?.modelTolerance} onChange={(value) => updateFormData('modelTolerance', value)} tooltip="Calculation rounding tolerance" />
+        <InputField label="Number of Years in Model" type="number" value={formData?.numberOfYears} onChange={(value) => updateFormData('numberOfYears', value)} defaultValue="28" tooltip="Total forecast horizon for the project evaluation." />
+        <InputField label="Model Tolerance" type="number" defaultValue="0.001" value={formData?.modelTolerance} onChange={(value) => updateFormData('modelTolerance', value)} tooltip="Maximum allowable error margin for balance sheet balancing." />
       </div>
 
       <div className="pt-6 border-t border-border">
@@ -1496,7 +1669,7 @@ function MacroForm({
             suffix="%"
             defaultValue="15.0"
             value={formData?.localInflationRate}
-            tooltip="Current local inflation rate"
+            tooltip="Projected annual inflation rate for the local market currency."
             onChange={(value) => updateFormData('localInflationRate', value)}
           />
           <InputField
@@ -1505,7 +1678,7 @@ function MacroForm({
             suffix="%"
             defaultValue="2.5"
             value={formData?.foreignInflationRate}
-            tooltip="Expected foreign inflation rate"
+            tooltip="Projected annual inflation rate for US Dollar (USD) or international benchmark."
             onChange={(value) => updateFormData('foreignInflationRate', value)}
           />
           <InputField
@@ -1513,7 +1686,7 @@ function MacroForm({
             type="number"
             suffix="%"
             defaultValue="9.0"
-            tooltip="Long-term equilibrium inflation rate"
+            tooltip="The equilibrium inflation rate reached after the initial high-growth/volatile period."
 
             value={formData?.longTermTargetInflation}
             onChange={(val) => updateFormData('longTermTargetInflation', Number(val))}
@@ -1523,7 +1696,7 @@ function MacroForm({
             type="number"
             suffix="%"
             defaultValue="2.5"
-            tooltip="Annual escalation for USD-denominated items"
+            tooltip="Annual percentage increase applied to revenues and operational costs denominated in USD."
 
             value={formData?.revenueOpexEscalationRateUsd}
             onChange={(val) => updateFormData('revenueOpexEscalationRateUsd', Number(val))}
@@ -1545,7 +1718,7 @@ function MacroForm({
               suffix="%"
               defaultValue="12.5"
               value={formData?.discountRateWacc}
-              tooltip="Weighted Average Cost of Capital for NPV"
+              tooltip="Weighted Average Cost of Capital, used to discount future cash flows to Net Present Value (NPV)."
               onChange={(value) => updateFormData('discountRateWacc', value)}
             />
             <InputField
@@ -1554,7 +1727,7 @@ function MacroForm({
               suffix="%"
               defaultValue="4.5"
               value={formData?.riskFreeRate}
-              tooltip="Government bond rate (e.g., US Treasury)"
+              tooltip="Theoretical return on an investment with 0% risk, typically the 10-year US Treasury yield."
               onChange={(value) => updateFormData('riskFreeRate', value)}
             />
             <InputField
@@ -1563,6 +1736,7 @@ function MacroForm({
               options={["SOFR", "MPR (Monetary Policy Rate)", "LIBOR", "Prime Rate", "Other"]}
               defaultValue="SOFR"
               value={formData?.benchmarkRateType}
+              tooltip="The reference interest rate used for debt calculation (e.g., Secured Overnight Financing Rate)."
               onChange={(value) => updateFormData('benchmarkRate', value)}
             />
             <InputField
@@ -1678,7 +1852,7 @@ function RevenueForm({
             <InputField
               label={projectType === "real-estate" ? "Building/Unit Type" : "Product/Service Name"}
               type="text"
-
+              tooltip="The specific name or category of the revenue-generating asset or product."
               value={formData.revenueProducts[idx]?.productName}
               onChange={(value) => updateRevenueProduct(idx, 'productName', value)}
               placeholder={
@@ -1691,6 +1865,7 @@ function RevenueForm({
             <InputField
               label="Unit of Measure"
               type="select"
+              tooltip="The standard unit used to quantify sales (e.g., Barrels, MWh, Units)."
               value={formData.revenueProducts[idx]?.unitOfMeasure}
               onChange={(value) => updateRevenueProduct(idx, 'unitOfMeasure', value)}
               options={
@@ -1713,25 +1888,28 @@ function RevenueForm({
             {projectType === "real-estate" ? (
               <>
                 <InputField label="Number of Units" type="number" defaultValue="18"
+                  tooltip="The total count of buildings or apartments of this specific type."
                   value={formData?.numberOfUnits}
                   onChange={(val) => updateFormData('numberOfUnits', Number(val))}
                 />
                 <InputField label="GBA (Gross Building Area)" type="number" suffix="sq.m" defaultValue="456"
+                  tooltip="The total floor area inside the building envelope, including external walls."
                   value={formData?.gbaGrossBuildingArea}
                   onChange={(val) => updateFormData('gbaGrossBuildingArea', Number(val))}
                 />
-                <InputField label="Lettable Area" type="number" suffix="sq.m" defaultValue="387.6" calculated />
+                <InputField label="Lettable Area" type="number" suffix="sq.m" defaultValue="387.6" tooltip="The total area that can be rented out to tenants (usually GBA minus common areas)." calculated />
                 <InputField label="Sale Price per Unit" type="number" prefix="$" defaultValue="250000"
+                  tooltip="The expected average market price for selling one unit of this type."
                   value={formData?.salePricePerUnit}
                   onChange={(val) => updateFormData('salePricePerUnit', Number(val))}
                 />
               </>
             ) : (
               <>
-                <InputField label="Year 1 Sales Volume" type="number" onChange={(value) => updateRevenueProduct(idx, 'year1SalesVolume', Number(value))} defaultValue="10000" />
-                <InputField label="Unit Price (Year 1)" type="number" onChange={(value) => updateRevenueProduct(idx, 'unitPrice', Number(value))} prefix="$" defaultValue="80" />
-                <InputField label="Volume Growth Rate" type="number" onChange={(value) => updateRevenueProduct(idx, 'volumeGrowthRate', Number(value))} suffix="%" defaultValue="5.0" />
-                <InputField label="Price Escalation Rate" type="number" onChange={(value) => updateRevenueProduct(idx, 'priceEscalationRate', Number(value))} suffix="%" defaultValue="2.5" />
+                <InputField label="Year 1 Sales Volume" type="number" tooltip="The total number of units expected to be sold in the first operational year." onChange={(value) => updateRevenueProduct(idx, 'year1SalesVolume', Number(value))} defaultValue="10000" />
+                <InputField label="Unit Price (Year 1)" type="number" tooltip="The selling price per unit in the first year of operations." onChange={(value) => updateRevenueProduct(idx, 'unitPrice', Number(value))} prefix="$" defaultValue="80" />
+                <InputField label="Volume Growth Rate" type="number" tooltip="The annual percentage increase in the quantity of units sold." onChange={(value) => updateRevenueProduct(idx, 'volumeGrowthRate', Number(value))} suffix="%" defaultValue="5.0" />
+                <InputField label="Price Escalation Rate" type="number" tooltip="The annual percentage increase in the unit selling price (usually inflation-linked)." onChange={(value) => updateRevenueProduct(idx, 'priceEscalationRate', Number(value))} suffix="%" defaultValue="2.5" />
               </>
             )}
           </div>
@@ -1751,7 +1929,7 @@ function RevenueForm({
               type="number"
               suffix="days"
               defaultValue="45"
-              tooltip="Days to collect payment from customers"
+              tooltip="Days Sales Outstanding: The average number of days it takes to collect payment after a sale."
 
               value={formData?.receivablesDaysDso}
               onChange={(val) => updateFormData('receivablesDaysDso', Number(val))}
@@ -1763,7 +1941,7 @@ function RevenueForm({
                   type="number"
                   suffix="months"
                   defaultValue="12"
-                  tooltip="Months to reach full capacity/sales"
+                  tooltip="The duration (in months) it takes for sales to reach steady-state capacity."
 
                   value={formData?.revenueRampUpPeriod}
                   onChange={(val) => updateFormData('revenueRampUpPeriod', Number(val))}
@@ -1772,7 +1950,7 @@ function RevenueForm({
                   label="Seasonal Adjustment Factor"
                   type="number"
                   defaultValue="1.0"
-                  tooltip="Multiplier for seasonal variations (1.0 = no seasonality)"
+                  tooltip="A multiplier used to account for monthly fluctuations in demand (1.0 = baseline)."
 
                   value={formData?.seasonalAdjustmentFactor}
                   onChange={(val) => updateFormData('seasonalAdjustmentFactor', Number(val))}
@@ -1786,7 +1964,7 @@ function RevenueForm({
                   type="number"
                   suffix="months"
                   defaultValue="24"
-                  tooltip="Time to sell all units"
+                  tooltip="The total time expected to sell or lease all available inventory."
 
                   value={formData?.salesAbsorptionPeriod}
                   onChange={(val) => updateFormData('salesAbsorptionPeriod', Number(val))}
@@ -1796,7 +1974,7 @@ function RevenueForm({
                   type="number"
                   suffix="%"
                   defaultValue="30"
-                  tooltip="Percentage of units sold before completion"
+                  tooltip="The percentage of total inventory sold before the project construction is finished."
 
                   value={formData?.preSalesOffPlanPct}
                   onChange={(val) => updateFormData('preSalesOffPlanPct', Number(val))}
@@ -1808,7 +1986,7 @@ function RevenueForm({
               type="number"
               suffix="%"
               defaultValue="15.0"
-              tooltip="Target market share"
+              tooltip="The portion of the total addressable market the project aims to capture."
 
               value={formData?.marketShareTarget}
               onChange={(val) => updateFormData('marketShareTarget', Number(val))}
@@ -1854,7 +2032,7 @@ function OpexForm({
               type="number"
               prefix="$"
               defaultValue="45"
-              tooltip="Cost of primary raw materials per production unit"
+              tooltip="The direct cost of primary raw materials required to produce one unit of output."
 
               value={formData?.rawMaterialCostPerUnit}
               onChange={(val) => updateFormData('rawMaterialCostPerUnit', Number(val))}
@@ -1864,7 +2042,7 @@ function OpexForm({
               type="number"
               suffix="%"
               defaultValue="3.0"
-              tooltip="Annual increase in raw material costs"
+              tooltip="The projected annual percentage increase in raw material pricing."
 
               value={formData?.rawMaterialPriceEscalation}
               onChange={(val) => updateFormData('rawMaterialPriceEscalation', Number(val))}
@@ -1874,7 +2052,7 @@ function OpexForm({
               type="number"
               suffix="%"
               defaultValue="35"
-              tooltip="Alternative: total variable costs as % of revenue"
+              tooltip="An aggregate variable cost estimate calculated as a direct percentage of gross sales."
 
               value={formData?.variableCostAsPctOfRevenue}
               onChange={(val) => updateFormData('variableCostAsPctOfRevenue', Number(val))}
@@ -1886,7 +2064,7 @@ function OpexForm({
                 prefix="$"
                 suffix="/MMBTU"
                 defaultValue="3.5"
-                tooltip="Natural gas or fuel cost"
+                tooltip="The feedstock cost for energy production, denominated per Million British Thermal Units."
 
                 value={formData?.fuelGasCost}
                 onChange={(val) => updateFormData('fuelGasCost', Number(val))}
@@ -1900,6 +2078,7 @@ function OpexForm({
         <h4 className="text-sm font-semibold text-foreground mb-4">Labor & Personnel Costs</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputField label="Total Headcount" type="number" defaultValue="250"
+            tooltip="The total number of full-time equivalent (FTE) employees across all departments."
             value={formData?.totalHeadcount}
             onChange={(val) => updateFormData('totalHeadcount', Number(val))}
           />
@@ -1908,7 +2087,7 @@ function OpexForm({
             type="number"
             prefix="$"
             defaultValue="45000"
-            tooltip="Mean annual salary across all employees"
+            tooltip="The weighted average yearly base salary per employee before benefits."
 
             value={formData?.averageAnnualSalary}
             onChange={(val) => updateFormData('averageAnnualSalary', Number(val))}
@@ -1918,7 +2097,7 @@ function OpexForm({
             type="number"
             suffix="%"
             defaultValue="5.0"
-            tooltip="Annual salary increase percentage"
+            tooltip="The expected annual percentage increase in employee wages."
 
             value={formData?.salaryEscalationRate}
             onChange={(val) => updateFormData('salaryEscalationRate', Number(val))}
@@ -1928,7 +2107,7 @@ function OpexForm({
             type="number"
             suffix="% of salary"
             defaultValue="25"
-            tooltip="Additional employment costs"
+            tooltip="Combined employer costs for health insurance, pensions, and statutory payroll taxes."
 
             value={formData?.benefitsPayrollTax}
             onChange={(val) => updateFormData('benefitsPayrollTax', Number(val))}
@@ -1939,7 +2118,7 @@ function OpexForm({
             prefix="$"
             defaultValue="14062500"
             calculated
-            tooltip="Calculated: Headcount × Avg Salary × (1 + Benefits%)"
+            tooltip="The calculated total yearly labor expense: Headcount × Avg Salary × (1 + Benefits%)."
           />
         </div>
       </div>
@@ -1953,7 +2132,7 @@ function OpexForm({
             prefix="$"
             suffix="/year"
             defaultValue="300000"
-
+            tooltip="Annual expenditure for electricity supply to the facilities."
             value={formData?.powerElectricityCost}
             onChange={(val) => updateFormData('powerElectricityCost', Number(val))}
           />
@@ -1963,7 +2142,7 @@ function OpexForm({
             prefix="$"
             suffix="/year"
             defaultValue="100000"
-
+            tooltip="Annual expenditure for water supply and natural gas utilities."
             value={formData?.waterGasUtilities}
             onChange={(val) => updateFormData('waterGasUtilities', Number(val))}
           />
@@ -1972,7 +2151,7 @@ function OpexForm({
             type="number"
             suffix="%"
             defaultValue="4.0"
-
+            tooltip="The projected annual percentage increase in utility tariff rates."
             value={formData?.utilitiesEscalationRate}
             onChange={(val) => updateFormData('utilitiesEscalationRate', Number(val))}
           />
@@ -1982,7 +2161,7 @@ function OpexForm({
               type="number"
               suffix="% of revenue"
               defaultValue="5.0"
-
+              tooltip="Fees paid to third-party management firms for operating the property assets."
               value={formData?.propertyManagement}
               onChange={(val) => updateFormData('propertyManagement', Number(val))}
             />
@@ -1998,7 +2177,7 @@ function OpexForm({
             type="number"
             suffix="% of revenue"
             defaultValue="2.5"
-            tooltip="Annual routine maintenance as % of revenue"
+            tooltip="Annual provision for routine preventive and corrective maintenance activities."
 
             value={formData?.regularMaintenance}
             onChange={(val) => updateFormData('regularMaintenance', Number(val))}
@@ -2008,7 +2187,7 @@ function OpexForm({
             type="number"
             prefix="$"
             defaultValue="200000"
-            tooltip="Property & liability insurance"
+            tooltip="Comprehensive annual premiums for property, casualty, and operational risk insurance."
 
             value={formData?.insuranceAnnual}
             onChange={(val) => updateFormData('insuranceAnnual', Number(val))}
@@ -2020,7 +2199,7 @@ function OpexForm({
                 type="number"
                 prefix="$"
                 defaultValue="2000000"
-                tooltip="Major periodic maintenance cost"
+                tooltip="The lump-sum cost of a scheduled, large-scale plant shutdown for overhaul and inspections."
 
                 value={formData?.turnAroundMaintenanceTamCost}
                 onChange={(val) => updateFormData('turnAroundMaintenanceTamCost', Number(val))}
@@ -2146,7 +2325,7 @@ function CapexForm({
           type="number"
           prefix="$"
           defaultValue="13711180"
-          tooltip="Cost of land acquisition"
+          tooltip="The total acquisition cost of the project site, including brokerage and legal fees."
 
           value={formData?.landCost}
           onChange={(val) => updateFormData('landCost', Number(val))}
@@ -2156,14 +2335,14 @@ function CapexForm({
           type="number"
           prefix="$"
           defaultValue="109626400"
-          tooltip="Building and construction costs"
+          tooltip="Total direct costs for building construction, site development, and civil infrastructure."
         />
         <InputField
           label="Equipment & Machinery"
           type="number"
           prefix="$"
           defaultValue="20554950"
-          tooltip="Plant equipment and machinery"
+          tooltip="Cost of purchasing and installing industrial machinery, specialized tools, and plant equipment."
 
           value={formData?.equipmentMachinery}
           onChange={(val) => updateFormData('equipmentMachinery', Number(val))}
@@ -2173,6 +2352,7 @@ function CapexForm({
           type="number"
           prefix="$"
           defaultValue="6851650"
+          tooltip="Movable furniture, specialized fixtures, and administrative equipment not permanently attached to the building."
 
           value={formData?.furnitureFixturesEquipmentFfe}
           onChange={(val) => updateFormData('furnitureFixturesEquipmentFfe', Number(val))}
@@ -2188,18 +2368,22 @@ function CapexForm({
           <h4 className="text-sm font-semibold text-foreground mb-4">Real Estate Specific Costs</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <InputField label="Multi-Storey Car Park Cost" type="number" prefix="$" defaultValue="27735000"
+              tooltip="Dedicated construction budget for parking facilities."
               value={formData?.multiStoreyCarParkCost}
               onChange={(val) => updateFormData('multiStoreyCarParkCost', Number(val))}
             />
             <InputField label="Amenities Cost" type="number" prefix="$" defaultValue="8638875"
+              tooltip="Costs for recreational facilities like pools, gyms, and community centers."
               value={formData?.amenitiesCost}
               onChange={(val) => updateFormData('amenitiesCost', Number(val))}
             />
             <InputField label="Apartment Construction" type="number" prefix="$" defaultValue="29661375"
+              tooltip="Direct construction costs specifically for residential units."
               value={formData?.apartmentConstruction}
               onChange={(val) => updateFormData('apartmentConstruction', Number(val))}
             />
             <InputField label="Hotel/Commercial Construction" type="number" prefix="$" defaultValue="60000000"
+              tooltip="Direct construction costs for commercial or hospitality segments."
               value={formData?.hotelCommercialConstruction}
               onChange={(val) => updateFormData('hotelCommercialConstruction', Number(val))}
             />
@@ -2215,7 +2399,7 @@ function CapexForm({
             type="number"
             suffix="% of total capex"
             defaultValue="4.0"
-            tooltip="Contingency buffer for cost overruns"
+            tooltip="An additional budget provision to cover unforeseen costs and price fluctuations."
 
             value={formData?.contingency}
             onChange={(val) => updateFormData('contingency', Number(val))}
@@ -2225,7 +2409,7 @@ function CapexForm({
             type="number"
             suffix="% of capex"
             defaultValue="5.0"
-            tooltip="Architect, engineer, consultant fees"
+            tooltip="Fees for project stakeholders like Architects, Quantity Surveyors, and Engineers."
 
             value={formData?.professionalFees}
             onChange={(val) => updateFormData('professionalFees', Number(val))}
@@ -2235,7 +2419,7 @@ function CapexForm({
             type="number"
             suffix="% of capex"
             defaultValue="1.0"
-            tooltip="Government permits and approvals"
+            tooltip="Statutory fees paid for building permits and environmental approvals."
 
             value={formData?.permitsApprovals}
             onChange={(val) => updateFormData('permitsApprovals', Number(val))}
@@ -2245,6 +2429,7 @@ function CapexForm({
             type="number"
             suffix="%"
             defaultValue="7.5"
+            tooltip="Value Added Tax applied to construction contracts and materials."
 
             value={formData?.vatOnConstruction}
             onChange={(val) => updateFormData('vatOnConstruction', Number(val))}
@@ -2254,6 +2439,7 @@ function CapexForm({
             type="number"
             prefix="$"
             defaultValue="150744180"
+            tooltip="The sum of direct physical construction and land costs (excludes financing and soft fees)."
             calculated
           />
           <InputField
@@ -2261,6 +2447,7 @@ function CapexForm({
             type="number"
             prefix="$"
             defaultValue="173012634"
+            tooltip="The comprehensive initial investment before accounting for capitalized interest."
             calculated
           />
         </div>
@@ -2279,6 +2466,7 @@ function CapexForm({
               type="select"
               options={["Yes", "No"]}
               defaultValue="Yes"
+              tooltip="If 'Yes', loan interest during construction is added to the asset cost instead of being expensed."
 
               value={formData?.capitalizeInterestDuringConstruction}
               onChange={(val) => updateFormData('capitalizeInterestDuringConstruction', val)}
@@ -2288,6 +2476,7 @@ function CapexForm({
               type="number"
               suffix="%"
               defaultValue="8.5"
+              tooltip="The specific interest rate applied to drawdowns during the construction period."
 
               value={formData?.constructionLoanInterestRate}
               onChange={(val) => updateFormData('constructionLoanInterestRate', Number(val))}
@@ -2297,6 +2486,7 @@ function CapexForm({
               type="number"
               prefix="$"
               defaultValue="11202824"
+              tooltip="The total dollar amount of interest accrued before the project becomes operational."
               calculated
             />
             <InputField
@@ -2304,6 +2494,7 @@ function CapexForm({
               type="number"
               prefix="$"
               defaultValue="184215458"
+              tooltip="The grand total of all CAPEX, fees, and capitalized interest (Final Project Cost)."
               calculated
             />
           </div>
@@ -2312,18 +2503,21 @@ function CapexForm({
             <h4 className="text-sm font-semibold text-foreground mb-4">CAPEX Drawdown/Phasing Schedule</h4>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <InputField label="Year 1" type="number" suffix="%" defaultValue="30" size="sm"
+                tooltip="Percentage of total CAPEX spent in the first construction year."
                 value={formData?.year1}
                 onChange={(val) => updateFormData('year1', Number(val))}
               />
               <InputField label="Year 2" type="number" suffix="%" defaultValue="50" size="sm"
+                tooltip="Percentage of total CAPEX spent in the second construction year."
                 value={formData?.year2}
                 onChange={(val) => updateFormData('year2', Number(val))}
               />
               <InputField label="Year 3" type="number" suffix="%" defaultValue="20" size="sm"
+                tooltip="Percentage of total CAPEX spent in the third construction year."
                 value={formData?.year3}
                 onChange={(val) => updateFormData('year3', Number(val))}
               />
-              <InputField label="Total" type="number" suffix="%" defaultValue="100" calculated size="sm" />
+              <InputField label="Total" tooltip="Sum of annual drawdowns (must equal 100%)." type="number" suffix="%" defaultValue="100" calculated size="sm" />
             </div>
           </div>
 
@@ -2335,7 +2529,7 @@ function CapexForm({
                 type="number"
                 suffix="% of revenue"
                 defaultValue="3.0"
-                tooltip="Annual capital replacement spending"
+                tooltip="Annual percentage of revenue set aside for replacing worn-out equipment or upgrades."
 
                 value={formData?.replacementCapex}
                 onChange={(val) => updateFormData('replacementCapex', Number(val))}
@@ -2345,6 +2539,7 @@ function CapexForm({
                 type="number"
                 prefix="$"
                 defaultValue="0"
+                tooltip="Specific capital allocated for increasing the project's capacity in future years."
 
                 value={formData?.expansionCapexIfApplicable}
                 onChange={(val) => updateFormData('expansionCapexIfApplicable', Number(val))}
@@ -2398,13 +2593,14 @@ function DebtForm({
             prefix="$"
             defaultValue="184215458"
             calculated
-            tooltip="Total development cost including IDC"
+            tooltip="The comprehensive project cost that requires funding (Final Development Cost)."
           />
           <InputField
             label="Equity Percentage"
             type="number"
             suffix="%"
             defaultValue="23.9"
+            tooltip="The portion of the project cost funded by shareholders' capital."
 
             value={formData?.equityPercentage}
             onChange={(val) => updateFormData('equityPercentage', Number(val))}
@@ -2414,6 +2610,7 @@ function DebtForm({
             type="number"
             prefix="$"
             defaultValue="43983691"
+            tooltip="Calculated dollar amount of equity needed based on the percentage."
             calculated
           />
           <InputField
@@ -2421,6 +2618,7 @@ function DebtForm({
             type="number"
             suffix="%"
             defaultValue="43.0"
+            tooltip="The portion of the project cost funded by external bank loans or bonds."
 
             value={formData?.debtPercentage}
             onChange={(val) => updateFormData('debtPercentage', Number(val))}
@@ -2430,6 +2628,7 @@ function DebtForm({
             type="number"
             prefix="$"
             defaultValue="79155515"
+            tooltip="Calculated dollar amount of debt needed based on the percentage."
             calculated
           />
           <InputField
@@ -2437,7 +2636,7 @@ function DebtForm({
             type="number"
             suffix="%"
             defaultValue="33.2"
-            tooltip="Funding from customer deposits/pre-sales"
+            tooltip="Funding derived from customer deposits before completion (common in Real Estate)."
 
             value={formData?.offPlanSalesPreSalesPct}
             onChange={(val) => updateFormData('offPlanSalesPreSalesPct', Number(val))}
@@ -2453,6 +2652,7 @@ function DebtForm({
             type="select"
             options={["Fixed", "Floating", "Mixed"]}
             defaultValue="Floating"
+            tooltip="Select whether the interest rate remains constant or changes based on market benchmarks."
 
             value={formData?.interestRateType}
             onChange={(val) => updateFormData('interestRateType', val)}
@@ -2462,6 +2662,7 @@ function DebtForm({
             type="select"
             options={["SOFR", "MPR", "LIBOR", "Prime Rate", "Other"]}
             defaultValue="SOFR"
+            tooltip="The reference benchmark rate (e.g., SOFR for US Dollars)."
 
             value={formData?.baseRate}
             onChange={(val) => updateFormData('baseRate', val)}
@@ -2471,6 +2672,7 @@ function DebtForm({
             type="number"
             suffix="%"
             defaultValue="5.0"
+            tooltip="The current percentage value of the selected benchmark rate."
 
             value={formData?.baseRateValue}
             onChange={(val) => updateFormData('baseRateValue', Number(val))}
@@ -2480,7 +2682,7 @@ function DebtForm({
             type="number"
             suffix="%"
             defaultValue="3.5"
-            tooltip="Additional spread over base rate"
+            tooltip="The additional interest percentage added by the lender over the base rate."
 
             value={formData?.interestMarginSpread}
             onChange={(val) => updateFormData('interestMarginSpread', Number(val))}
@@ -2491,13 +2693,14 @@ function DebtForm({
             suffix="%"
             defaultValue="8.5"
             calculated
-            tooltip="Base rate + spread"
+            tooltip="The total effective interest rate (Base Rate + Margin)."
           />
           <InputField
             label="Loan Tenor"
             type="number"
             suffix="years"
             defaultValue="15"
+            tooltip="The total duration of the loan from first drawdown to final repayment."
 
             value={formData?.loanTenor}
             onChange={(val) => updateFormData('loanTenor', Number(val))}
@@ -2518,7 +2721,7 @@ function DebtForm({
               type="number"
               suffix="months"
               defaultValue="36"
-              tooltip="Moratorium period before principal repayment starts"
+              tooltip="The moratorium period (in months) where only interest is paid before principal repayments begin."
 
               value={formData?.gracePeriod}
               onChange={(val) => updateFormData('gracePeriod', Number(val))}
@@ -2528,6 +2731,7 @@ function DebtForm({
               type="select"
               options={["Amortizing (Equal Installments)", "Bullet (Lump Sum)", "Sculpted (Custom Schedule)"]}
               defaultValue="Amortizing (Equal Installments)"
+              tooltip="The structure for paying back the loan principal."
 
               value={formData?.repaymentType}
               onChange={(val) => updateFormData('repaymentType', val)}
@@ -2537,7 +2741,7 @@ function DebtForm({
               type="number"
               suffix="months"
               defaultValue="6"
-              tooltip="Debt Service Reserve Account - months of coverage"
+              tooltip="Debt Service Reserve Account: The number of months of debt service required to be kept in reserve."
 
               value={formData?.dsraRequirement}
               onChange={(val) => updateFormData('dsraRequirement', Number(val))}
@@ -2547,6 +2751,7 @@ function DebtForm({
               type="select"
               options={["Cash", "Letter of Credit", "Mixed"]}
               defaultValue="Cash"
+              tooltip="The method used to fund the debt service reserve account."
 
               value={formData?.dsraFundingSource}
               onChange={(val) => updateFormData('dsraFundingSource', val)}
@@ -2556,7 +2761,7 @@ function DebtForm({
               type="number"
               suffix="% of loan"
               defaultValue="2.0"
-              tooltip="One-time arrangement/origination fees"
+              tooltip="One-time transactional fees paid to lenders at the time of loan closing."
 
               value={formData?.upfrontFees}
               onChange={(val) => updateFormData('upfrontFees', Number(val))}
@@ -2566,7 +2771,7 @@ function DebtForm({
               type="number"
               suffix="% p.a."
               defaultValue="0.5"
-              tooltip="Fee on undrawn committed facilities"
+              tooltip="An annual fee charged on the undisbursed portion of the loan facility."
 
               value={formData?.commitmentFee}
               onChange={(val) => updateFormData('commitmentFee', Number(val))}
@@ -2581,6 +2786,7 @@ function DebtForm({
                 type="select"
                 options={["CAPEX Schedule", "Custom Schedule", "Equal Drawdowns"]}
                 defaultValue="CAPEX Schedule"
+                tooltip="Determines how loan funds are released (usually follows actual construction spending)."
 
                 value={formData?.drawdownLinkedTo}
                 onChange={(val) => updateFormData('drawdownLinkedTo', val)}
@@ -2590,6 +2796,7 @@ function DebtForm({
                 type="select"
                 options={["Monthly", "Quarterly", "Milestone-based"]}
                 defaultValue="Quarterly"
+                tooltip="The frequency at which loan funds are disbursed from the lender."
 
                 value={formData?.drawdownFrequency}
                 onChange={(val) => updateFormData('drawdownFrequency', val)}
@@ -2633,7 +2840,7 @@ function TaxForm({
           type="number"
           suffix="%"
           defaultValue="30.0"
-          tooltip="Standard corporate tax rate"
+          tooltip="The standard statutory tax rate applied to the company's taxable profits."
 
           value={formData?.corporateIncomeTaxRate}
           onChange={(val) => updateFormData('corporateIncomeTaxRate', Number(val))}
@@ -2643,7 +2850,7 @@ function TaxForm({
           type="number"
           suffix="years"
           defaultValue="0"
-          tooltip="Tax exemption period (if applicable)"
+          tooltip="The initial period (in years) where the project is exempt from paying corporate income tax (e.g., Pioneer Status)."
 
           value={formData?.taxHolidayPeriod}
           onChange={(val) => updateFormData('taxHolidayPeriod', Number(val))}
@@ -2653,7 +2860,7 @@ function TaxForm({
           type="number"
           suffix="%"
           defaultValue="0.5"
-          tooltip="Minimum tax on turnover (if applicable)"
+          tooltip="A tax floor based on gross turnover, applicable if the calculated CIT is lower than this amount."
 
           value={formData?.minimumTaxRate}
           onChange={(val) => updateFormData('minimumTaxRate', Number(val))}
@@ -2663,6 +2870,7 @@ function TaxForm({
           type="number"
           suffix="%"
           defaultValue="7.5"
+          tooltip="Value Added Tax applied to the sale of goods and services."
 
           value={formData?.vatSalesTaxRate}
           onChange={(val) => updateFormData('vatSalesTaxRate', Number(val))}
@@ -2682,6 +2890,7 @@ function TaxForm({
               type="number"
               suffix="%"
               defaultValue="10.0"
+              tooltip="Tax withheld at source on dividend payments to shareholders."
 
               value={formData?.whtOnDividends}
               onChange={(val) => updateFormData('whtOnDividends', Number(val))}
@@ -2691,6 +2900,7 @@ function TaxForm({
               type="number"
               suffix="%"
               defaultValue="10.0"
+              tooltip="Tax withheld at source on interest payments to lenders."
 
               value={formData?.whtOnInterest}
               onChange={(val) => updateFormData('whtOnInterest', Number(val))}
@@ -2700,6 +2910,7 @@ function TaxForm({
               type="number"
               suffix="%"
               defaultValue="5.0"
+              tooltip="Tax withheld on payments made for professional and technical services."
 
               value={formData?.whtOnServices}
               onChange={(val) => updateFormData('whtOnServices', Number(val))}
@@ -2709,6 +2920,7 @@ function TaxForm({
               type="number"
               suffix="%"
               defaultValue="10.0"
+              tooltip="Tax withheld on lease or rental payments for land and buildings."
 
               value={formData?.whtOnRent}
               onChange={(val) => updateFormData('whtOnRent', Number(val))}
@@ -2723,7 +2935,7 @@ function TaxForm({
                 type="number"
                 suffix="% of assessable profit"
                 defaultValue="2.5"
-                tooltip="Tertiary education tax (Nigeria)"
+                tooltip="Tertiary education tax applied to assessable profits (specific to Nigeria)."
 
                 value={formData?.educationTax}
                 onChange={(val) => updateFormData('educationTax', Number(val))}
@@ -2733,7 +2945,7 @@ function TaxForm({
                 type="number"
                 suffix="years"
                 defaultValue="5"
-                tooltip="Years losses can offset future profits"
+                tooltip="The number of years that operational losses can be used to reduce future taxable income."
 
                 value={formData?.taxLossCarryforwardPeriod}
                 onChange={(val) => updateFormData('taxLossCarryforwardPeriod', Number(val))}
@@ -2749,7 +2961,7 @@ function TaxForm({
                 type="number"
                 suffix="%"
                 defaultValue="25.0"
-                tooltip="First year capital allowance"
+                tooltip="The percentage of capital expenditure that can be deducted for tax purposes in the first year of acquisition."
 
                 value={formData?.initialAllowance}
                 onChange={(val) => updateFormData('initialAllowance', Number(val))}
@@ -2759,7 +2971,7 @@ function TaxForm({
                 type="number"
                 suffix="%"
                 defaultValue="20.0"
-                tooltip="Subsequent years capital allowance"
+                tooltip="The annual percentage deduction for tax depreciation in subsequent years."
 
                 value={formData?.annualAllowance}
                 onChange={(val) => updateFormData('annualAllowance', Number(val))}
@@ -2803,7 +3015,7 @@ function WorkingCapitalForm({
           type="number"
           suffix="% of Year 1 OpEx"
           defaultValue="30.0"
-          tooltip="Initial working capital as % of first year operating expenses"
+          tooltip="The amount of cash required at the start of operations, expressed as a percentage of first-year OpEx."
 
           value={formData?.initialWorkingCapital}
           onChange={(val) => updateFormData('initialWorkingCapital', Number(val))}
@@ -2813,7 +3025,7 @@ function WorkingCapitalForm({
           type="number"
           suffix="days"
           defaultValue="45"
-          tooltip="Days Sales Outstanding - time to collect from customers"
+          tooltip="Days Sales Outstanding: The average number of days it takes to collect cash from customers after a sale."
 
           value={formData?.receivablesDaysDso}
           onChange={(val) => updateFormData('receivablesDaysDso', Number(val))}
@@ -2823,7 +3035,7 @@ function WorkingCapitalForm({
           type="number"
           suffix="days"
           defaultValue="60"
-          tooltip="Days Inventory Outstanding - time inventory is held"
+          tooltip="Days Inventory Outstanding: The average number of days you hold raw materials or finished goods before selling them."
 
           value={formData?.inventoryDaysDio}
           onChange={(val) => updateFormData('inventoryDaysDio', Number(val))}
@@ -2833,7 +3045,7 @@ function WorkingCapitalForm({
           type="number"
           suffix="days"
           defaultValue="30"
-          tooltip="Days Payables Outstanding - time to pay suppliers"
+          tooltip="Days Payables Outstanding: The average number of days you take to pay your suppliers and creditors."
 
           value={formData?.payablesDaysDpo}
           onChange={(val) => updateFormData('payablesDaysDpo', Number(val))}
@@ -2844,7 +3056,7 @@ function WorkingCapitalForm({
           suffix="days"
           defaultValue="75"
           calculated
-          tooltip="DSO + DIO - DPO"
+          tooltip="The net duration of the cash conversion cycle: DSO + DIO - DPO."
         />
       </div>
 
@@ -2861,7 +3073,7 @@ function WorkingCapitalForm({
               type="number"
               suffix="%"
               defaultValue="10.0"
-              tooltip="Ongoing working capital requirement"
+              tooltip="The target level of net working capital maintained as a percentage of gross revenue."
 
               value={formData?.workingCapitalAsPctOfRevenue}
               onChange={(val) => updateFormData('workingCapitalAsPctOfRevenue', Number(val))}
@@ -2871,7 +3083,7 @@ function WorkingCapitalForm({
               type="number"
               prefix="$"
               defaultValue="1000000"
-              tooltip="Required minimum cash on hand"
+              tooltip="The absolute minimum cash reserve the company must hold for operational safety."
 
               value={formData?.minimumCashBalance}
               onChange={(val) => updateFormData('minimumCashBalance', Number(val))}
@@ -2881,6 +3093,7 @@ function WorkingCapitalForm({
               type="select"
               options={["From Equity", "From Debt", "From Operations", "Mixed"]}
               defaultValue="From Equity"
+              tooltip="The primary source of funds used to bridge working capital shortfalls."
 
               value={formData?.workingCapitalFunding}
               onChange={(val) => updateFormData('workingCapitalFunding', val)}
@@ -2890,7 +3103,7 @@ function WorkingCapitalForm({
               type="select"
               options={["Yes", "No"]}
               defaultValue="No"
-              tooltip="Dedicated working capital reserve"
+              tooltip="Specifies if a dedicated bank account is maintained specifically for working capital reserves."
 
               value={formData?.wcReserveAccount}
               onChange={(val) => updateFormData('wcReserveAccount', val)}
@@ -2933,6 +3146,7 @@ function DepreciationForm({
           type="select"
           options={["Straight Line", "Declining Balance", "Units of Production", "Sum of Years Digits"]}
           defaultValue="Straight Line"
+          tooltip="The accounting method used to allocate the cost of assets over their useful lives."
 
           value={formData?.depreciationMethod}
           onChange={(val) => updateFormData('depreciationMethod', val)}
@@ -2942,7 +3156,7 @@ function DepreciationForm({
           type="number"
           suffix="years"
           defaultValue="20"
-          tooltip="Blended useful life across all assets"
+          tooltip="The blended average useful life (in years) calculated across all tangible assets in the model."
 
           value={formData?.overallWeightedAverageLife}
           onChange={(val) => updateFormData('overallWeightedAverageLife', Number(val))}
@@ -2962,14 +3176,15 @@ function DepreciationForm({
               <h5 className="text-sm font-medium text-foreground mb-3">Land & Land Improvements</h5>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <InputField label="Land Value" type="number" prefix="$" defaultValue="13711180" size="sm"
+                  tooltip="Total value assigned to land (note: land value is typically not depreciated)."
                   value={formData?.landValue}
                   onChange={(val) => updateFormData('landValue', Number(val))}
                 />
-                <InputField label="Useful Life" type="number" suffix="years" defaultValue="0" size="sm" tooltip="Land is not depreciated"
+                <InputField label="Useful Life" type="number" suffix="years" defaultValue="0" size="sm" tooltip="Expected duration of asset use. Set to 0 for non-depreciable assets like land."
                   value={formData?.usefulLife}
                   onChange={(val) => updateFormData('usefulLife', Number(val))}
                 />
-                <InputField label="Residual Value" type="number" suffix="%" defaultValue="100" size="sm" calculated />
+                <InputField label="Residual Value" tooltip="Scrap or salvage expected value of an asset at end of life." type="number" suffix="%" defaultValue="100" size="sm" calculated />
               </div>
             </div>
 
@@ -2977,14 +3192,17 @@ function DepreciationForm({
               <h5 className="text-sm font-medium text-foreground mb-3">Buildings & Structures</h5>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <InputField label="Value" type="number" prefix="$" defaultValue="109626400" size="sm"
+                  tooltip="The total book value of buildings and permanent civil works."
                   value={formData?.value}
                   onChange={(val) => updateFormData('value', Number(val))}
                 />
                 <InputField label="Useful Life" type="number" suffix="years" defaultValue="40" size="sm"
+                  tooltip="The estimated number of years the building structure will be used."
                   value={formData?.usefulLife}
                   onChange={(val) => updateFormData('usefulLife', Number(val))}
                 />
                 <InputField label="Residual Value" type="number" suffix="%" defaultValue="10" size="sm"
+                  tooltip="The salvage value of the building as a percentage of its initial cost at the end of its life."
                   value={formData?.residualValue}
                   onChange={(val) => updateFormData('residualValue', Number(val))}
                 />
