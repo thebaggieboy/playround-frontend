@@ -20,7 +20,7 @@ export function Hero() {
   }, [])
 
   return (
-    <section className="relative py-6 md:py-6 px-4 sm:px-6 lg:px-8 overflow-hidden bg-transparent">
+    <section className="relative py-4 sm:py-6 px-4 sm:px-6 lg:px-8 overflow-hidden bg-transparent">
       <style dangerouslySetInnerHTML={{ __html: `
         @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&display=swap');
       ` }} />
@@ -39,14 +39,14 @@ export function Hero() {
               transition={{ duration: 0.5 }}
               className="inline-block"
             >
-              <div className="inline-flex items-center gap-2 px-4  rounded-full text-xs font-xs bg-white/[0.03] text-blue-300 border border-white/[0.08] shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5)] backdrop-blur-md">
+              <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1 rounded-full text-xs bg-white/[0.03] text-blue-300 border border-white/[0.08] shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5)] backdrop-blur-md">
                 <span className="w-2 h-2 text-xs rounded-full bg-blue-400 animate-pulse shadow-[0_0_8px_rgba(96,165,250,0.8)]" />
                 Financial modeling made simple
               </div>
             </motion.div>
 
             <div className="flex flex-col gap-2 relative z-20">
-              <div className="h-[56px] sm:h-[64px] md:h-[72px] lg:h-[76px] w-full relative -ml-1 overflow-hidden">
+              <div className="h-[44px] sm:h-[56px] md:h-[72px] lg:h-[76px] w-full relative -ml-1 overflow-hidden">
                 <AnimatePresence>
                   <motion.div
                     key={titleIndex}
@@ -54,7 +54,7 @@ export function Hero() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -50 }}
                     transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }} /* Custom spring-like easing */
-                    className="absolute inset-0 text-[3rem] sm:text-[3.5rem] md:text-[4rem] lg:text-[4.25rem] whitespace-nowrap text-white tracking-tight flex items-center"
+                    className="absolute inset-0 text-[2.5rem] sm:text-[3rem] md:text-[4rem] lg:text-[4.25rem] whitespace-nowrap text-white tracking-tight flex items-center"
                     style={{ fontFamily: "'Instrument Serif', serif", fontStyle: "italic", lineHeight: 1 }}
                   >
                     {["Financial Analysis", "Financial Forecasting", "Financial Modelling"][titleIndex]}
@@ -65,7 +65,7 @@ export function Hero() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.1 }}
-                className="text-5xl font-bold text-white leading-[1.1] tracking-tight text-balance mt-2"
+                className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-[1.1] tracking-tight text-balance mt-2"
                 style={{fontFamily:"Poppins, Sans-serif", fontWeight:"600", lineHeight:1}}
               >
                 for{" "}
@@ -77,7 +77,7 @@ export function Hero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-lg text-white/60 max-w-xl leading-relaxed text-balance font-light"
+              className="text-base sm:text-lg text-white/60 max-w-xl leading-relaxed text-balance font-light"
             >
               Playground is a one-stop financial analysis platform that makes
               complex financial modeling accessible to both experienced
@@ -92,8 +92,8 @@ export function Hero() {
             >
               <Link href="/signup">
                 <Button
-                  size="lg"
-                  className="rounded-xl px-8 h-14 text-base font-semibold bg-white text-black hover:bg-white/90 shadow-[0_0_24px_rgba(255,255,255,0.2)] transition-all duration-300 w-full sm:w-auto hover:scale-105"
+                  size="sm"
+                  className="rounded-xl px-6 sm:px-8 h-11 sm:h-12 text-sm sm:text-base font-semibold bg-white text-black hover:bg-white/90 shadow-[0_0_24px_rgba(255,255,255,0.2)] transition-all duration-300 w-full sm:w-auto hover:scale-[1.03]"
                 >
                   Get Started Free
                   <ArrowRight className="w-4 h-4 ml-2" />
@@ -101,9 +101,9 @@ export function Hero() {
               </Link>
               <Link href="/demo">
                 <Button
-                  size="lg"
+                  size="sm"
                   variant="outline"
-                  className="rounded-xl px-8 h-14 text-base font-semibold border-white/10 bg-white/[0.03] backdrop-blur-md text-white hover:bg-white/[0.08] hover:text-white transition-all duration-300 w-full sm:w-auto hover:shadow-[0_0_20px_rgba(255,255,255,0.05)]"
+                  className="rounded-xl px-6 sm:px-8 h-11 sm:h-12 text-sm sm:text-base font-semibold border-white/10 bg-white/[0.03] backdrop-blur-md text-white hover:bg-white/[0.08] hover:text-white transition-all duration-300 w-full sm:w-auto hover:shadow-[0_0_20px_rgba(255,255,255,0.05)]"
                 >
                   <Play className="w-4 h-4 mr-2" />
                   View Demo
@@ -115,21 +115,21 @@ export function Hero() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.45 }}
-              className="flex items-center gap-8 pt-8 mt-4 border-t border-white/[0.08]"
+              className="flex items-center gap-4 sm:gap-8 pt-6 sm:pt-8 mt-2 sm:mt-4 border-t border-white/[0.08]"
             >
               <div>
-                <p className="text-3xl font-bold text-white drop-shadow-md">2,900+</p>
-                <p className="text-sm text-white/50 mt-1 font-medium">Companies</p>
+                <p className="text-sm sm:text-base font-bold text-white drop-shadow-md">2,900+</p>
+                <p className="text-xs text-white/50 mt-1 font-medium">Companies</p>
               </div>
               <div className="w-px h-12 bg-white/[0.08]" />
               <div>
-                <p className="text-3xl font-bold text-white drop-shadow-md">10K+</p>
-                <p className="text-sm text-white/50 mt-1 font-medium">Active analysts</p>
+                <p className="text-sm sm:text-base font-bold text-white drop-shadow-md">10K+</p>
+                <p className="text-xs text-white/50 mt-1 font-medium">Active analysts</p>
               </div>
               <div className="w-px h-12 bg-white/[0.08]" />
               <div>
-                <p className="text-3xl font-bold text-white drop-shadow-md">99.9%</p>
-                <p className="text-sm text-white/50 mt-1 font-medium">Uptime</p>
+                <p className="text-sm sm:text-base font-bold text-white drop-shadow-md">99.9%</p>
+                <p className="text-xs text-white/50 mt-1 font-medium">Uptime</p>
               </div>
             </motion.div>
           </div>

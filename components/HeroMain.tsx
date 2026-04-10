@@ -10,7 +10,7 @@ export function HeroMain() {
       {/* Subtle accent line */}
       <div className="absolute top-0 left-0 right-0 h-px bg-[#1d3a6e]" />
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 md:py-32">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* Left content */}
           <div className="space-y-8">
@@ -22,7 +22,7 @@ export function HeroMain() {
                 </span>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-balance leading-tight text-white tracking-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-balance leading-tight text-white tracking-tight">
                 Transform Your Financial Data Into{" "}
                 <span className="text-blue-400">Actionable Insights</span>
               </h1>
@@ -39,7 +39,7 @@ export function HeroMain() {
               <Link href="/signup">
                 <Button
                   size="lg"
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-8 h-12 transition-all duration-200 w-full sm:w-auto"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-6 sm:px-8 h-11 sm:h-12 text-sm sm:text-base transition-all duration-200 w-full sm:w-auto"
                 >
                   Start Free Trial
                   <ArrowRight className="w-4 h-4 ml-2" />
@@ -49,7 +49,7 @@ export function HeroMain() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-[#264a82] bg-transparent text-slate-300 hover:bg-[#1a3264] hover:text-white font-semibold rounded-lg px-8 h-12 transition-all duration-200 w-full sm:w-auto"
+                  className="border-[#264a82] bg-transparent text-slate-300 hover:bg-[#1a3264] hover:text-white font-semibold rounded-lg px-6 sm:px-8 h-11 sm:h-12 text-sm sm:text-base transition-all duration-200 w-full sm:w-auto"
                 >
                   View Demo
                 </Button>

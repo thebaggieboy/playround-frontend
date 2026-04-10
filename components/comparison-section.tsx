@@ -80,7 +80,7 @@ export function ComparisonSection() {
   return (
     <section
       ref={ref}
-      className="py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-[#faf9f7] relative overflow-hidden"
+      className="py-14 sm:py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-[#faf9f7] relative overflow-hidden"
     >
       <div className="absolute top-0 left-0 right-0 h-px bg-[#e8e4df]" />
       <div className="absolute -top-20 right-1/4 w-72 h-72 rounded-full bg-blue-50/20 blur-3xl pointer-events-none" />
@@ -99,7 +99,7 @@ export function ComparisonSection() {
               How We Compare
             </span>
           </div>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 text-balance">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 text-balance">
             Enterprise Power,{" "}
             <span className="text-blue-600">Startup Speed</span>
           </h2>
@@ -114,8 +114,9 @@ export function ComparisonSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="rounded-xl border border-[#e8e4df] bg-white overflow-hidden shadow-sm"
+          className="rounded-xl border border-[#e8e4df] bg-white overflow-x-auto shadow-sm"
         >
+          <div className="min-w-[520px]">
           {/* Table Header */}
           <div className="grid grid-cols-4 border-b border-[#e8e4df]">
             <div className="p-5">
@@ -174,6 +175,7 @@ export function ComparisonSection() {
               </div>
             </motion.div>
           ))}
+          </div>
         </motion.div>
 
         {/* Bottom CTA */}

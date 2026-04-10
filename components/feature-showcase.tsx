@@ -54,13 +54,13 @@ const features = [
 
 export function FeatureShowcase() {
     return (
-        <section className="py-24 bg-[#030712] relative overflow-hidden">
+        <section className="py-14 sm:py-24 bg-[#030712] relative overflow-hidden">
             {/* Background decoration */}
             <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#1d3a6e] to-transparent" />
 
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center max-w-3xl mx-auto mb-20">
-                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight mb-4">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight mb-4">
                         Everything you need for <span className="text-blue-400">financial clarity</span>
                     </h2>
                     <p className="text-lg text-slate-400">
@@ -68,11 +68,11 @@ export function FeatureShowcase() {
                     </p>
                 </div>
 
-                <div className="space-y-32">
+                <div className="space-y-16 sm:space-y-32">
                     {features.map((feature, index) => (
                         <div
                             key={feature.id}
-                            className={`flex flex-col ${feature.reversed ? 'lg:flex-row-reverse' : 'lg:flex-row'} gap-12 lg:gap-20 items-center`}
+                            className={`flex flex-col ${feature.reversed ? 'lg:flex-row-reverse' : 'lg:flex-row'} gap-8 sm:gap-12 lg:gap-20 items-center`}
                         >
                             {/* Content Side */}
                             <div className="flex-1 space-y-8 w-full">
@@ -83,7 +83,7 @@ export function FeatureShowcase() {
                                             {feature.title}
                                         </span>
                                     </div>
-                                    <h3 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+                                    <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight">
                                         {feature.heading}
                                     </h3>
                                     <p className="text-lg text-slate-400 leading-relaxed">

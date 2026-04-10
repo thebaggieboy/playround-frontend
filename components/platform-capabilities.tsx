@@ -126,7 +126,7 @@ export function PlatformCapabilities() {
   return (
     <section
       ref={ref}
-      className="py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-transparent relative overflow-hidden"
+      className="py-14 sm:py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-transparent relative overflow-hidden"
     >
       <div className="absolute top-0 left-0 right-0 h-px bg-white/10" />
       <div className="absolute top-40 right-0 w-[400px] h-[400px] rounded-full bg-blue-600/10 blur-[120px] pointer-events-none" />
@@ -146,7 +146,7 @@ export function PlatformCapabilities() {
               Platform Capabilities
             </span>
           </div>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 text-balance">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 text-balance">
             Enterprise Planning,{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300 drop-shadow-[0_0_16px_rgba(96,165,250,0.3)]">Simplified</span>
           </h2>
@@ -161,7 +161,7 @@ export function PlatformCapabilities() {
           initial={{ opacity: 0, y: 10 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
           transition={{ duration: 0.5, delay: 0.15 }}
-          className="flex flex-wrap justify-center gap-2 mb-10"
+          className="flex flex-wrap justify-center gap-1.5 sm:gap-2 mb-8 sm:mb-10"
         >
           {capabilities.map((cap, index) => {
             const Icon = cap.icon
@@ -169,7 +169,7 @@ export function PlatformCapabilities() {
               <button
                 key={cap.id}
                 onClick={() => setActiveTab(index)}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 backdrop-blur-md border ${activeTab === index
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 backdrop-blur-md border ${activeTab === index
                     ? "bg-white/10 text-white border-white/[0.15] shadow-[0_0_16px_rgba(255,255,255,0.05)]"
                     : "bg-white/[0.02] text-white/50 border-white/[0.05] hover:bg-white/[0.05] hover:text-white/80"
                   }`}
