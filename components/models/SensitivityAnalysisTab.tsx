@@ -6,12 +6,27 @@ import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Loader2, TrendingUp, TrendingDown, DollarSign, Activity, Percent } from "lucide-react"
+import { useSelector } from "react-redux"
+import { selectToken } from "@/features/token/tokenSlice"
+
+const API_BASE_URL = process.env.NODE_ENV === 'production'
+  ? 'https://playground-backend-1t0f.onrender.com/api'
+  : 'http://localhost:8000/api'
 
 interface SensitivityAnalysisTabProps {
   model: any
 }
 
 export function SensitivityAnalysisTab({ model }: SensitivityAnalysisTabProps) {
+  const token = useSelector(selectToken)
+
+  const getAuthToken = () => {
+    if (!token) return '';
+    if (typeof token === 'string') return token;
+    if (typeof token === 'object' && (token as any).access) return (token as any).access;
+    return '';
+  }
+
   const [baseScenario, setBaseScenario] = useState<any>(null)
   
   const [overrides, setOverrides] = useState({
@@ -56,13 +71,10 @@ export function SensitivityAnalysisTab({ model }: SensitivityAnalysisTabProps) {
       setIsCalculating(true)
       setError(null)
       try {
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token')
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-        
-        const response = await fetch(`${apiUrl}/api/scenarios/${baseScenario.id}/sensitivity/`, {
+        const response = await fetch(`${API_BASE_URL}/scenarios/${baseScenario.id}/sensitivity/`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `JWT ${getAuthToken()}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(debouncedOverrides)
