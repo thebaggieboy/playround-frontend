@@ -68,6 +68,8 @@ export default function ModelDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isCalculating, setIsCalculating] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
+  const [isExportingPdf, setIsExportingPdf] = useState(false)
 
   const token = useSelector(selectToken)
   const { toast } = useToast()
@@ -149,6 +151,54 @@ export default function ModelDetailPage() {
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" })
       setIsDeleting(false)
+    }
+  }
+
+  const handleExportExcel = async () => {
+    setIsExporting(true)
+    try {
+      const res = await fetch(`${API_BASE_URL}/models/${id}/export_excel/`, {
+        headers: { 'Authorization': `JWT ${getAuthToken()}` }
+      })
+      if (!res.ok) throw new Error('Export failed')
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${model?.name || 'Model'}_Export.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      toast({ title: 'Export Started', description: 'Your Excel download should begin shortly.' })
+    } catch (err: any) {
+      toast({ title: 'Export Error', description: err.message, variant: 'destructive' })
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  const handleExportPdf = async () => {
+    setIsExportingPdf(true)
+    try {
+      const res = await fetch(`${API_BASE_URL}/models/${id}/export_pdf/`, {
+        headers: { 'Authorization': `JWT ${getAuthToken()}` }
+      })
+      if (!res.ok) throw new Error('PDF Export failed')
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${model?.name || 'Model'}_Report.pdf`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      toast({ title: 'Export Started', description: 'Your PDF download should begin shortly.' })
+    } catch (err: any) {
+      toast({ title: 'Export Error', description: err.message, variant: 'destructive' })
+    } finally {
+      setIsExportingPdf(false)
     }
   }
 
@@ -250,9 +300,13 @@ export default function ModelDetailPage() {
                     {isCalculating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <PlayCircle className="w-4 h-4 mr-2" />}
                     {isCalculating ? "Calculating..." : "Run Calculation"}
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Download className="w-4 h-4 mr-2" />
-                    Export as Excel
+                  <DropdownMenuItem onClick={handleExportExcel} disabled={isExporting}>
+                    {isExporting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+                    {isExporting ? 'Exporting...' : 'Export as Excel'}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExportPdf} disabled={isExportingPdf}>
+                    {isExportingPdf ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
+                    {isExportingPdf ? 'Exporting...' : 'Export as PDF'}
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     <Share2 className="w-4 h-4 mr-2" />
