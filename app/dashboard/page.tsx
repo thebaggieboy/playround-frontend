@@ -75,7 +75,7 @@ function SortableStatCard({ stat, isLoading, statsData }: any) {
       ref={setNodeRef}
       style={style}
       whileHover={{ y: -3, scale: 1.02 }}
-      className={`relative bg-card border ${isDragging ? 'border-primary shadow-lg' : 'border-border'} rounded-xl p-4 hover:shadow-md transition-all duration-300 group cursor-default overflow-hidden`}
+      className={`relative bg-card/60 backdrop-blur-md border ${isDragging ? 'border-primary shadow-lg' : 'border-white/10 dark:border-white/5'} rounded-xl p-4 hover:shadow-md transition-all duration-300 group cursor-default overflow-hidden`}
     >
       <div 
         {...attributes} 
@@ -90,7 +90,7 @@ function SortableStatCard({ stat, isLoading, statsData }: any) {
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-xs text-muted-foreground font-medium truncate mb-1">{stat.label}</p>
-          <p className="text-2xl font-bold text-foreground tracking-tight leading-none">{isLoading ? "—" : statsData[stat.valueKey]}</p>
+          <p className="text-3xl font-extrabold text-foreground tracking-tighter leading-none">{isLoading ? <div className="h-8 w-16 bg-muted/60 rounded animate-pulse mt-1"></div> : statsData[stat.valueKey]}</p>
         </div>
       </div>
     </motion.div>
@@ -338,9 +338,9 @@ export default function DashboardPage() {
             <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Quick Actions</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <Link href="/dashboard/models/input/advanced">
-                <motion.div whileHover={{ y: -2, scale: 1.01 }} className="flex items-center gap-3 bg-card border border-border rounded-xl p-4 hover:shadow-md hover:border-border transition-all cursor-pointer group">
+                <motion.div whileHover={{ y: -2, scale: 1.01 }} className="flex items-center gap-3 bg-card/60 backdrop-blur-md border border-white/10 dark:border-white/5 rounded-xl p-4 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(var(--color-primary),0.15)] transition-all duration-300 cursor-pointer group">
                   <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center shrink-0">
-                    <Plus className="w-5 h-5 text-muted-foreground" />
+                    <Plus className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-foreground">Create Model</p>
@@ -350,9 +350,9 @@ export default function DashboardPage() {
                 </motion.div>
               </Link>
               <Link href="/dashboard/models/upload">
-                <motion.div whileHover={{ y: -2, scale: 1.01 }} className="flex items-center gap-3 bg-card border border-border rounded-xl p-4 hover:shadow-md hover:border-border transition-all cursor-pointer group">
+                <motion.div whileHover={{ y: -2, scale: 1.01 }} className="flex items-center gap-3 bg-card/60 backdrop-blur-md border border-white/10 dark:border-white/5 rounded-xl p-4 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(var(--color-primary),0.15)] transition-all duration-300 cursor-pointer group">
                   <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center shrink-0">
-                    <Upload className="w-5 h-5 text-muted-foreground" />
+                    <Upload className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-foreground">Import Model</p>
@@ -362,9 +362,9 @@ export default function DashboardPage() {
                 </motion.div>
               </Link>
               <Link href="/dashboard/scenarios/compare">
-                <motion.div whileHover={{ y: -2, scale: 1.01 }} className="flex items-center gap-3 bg-card border border-border rounded-xl p-4 hover:shadow-md hover:border-border transition-all cursor-pointer group">
+                <motion.div whileHover={{ y: -2, scale: 1.01 }} className="flex items-center gap-3 bg-card/60 backdrop-blur-md border border-white/10 dark:border-white/5 rounded-xl p-4 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(var(--color-primary),0.15)] transition-all duration-300 cursor-pointer group">
                   <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center shrink-0">
-                    <GitCompareArrows className="w-5 h-5 text-muted-foreground" />
+                    <GitCompareArrows className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-foreground">Compare Scenarios</p>
@@ -374,9 +374,9 @@ export default function DashboardPage() {
                 </motion.div>
               </Link>
               <Link href="/dashboard/analytics">
-                <motion.div whileHover={{ y: -2, scale: 1.01 }} className="flex items-center gap-3 bg-card border border-border rounded-xl p-4 hover:shadow-md hover:border-border transition-all cursor-pointer group">
+                <motion.div whileHover={{ y: -2, scale: 1.01 }} className="flex items-center gap-3 bg-card/60 backdrop-blur-md border border-white/10 dark:border-white/5 rounded-xl p-4 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(var(--color-primary),0.15)] transition-all duration-300 cursor-pointer group">
                   <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center shrink-0">
-                    <Zap className="w-5 h-5 text-muted-foreground" />
+                    <Zap className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-foreground">Analytics</p>
@@ -403,18 +403,31 @@ export default function DashboardPage() {
 
             <div className="space-y-1.5">
               {isLoading ? (
-                <div className="text-xs text-muted-foreground p-3 bg-card rounded-lg border border-border">Loading recent activity...</div>
+                <div className="space-y-1.5">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center justify-between bg-card/40 backdrop-blur-sm border border-white/5 rounded-lg p-3 animate-pulse">
+                        <div className="flex items-center gap-3 w-full">
+                          <div className="w-8 h-8 bg-muted/60 rounded-md shrink-0"></div>
+                          <div className="space-y-2 flex-1">
+                            <div className="h-3 bg-muted/60 rounded w-1/3"></div>
+                            <div className="h-2 bg-muted/60 rounded w-1/4"></div>
+                          </div>
+                        </div>
+                        <div className="w-10 h-6 bg-muted/60 rounded shrink-0"></div>
+                    </div>
+                  ))}
+                </div>
               ) : recentReports.length > 0 ? (
                 recentReports.map((report: any, idx) => (
                   <motion.div
                     key={idx}
                     whileHover={{ x: 2 }}
-                    className="bg-card border border-border rounded-lg p-3 hover:shadow-sm transition-all cursor-pointer"
+                    className="bg-card/70 backdrop-blur-sm border border-white/10 dark:border-white/5 rounded-lg p-3 hover:shadow-md hover:border-primary/30 transition-all cursor-pointer group"
                     onClick={() => router.push(`/dashboard/reports/${report.id}`)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-secondary rounded-md flex items-center justify-center shrink-0">
+                        <div className="w-8 h-8 bg-secondary rounded-md flex items-center justify-center shrink-0 group-hover:bg-primary/10 transition-colors">
                           <FileText className="w-4 h-4 text-primary" />
                         </div>
                         <div>
@@ -431,7 +444,7 @@ export default function DashboardPage() {
                       </div>
                       <motion.button
                         whileHover={{ scale: 1.05 }}
-                        className="px-2.5 py-1 bg-secondary text-secondary-foreground rounded text-xs font-medium hover:bg-secondary/80"
+                        className="px-2.5 py-1 bg-secondary group-hover:bg-primary group-hover:text-primary-foreground text-secondary-foreground rounded text-xs font-medium transition-colors"
                       >
                         Open
                       </motion.button>
@@ -439,11 +452,15 @@ export default function DashboardPage() {
                   </motion.div>
                 ))
               ) : (
-                <div className="bg-card border border-border rounded-lg p-6 text-center">
-                  <FileText className="w-8 h-8 text-muted-foreground mx-auto mb-2 opacity-20" />
-                  <p className="text-xs text-muted-foreground mb-3">No reports generated yet.</p>
-                  <Button variant="outline" onClick={() => router.push('/dashboard/reports')} className="text-xs h-7 px-3">
-                    Go to Reports
+                <div className="bg-card/40 backdrop-blur-md border border-border border-dashed rounded-xl p-8 text-center relative overflow-hidden group hover:border-primary/40 transition-colors">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="relative z-10 w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-primary/20 shadow-sm">
+                    <FileText className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="relative z-10 font-bold tracking-tight text-foreground text-sm mb-1">No Reports Yet</h3>
+                  <p className="relative z-10 text-xs text-muted-foreground mb-4 max-w-[200px] mx-auto leading-relaxed">Start analyzing data to generate insights and summaries.</p>
+                  <Button variant="outline" onClick={() => router.push('/dashboard/reports')} className="relative z-10 text-xs h-8 px-4 border-primary/20 hover:bg-primary hover:text-primary-foreground group-hover:animate-none font-medium">
+                    Generate Report
                   </Button>
                 </div>
               )}
@@ -466,7 +483,7 @@ export default function DashboardPage() {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
               transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
-              className="relative w-full max-w-2xl bg-card border border-border shadow-2xl rounded-2xl overflow-hidden"
+              className="relative w-full max-w-2xl bg-card/85 backdrop-blur-2xl border border-white/20 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-2xl overflow-hidden"
             >
               <button 
                 onClick={handleCloseOnboarding}

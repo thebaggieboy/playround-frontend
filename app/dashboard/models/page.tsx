@@ -101,7 +101,7 @@ export default function ModelsPage() {
       <div className="space-y-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Financial Models</h1>
+            <h1 className="text-4xl font-extrabold tracking-tight text-foreground">Financial Models</h1>
             <p className="text-muted-foreground mt-1">Create, manage, and analyze your financial models</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
@@ -179,26 +179,33 @@ export default function ModelsPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}
-              className="col-span-1 md:col-span-2 lg:col-span-3 border-dashed border-2 bg-card rounded-xl p-10 flex flex-col items-center justify-center text-center shadow-sm"
+              className="col-span-1 md:col-span-2 lg:col-span-3 border-dashed border-2 border-border/60 bg-card/40 backdrop-blur-md rounded-2xl p-12 flex flex-col items-center justify-center text-center shadow-sm relative overflow-hidden group"
             >
-              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-5 ring-8 ring-primary/5">
-                <Layers className="w-10 h-10 text-primary" />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+              
+              <div className="relative mb-6">
+                <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full scale-150 animate-pulse"></div>
+                <div className="relative w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center ring-8 ring-primary/5 shadow-inner backdrop-blur-sm">
+                  <Layers className="w-12 h-12 text-primary" />
+                </div>
               </div>
-              <h3 className="text-2xl font-semibold tracking-tight mb-2">No models found</h3>
-              <p className="text-muted-foreground max-w-md mb-8 leading-relaxed">
+              
+              <h3 className="text-2xl font-bold tracking-tight mb-3 relative z-10 text-foreground">No models found</h3>
+              <p className="text-muted-foreground max-w-md mb-8 leading-relaxed relative z-10 text-sm">
                 {searchTerm 
                   ? "We couldn't find any models matching your search query. Try adjusting your filters." 
                   : "You haven't generated any financial models yet. Create your first model to start projecting your company's future."}
               </p>
+              
               {!searchTerm && (
-                <Link href="/dashboard/models/input/basic">
+                <Link href="/dashboard/models/input/basic" className="relative z-10">
                   <motion.button 
                     whileHover={{ scale: 1.05 }} 
                     whileTap={{ scale: 0.95 }}
-                    className="bg-primary text-primary-foreground font-medium px-6 py-2.5 rounded-lg shadow-md flex items-center gap-2 hover:bg-primary/90 transition-colors"
+                    className="relative overflow-hidden bg-primary text-primary-foreground font-medium px-8 py-3 rounded-xl shadow-lg shadow-primary/25 flex items-center gap-2 hover:bg-primary/90 transition-all custom-group-btn"
                   >
-                    <Plus className="w-4 h-4" />
-                    Create Your First Model
+                    <Plus className="w-5 h-5 relative z-10" />
+                    <span className="relative z-10">Create Your First Model</span>
                   </motion.button>
                 </Link>
               )}
