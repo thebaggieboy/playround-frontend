@@ -1126,13 +1126,17 @@ export default function InputModelPage() {
 
           <div className="flex items-center gap-3">
             {/* Quick Actions */}
-            <Link href="/dashboard/models/import" variant="outline" size="sm" className="gap-2">
-              <Upload className="w-4 h-4" />
-              Import
+            <Link href="/dashboard/models/upload">
+              <Button variant="outline" size="sm" className="gap-2 border-dashed hover:border-primary hover:bg-primary/5 transition-all">
+                <Upload className="w-4 h-4" />
+                Import Model
+              </Button>
             </Link>
-            <Link href="/dashboard/models/templates" variant="outline" size="sm" className="gap-2">
-              <FileText className="w-4 h-4" />
-              Templates
+            <Link href="/dashboard/templates">
+              <Button variant="outline" size="sm" className="gap-2 hover:border-primary hover:bg-primary/5 transition-all">
+                <FileText className="w-4 h-4" />
+                Templates
+              </Button>
             </Link>
 
             {/* Scenario Selector */}

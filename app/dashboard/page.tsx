@@ -73,23 +73,34 @@ function SortableStatCard({ stat, isLoading, statsData }: any) {
     <motion.div
       ref={setNodeRef}
       style={style}
-      whileHover={{ y: -2 }}
-      className={`relative bg-card border ${isDragging ? 'border-primary shadow-md' : 'border-border'} rounded-lg p-3 hover:shadow-sm transition-shadow group cursor-default`}
+      whileHover={{ y: -3, scale: 1.02 }}
+      className={`relative bg-card border ${isDragging ? 'border-primary shadow-lg' : 'border-border'} rounded-xl p-4 hover:shadow-md transition-all duration-300 group cursor-default overflow-hidden`}
     >
+      {/* Gradient accent line */}
+      <div className={`absolute top-0 left-0 right-0 h-1 rounded-t-xl bg-gradient-to-r ${
+        stat.color.includes('blue') ? 'from-blue-500 to-blue-400' :
+        stat.color.includes('purple') ? 'from-purple-500 to-purple-400' :
+        stat.color.includes('green') ? 'from-emerald-500 to-emerald-400' :
+        stat.color.includes('indigo') ? 'from-indigo-500 to-indigo-400' :
+        'from-primary to-primary/70'
+      } opacity-80`} />
+      
       <div 
         {...attributes} 
         {...listeners} 
-        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing text-muted-foreground p-1 hover:bg-secondary rounded-md transition-all touch-none"
+        className="absolute top-3 right-2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing text-muted-foreground p-1 hover:bg-secondary rounded-md transition-all touch-none"
       >
         <GripHorizontal className="w-3.5 h-3.5" />
       </div>
-      <div className="flex items-center gap-2 mb-2 pr-6">
-        <div className={`w-6 h-6 ${stat.color} rounded-md flex items-center justify-center shrink-0`}>
-          <stat.icon className="w-3.5 h-3.5" />
+      <div className="flex items-start gap-3 mt-1">
+        <div className={`w-10 h-10 ${stat.color} rounded-lg flex items-center justify-center shrink-0 shadow-sm`}>
+          <stat.icon className="w-5 h-5" />
         </div>
-        <p className="text-xs text-muted-foreground font-medium truncate">{stat.label}</p>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs text-muted-foreground font-medium truncate mb-1">{stat.label}</p>
+          <p className="text-2xl font-bold text-foreground tracking-tight leading-none">{isLoading ? "—" : statsData[stat.valueKey]}</p>
+        </div>
       </div>
-      <p className="stat-value">{isLoading ? "—" : statsData[stat.valueKey]}</p>
     </motion.div>
   )
 }
@@ -108,8 +119,7 @@ export default function DashboardPage() {
     totalReports: 0,
     completedReports: 0,
     scenarios: 0,
-    avgIrr: "0.0%",
-    totalCapex: "$0"
+ 
   })
 
   const [recentReports, setRecentReports] = useState([])
@@ -127,8 +137,7 @@ export default function DashboardPage() {
     { id: "active-models", label: "Active Models", valueKey: 'activeModels', icon: BarChart3, color: "bg-blue-50 text-blue-600" },
     { id: "total-reports", label: "Total Reports", valueKey: 'totalReports', icon: FileText, color: "bg-purple-50 text-purple-600" },
     { id: "scenarios", label: "Scenarios", valueKey: 'scenarios', icon: Activity, color: "bg-green-50 text-green-600" },
-    { id: "avg-irr", label: "Avg. IRR", valueKey: 'avgIrr', icon: TrendingUp, color: "bg-orange-50 text-orange-600" },
-    { id: "total-capex", label: "Total Capex", valueKey: 'totalCapex', icon: BarChart3, color: "bg-pink-50 text-pink-600" },
+  
     { id: "completed", label: "Completed", valueKey: 'completedReports', icon: Activity, color: "bg-indigo-50 text-indigo-600" },
   ]
   const [cardOrder, setCardOrder] = useState<string[]>([])
@@ -219,36 +228,14 @@ export default function DashboardPage() {
           const rData = Array.isArray(reportsData) ? reportsData : (reportsData?.results || []);
           const sData = Array.isArray(scenariosData) ? scenariosData : (scenariosData?.results || []);
 
-          let totalIrr = 0;
-          let irrCount = 0;
-          let totalCapex = 0;
-
           setStats({
             activeModels: modelsData?.count ?? mData.length,
             totalReports: reportsData?.count ?? rData.length,
             completedReports: rData.filter((r: any) => r.status === 'completed').length || 0,
             scenarios: scenariosData?.count ?? sData.length,
-            avgIrr: "0.0%",  // Will calculate below
-            totalCapex: "$0M" // Will calculate below
           })
 
-          sData.forEach((s: any) => {
-            if (s.exit_valuation && s.exit_valuation.target_irr_pct) {
-              totalIrr += parseFloat(s.exit_valuation.target_irr_pct);
-              irrCount++;
-            }
-            if (s.capital_expenditure) {
-              const ce = s.capital_expenditure;
-              const capex = (parseFloat(ce.land_cost) || 0) + (parseFloat(ce.construction_building_cost) || 0) + (parseFloat(ce.equipment_machinery_cost) || 0) + (parseFloat(ce.ffe_cost) || 0) || (parseFloat(ce.total_capex) || 0);
-              if (capex > 0) totalCapex += capex;
-            }
-          });
 
-          setStats(prev => ({
-            ...prev,
-            avgIrr: irrCount > 0 ? `${(totalIrr / irrCount).toFixed(1)}%` : "0.0%",
-            totalCapex: totalCapex > 0 ? `$${(totalCapex / 1000000).toFixed(1)}M` : "$0M"
-          }))
 
           // Get 3 most recent reports
           if (rData.length > 0) {

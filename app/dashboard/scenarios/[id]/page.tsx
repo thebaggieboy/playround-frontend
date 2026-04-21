@@ -203,14 +203,14 @@ export default function ScenarioDetailPage() {
         }
 
         const getValuationMetrics = (): Record<string, number> => {
-            const stmts = getStatements('Valuation')
+            const stmts = getStatements('Valuation Metrics')
             if (stmts.length > 0) return stmts[0].values_by_period || {}
             return {}
         }
 
         const incomeStatement = getStatements('Income Statement')
         const balanceSheet = getStatements('Balance Sheet')
-        const cashFlow = getStatements('Cash Flow')
+        const cashFlow = getStatements('Cash Flow Statement')
         const ratios = getStatements('Financial Ratios')
         const debtSchedule = getStatements('Debt Schedule')
         const valuation = getValuationMetrics()

@@ -146,7 +146,7 @@ export default function AnalyticsPage() {
 
         const [modelsData, scenariosData, reportsData, logsData] = await Promise.all([
           fetchAllPages(`${API_BASE_URL}/models/`, headers),
-          fetchAllPages(`${API_BASE_URL}/scenarios/`, headers),
+          fetchAllPages(`${API_BASE_URL}/scenarios/?detail=true`, headers),
           fetchAllPages(`${API_BASE_URL}/reports/`, headers),
           fetchAllPages(`${API_BASE_URL}/calculation-logs/`, headers),
         ])
@@ -447,6 +447,14 @@ export default function AnalyticsPage() {
                 subtitle={stats.totalCalcs > 0 ? `${calcSuccessRate}% success rate` : "No calculations yet"}
                 icon={Zap}
                 iconColor="bg-amber-500"
+              />
+              <StatCard
+                isLoading={isLoading}
+                title="Models Generated"
+                value={stats.calculatedModels}
+                subtitle={stats.totalModels > 0 ? `${Math.round((stats.calculatedModels / stats.totalModels) * 100)}% of total` : "No models yet"}
+                icon={CheckCircle2}
+                iconColor="bg-teal-500"
               />
             </div>
           </motion.div>

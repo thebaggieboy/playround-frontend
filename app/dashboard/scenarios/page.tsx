@@ -47,6 +47,8 @@ interface Scenario {
     scenario_type: "base" | "upside" | "downside" | "custom"
     is_active: boolean
     created_at: string
+    model_name?: string
+    model_id?: number
 }
 
 export default function ScenariosPage() {
@@ -109,7 +111,8 @@ export default function ScenariosPage() {
     }
 
     const filteredScenarios = scenarios.filter(scenario =>
-        scenario.name.toLowerCase().includes(searchQuery.toLowerCase())
+        scenario.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (scenario.model_name || '').toLowerCase().includes(searchQuery.toLowerCase())
     )
 
     return (
@@ -211,6 +214,12 @@ export default function ScenariosPage() {
                                                     <CardTitle className="text-xl line-clamp-1" title={scenario.name}>
                                                         {scenario.name}
                                                     </CardTitle>
+                                                    {scenario.model_name && (
+                                                        <CardDescription className="text-xs mt-1 flex items-center gap-1">
+                                                            <FileText className="w-3 h-3" />
+                                                            {scenario.model_name}
+                                                        </CardDescription>
+                                                    )}
                                                 </div>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
