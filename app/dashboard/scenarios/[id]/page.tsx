@@ -334,7 +334,7 @@ export default function ScenarioDetailPage() {
                         )}
                     </div>
                 </div>
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 w-full md:w-auto [&>*]:shrink-0">
                     <Button variant="outline" onClick={() => router.push(`/dashboard/scenarios/${id}/sensitivity`)} className="gap-2" disabled={!hasResults}>
                         <Sliders className="w-4 h-4" />
                         Sensitivity

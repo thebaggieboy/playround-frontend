@@ -281,7 +281,7 @@ export default function ModelDetailPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 w-full lg:w-auto">
+            <div className="flex items-center gap-2 sm:gap-3 w-full lg:w-auto overflow-x-auto no-scrollbar pb-1 [&>*]:shrink-0">
               <QuickEditPanel model={model} />
               <Link href={`/dashboard/models/input/advanced?modelId=${id}`} passHref className="flex-1 lg:flex-none">
                 <Button className="w-full lg:w-auto gap-2" size="lg">

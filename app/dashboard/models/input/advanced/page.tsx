@@ -726,6 +726,23 @@ export default function InputModelPage() {
           currentScenarioId = modelData.scenarios[0].id
           setScenarioId(currentScenarioId)
         }
+      } else {
+        // Update model metadata to ensure the selected industry project type is correctly persisted
+        const updateModelResponse = await fetch(`${API_BASE_URL}/models/${currentModelId}/`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `JWT ${getAuthToken()}`
+          },
+          body: JSON.stringify({
+            name: formData.projectName,
+            project_type: projectType
+          })
+        });
+        
+        if (!updateModelResponse.ok) {
+           console.warn('Failed to update financial model metadata');
+        }
       }
 
       await advanceStep(1)
@@ -1029,6 +1046,23 @@ export default function InputModelPage() {
         const modelData = await createResponse.json()
         setModelId(modelData.id)
         if (modelData.scenarios?.[0]) setScenarioId(modelData.scenarios[0].id)
+      } else {
+        // Ensure the selected industry dropdown value is saved!
+        const updateModelResponse = await fetch(`${API_BASE_URL}/models/${modelId}/`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `JWT ${getAuthToken()}`
+          },
+          body: JSON.stringify({
+            name: formData.projectName,
+            project_type: projectType
+          })
+        });
+        
+        if (!updateModelResponse.ok) {
+           console.warn('Failed to update financial model metadata');
+        }
       }
 
       // Save scenario data
@@ -1117,30 +1151,29 @@ export default function InputModelPage() {
   return (
     <div className="flex flex-col overflow-hidden flex-1">
       {/* Header */}
-      <header className="border-b border-border bg-card px-6 lg:px-8 py-5 lg:py-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <header className="border-b border-border bg-card px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 w-full">
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Input Model</h1>
-
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">Input Model</h1>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-1 max-w-full no-scrollbar">
             {/* Quick Actions */}
-            <Link href="/dashboard/models/upload">
-              <Button variant="outline" size="sm" className="gap-2 border-dashed hover:border-primary hover:bg-primary/5 transition-all">
-                <Upload className="w-4 h-4" />
-                Import Model
+            <Link href="/dashboard/models/upload" className="shrink-0">
+              <Button variant="outline" size="sm" className="gap-2 border-dashed hover:border-primary hover:bg-primary/5 transition-all text-xs sm:text-sm h-8 sm:h-9">
+                <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                Import
               </Button>
             </Link>
-            <Link href="/dashboard/templates">
-              <Button variant="outline" size="sm" className="gap-2 hover:border-primary hover:bg-primary/5 transition-all">
-                <FileText className="w-4 h-4" />
+            <Link href="/dashboard/templates" className="shrink-0">
+              <Button variant="outline" size="sm" className="gap-2 hover:border-primary hover:bg-primary/5 transition-all text-xs sm:text-sm h-8 sm:h-9">
+                <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 Templates
               </Button>
             </Link>
 
             {/* Scenario Selector */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               {scenarios.map((scenario) => {
                 const Icon = scenario.icon
                 return (
@@ -1158,9 +1191,9 @@ export default function InputModelPage() {
                     }}
                     variant={activeScenario === scenario.id ? "default" : "outline"}
                     size="sm"
-                    className="gap-2"
+                    className="gap-1.5 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9 whitespace-nowrap"
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     {scenario.label}
                   </Button>
                 )
@@ -1214,20 +1247,20 @@ export default function InputModelPage() {
 
       {/* Tab Navigation */}
       <div className="border-b border-border bg-card">
-        <div className="px-6 lg:px-8 overflow-x-auto">
-          <div className="flex gap-1">
+        <div className="px-4 sm:px-6 lg:px-8 overflow-x-auto no-scrollbar">
+          <div className="flex gap-1 min-w-max pb-1">
             {tabs.map((tab) => {
               const Icon = tab.icon
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.id
+                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.id
                     ? "border-primary text-primary"
                     : "border-transparent text-muted-foreground hover:text-foreground"
                     }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   {tab.label}
                 </button>
               )
@@ -1370,72 +1403,72 @@ export default function InputModelPage() {
           </AnimatePresence>
 
           {/* Action Buttons */}
-          <Card className="p-6">
-            <div className="flex flex-col sm:flex-row gap-3 justify-between">
-              <div className="flex gap-3">
+          <Card className="p-4 sm:p-6 mb-8 mt-4">
+            <div className="flex flex-col sm:flex-row gap-3 justify-between items-center w-full">
+              <div className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto justify-center sm:justify-start">
                 <Button
                   variant="outline"
-                  className="gap-2"
+                  className="gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 flex-1 sm:flex-none"
                   onClick={handleExportExcel}
                   disabled={isExporting || !scenarioId}
                 >
                   {isExporting ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
                   ) : (
-                    <Download className="w-4 h-4" />
+                    <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   )}
-                  Export to Excel
+                  Excel <span className="hidden sm:inline">Export</span>
                 </Button>
                 <Button
                   variant="outline"
-                  className="gap-2"
+                  className="gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 flex-1 sm:flex-none"
                   onClick={handleExportPdf}
                   disabled={isExportingPdf || !scenarioId}
                 >
                   {isExportingPdf ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
                   ) : (
-                    <FileText className="w-4 h-4" />
+                    <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   )}
-                  Export to PDF
+                  PDF <span className="hidden sm:inline">Export</span>
                 </Button>
                 <Button
                   variant="outline"
-                  className="gap-2"
+                  className="gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 flex-1 sm:flex-none"
                   onClick={handleSaveAsTemplate}
                   disabled={isSavingTemplate || !modelId}
                 >
                   {isSavingTemplate ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
                   ) : (
-                    <Copy className="w-4 h-4" />
+                    <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   )}
-                  Save as Template
+                  Template
                 </Button>
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto justify-center sm:justify-end mt-2 sm:mt-0">
                 <Button
                   variant="outline"
-                  className="gap-2"
+                  className="gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 flex-1 sm:flex-none"
                   onClick={handleSaveDraft}
                   disabled={isSavingDraft}
                 >
                   {isSavingDraft ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
                   ) : (
-                    <Save className="w-4 h-4" />
+                    <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   )}
                   Save Draft
                 </Button>
                 <Button
-                  className="gap-2"
+                  className="gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 flex-1 sm:flex-none"
                   onClick={handleGenerateModel}
                   disabled={isGenerating}
                 >
                   {isGenerating ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
                   ) : (
-                    <Play className="w-4 h-4" />
+                    <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   )}
                   Generate Model
                 </Button>
@@ -3667,7 +3700,7 @@ function InputField({
               ? "bg-gray-100 text-gray-600 cursor-not-allowed border-gray-300"
               : "bg-blue-50 border-blue-200 text-foreground focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
               }`}
-            defaultValue={defaultValue}
+            value={value !== undefined ? value : (defaultValue || '')}
             disabled={calculated}
             onChange={(e) => onChange?.(e.target.value)}
           >
@@ -3685,7 +3718,7 @@ function InputField({
               ? "bg-gray-100 text-gray-600 cursor-not-allowed border-gray-300"
               : "bg-blue-50 border-blue-200 text-foreground focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
               }`}
-            defaultValue={defaultValue}
+            value={value !== undefined ? value : (defaultValue || '')}
             disabled={calculated}
             readOnly={calculated}
             onChange={(e) => onChange?.(e.target.value)}
