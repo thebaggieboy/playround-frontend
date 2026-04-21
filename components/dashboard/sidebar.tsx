@@ -68,17 +68,11 @@ export default function DashboardSidebar() {
 
   return (
     <>
-      {/* Mobile Top Bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b border-border z-[100] flex items-center justify-between px-4 shadow-sm">
-        <Link href="/dashboard" className="flex items-center gap-2" onClick={closeSidebar}>
-          <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center shadow-sm">
-            <span className="text-primary-foreground font-bold text-sm">P</span>
-          </div>
-          <span className="font-bold text-md text-foreground">Playground</span>
-        </Link>
+      {/* Mobile Top Toggle Button */}
+      <div className="lg:hidden absolute top-4 left-4 z-[120]">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="p-2 -mr-2 rounded-md hover:bg-secondary text-foreground transition-colors"
+          className="p-2 rounded-md bg-card border border-border shadow-md hover:bg-secondary text-foreground transition-colors flex items-center justify-center"
           aria-label="Toggle menu"
         >
           {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -127,7 +121,7 @@ export default function DashboardSidebar() {
         </div>
 
         {/* Nav Items */}
-        <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto overflow-x-hidden">
+        <nav className="flex-1 p-2 pt-16 lg:pt-2 space-y-0.5 overflow-y-auto overflow-x-hidden">
           {menuItems.map((item, index) => (
             <motion.div
               key={item.href}

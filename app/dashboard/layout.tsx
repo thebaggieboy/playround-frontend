@@ -46,12 +46,10 @@ export default function DashboardLayout({
   }, [token, router])
 
   return (
-    <div className="dashboard flex h-screen bg-background print:h-auto print:bg-white text-foreground print:text-black print:overflow-visible">
+    <div className="dashboard relative flex h-screen bg-background print:h-auto print:bg-white text-foreground print:text-black print:overflow-visible">
       <CommandPalette />
       <OnboardingTour />
-      <div className="print:hidden relative z-50">
-        <DashboardSidebar />
-      </div>
+      <DashboardSidebar />
 
       <motion.main
         className="flex-1 flex flex-col overflow-hidden pt-16 lg:pt-0 print:overflow-visible print:bg-white print:text-black"
