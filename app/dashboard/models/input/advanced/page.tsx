@@ -276,7 +276,7 @@ export default function InputModelPage() {
   const [activeTab, setActiveTab] = useState<TabType>("project")
   const [activeScenario, setActiveScenario] = useState<ScenarioType>("base")
   const [detailMode, setDetailMode] = useState(false)
-  const [projectType, setProjectType] = useState<"manufacturing" | "real-estate" | "energy" | "general">("general")
+  const [projectType, setProjectType] = useState<"manufacturing" | "real_estate" | "energy" | "oil_gas" | "healthcare" | "technology" | "agriculture" | "infrastructure" | "general">("general")
 
   // Loading states
   const [isGenerating, setIsGenerating] = useState(false)
@@ -307,7 +307,7 @@ export default function InputModelPage() {
     constructionStartDate: "2026-07-01",
     constructionDurationMonths: 36,
     operationsStartDate: "2029-07-01",
-    operationsDurationYears: 25,
+    operationsDurationYears: 10,
     totalCapacity: 100000,
     capacityUnit: "bpd (barrels per day)",
     maximumPlantAvailability: 90,
@@ -333,14 +333,14 @@ export default function InputModelPage() {
       productOrder: 1,
       productName: "Product 1",
       unitOfMeasure: "barrels",
-      year1SalesVolume: 10000,
-      unitPriceYear1: 80,
+      year1SalesVolume: 500000,
+      unitPriceYear1: 120,
       volumeGrowthRate: 5.0,
       priceEscalationRate: 2.5
     }],
 
     // Operating Expenses
-    totalHeadcount: 250,
+    totalHeadcount: 100,
     averageAnnualSalary: 45000,
     salaryEscalationRate: 5.0,
     benefitsPayrollTaxPct: 25,
@@ -497,7 +497,7 @@ export default function InputModelPage() {
         project_commencement_date: formData.projectCommencementDate,
         construction_start_date: formData.constructionStartDate,
         construction_duration_months: formData.constructionDurationMonths,
-        construction_end_date: formData.operationsStartDate,
+        construction_end_date: formData.constructionEndDate || formData.operationsStartDate,
         operations_start_date: formData.operationsStartDate,
         operations_duration_years: formData.operationsDurationYears,
         total_capacity: formData.totalCapacity,
@@ -505,6 +505,12 @@ export default function InputModelPage() {
         maximum_plant_availability: formData.maximumPlantAvailability,
         availability_during_tam: formData.availabilityDuringTam,
         commissioning_availability: formData.commissioningAvailability,
+        factory_capacity_multiplier: formData.factoryCapacityMultiplier,
+        number_of_phases: formData.numberOfPhases || 1,
+        phase_1_capacity: formData.phase_1_capacity || formData.phaseICapacity,
+        phase_2_capacity: formData.phase_2_capacity || formData.phaseIiCapacity,
+        days_in_year: formData.daysInYear || 365,
+        hours_in_day: formData.hoursInDay || 24,
       },
       macro_assumptions: {
         reporting_currency: formData.reportingCurrency.split(' ')[0],
@@ -519,10 +525,10 @@ export default function InputModelPage() {
         benchmark_rate_type: formData.benchmarkRateType,
         benchmark_rate_value: formData.benchmarkRateValue,
         terminal_growth_rate: formData.terminalGrowthRate,
-        model_tolerance: 0.001,
-        revenue_opex_escalation_usd: 2.5,
-        longterm_target_inflation: 9.0,
-        contingency_buffer: 4.0,
+        model_tolerance: formData.modelTolerance || 0.001,
+        revenue_opex_escalation_usd: formData.revenueOpexEscalationUsd || 2.5,
+        longterm_target_inflation: formData.longtermTargetInflation || 9.0,
+        contingency_buffer: formData.contingencyBuffer || 4.0,
       },
       revenue_products: formData.revenueProducts.map(product => ({
         product_order: product.productOrder,
@@ -532,42 +538,56 @@ export default function InputModelPage() {
         unit_price_year_1: product.unitPriceYear1,
         volume_growth_rate: product.volumeGrowthRate,
         price_escalation_rate: product.priceEscalationRate,
+        number_of_units: product.number_of_units || formData.numberOfUnits,
+        gba_gross_building_area: product.gba_gross_building_area || formData.gbaGrossBuildingArea,
+        lettable_area: product.lettable_area || formData.lettableArea,
+        sale_price_per_unit: product.sale_price_per_unit || formData.salePricePerUnit,
+        receivables_days_dso: product.receivables_days_dso || formData.receivablesDaysDso,
+        revenue_rampup_months: product.revenue_rampup_months || formData.revenueRampUpPeriod,
+        seasonal_adjustment_factor: product.seasonal_adjustment_factor || formData.seasonalAdjustmentFactor || 1.0,
+        sales_absorption_period_months: product.sales_absorption_period_months || formData.salesAbsorptionPeriod,
+        presales_offplan_percentage: product.presales_offplan_percentage || formData.preSalesOffPlanPct || formData.offPlanSalesPreSalesPct,
       })),
       operating_expenses: {
         total_headcount: formData.totalHeadcount,
         average_annual_salary: formData.averageAnnualSalary,
         salary_escalation_rate: formData.salaryEscalationRate,
         benefits_payroll_tax_pct: formData.benefitsPayrollTaxPct,
-        power_electricity_cost_annual: formData.powerElectricityCostAnnual,
-        water_gas_utilities_annual: 100000,
+        power_electricity_cost_annual: formData.powerElectricityCostAnnual || formData.powerElectricityCost,
+        water_gas_utilities_annual: formData.waterGasUtilitiesAnnual || formData.waterGasUtilities || 100000,
         utilities_escalation_rate: formData.utilitiesEscalationRate,
-        regular_maintenance_pct_revenue: formData.regularMaintenancePctRevenue,
+        property_management_pct: formData.property_management_pct || formData.propertyManagement,
+        regular_maintenance_pct_revenue: formData.regularMaintenancePctRevenue || formData.regularMaintenance,
         insurance_annual: formData.insuranceAnnual,
-        tam_cost: formData.turnAroundMaintenanceTamCost || null,
-        tam_frequency_years: formData.tamFrequency || null,
-        marketing_sales_pct_revenue: formData.marketingSalesPctRevenue,
-        administrative_expenses_annual: 150000,
-        rent_facilities_annual: 120000,
-        technology_software_annual: 50000,
-        professional_fees_annual: 75000,
+        tam_cost: formData.turnAroundMaintenanceTamCost || formData.tam_cost,
+        tam_frequency_years: formData.tamFrequency || formData.tam_frequency,
+        marketing_sales_pct_revenue: formData.marketingSalesPctRevenue || formData.marketingSales,
+        administrative_expenses_annual: formData.administrativeExpensesAnnual || formData.administrativeExpenses || 150000,
+        rent_facilities_annual: formData.rentFacilitiesAnnual || formData.rentFacilities || 120000,
+        technology_software_annual: formData.technologySoftwareAnnual || formData.technologySoftware || 50000,
+        professional_fees_annual: formData.professionalFeesAnnual || formData.professionalFees || 75000,
         payables_days_dpo: formData.payablesDaysDpo,
       },
       capital_expenditure: {
-        land_cost: formData.landCost,
+        land_cost: formData.landCost || formData.landValue,
         construction_building_cost: formData.constructionBuildingCost,
-        equipment_machinery_cost: formData.equipmentMachineryCost,
-        ffe_cost: formData.ffeCost,
-        contingency_pct: formData.contingencyPct,
-        professional_fees_pct: formData.professionalFeesPct,
-        permits_approvals_pct: formData.permitsApprovalsPct,
-        vat_on_construction_pct: formData.vatOnConstructionPct,
+        equipment_machinery_cost: formData.equipmentMachineryCost || formData.equipmentMachinery,
+        ffe_cost: formData.ffeCost || formData.furnitureFixturesEquipmentFfe,
+        carpark_cost: formData.carpark_cost || formData.multiStoreyCarParkCost,
+        amenities_cost: formData.amenities_cost || formData.amenitiesCost,
+        apartment_construction_cost: formData.apartment_construction_cost || formData.apartmentConstruction,
+        hotel_commercial_cost: formData.hotel_commercial_cost || formData.hotelCommercialConstruction,
+        contingency_pct: formData.contingencyPct || formData.contingency,
+        professional_fees_pct: formData.professionalFeesPct || formData.professionalFees,
+        permits_approvals_pct: formData.permitsApprovalsPct || formData.permitsApprovals,
+        vat_on_construction_pct: formData.vatOnConstructionPct || formData.vatOnConstruction,
         capitalize_interest: true,
-        construction_loan_interest_rate: 8.5,
+        construction_loan_interest_rate: formData.constructionLoanInterestRate || 8.5,
         year_1_drawdown_pct: 30,
         year_2_drawdown_pct: 50,
         year_3_drawdown_pct: 20,
-        replacement_capex_pct_revenue: 3.0,
-        expansion_capex: 0,
+        replacement_capex_pct_revenue: formData.replacement_capex_pct_revenue || formData.replacementCapex || 3.0,
+        expansion_capex: formData.expansion_capex || formData.expansionCapexIfApplicable || 0,
       },
       debt_financing: {
         equity_percentage: formData.equityPercentage,
@@ -1491,7 +1511,7 @@ function ProjectForm({
   formData: FormData
   updateFormData: (field: string, value: any) => void
   detailMode: boolean
-  onProjectTypeChange: (type: "manufacturing" | "real-estate" | "energy" | "general") => void
+  onProjectTypeChange: (type: "manufacturing" | "real_estate" | "energy" | "oil_gas" | "healthcare" | "technology" | "agriculture" | "infrastructure" | "general") => void
 }) {
   return (
     <Card className="p-6 space-y-6">
@@ -1519,12 +1539,28 @@ function ProjectForm({
           options={["Manufacturing", "Real Estate", "Energy & Power", "Oil & Gas", "Healthcare", "Technology", "Agriculture", "Infrastructure", "Other"]}
           defaultValue="Manufacturing"
           onChange={(val) => {
+            updateFormData('industrySector', val);
             if (val === "Manufacturing") onProjectTypeChange("manufacturing")
-            else if (val === "Real Estate") onProjectTypeChange("real-estate")
-            else if (val.includes("Energy") || val.includes("Oil")) onProjectTypeChange("energy")
+            else if (val === "Real Estate") onProjectTypeChange("real_estate")
+            else if (val === "Energy & Power") onProjectTypeChange("energy")
+            else if (val === "Oil & Gas") onProjectTypeChange("oil_gas")
+            else if (val === "Healthcare") onProjectTypeChange("healthcare")
+            else if (val === "Technology") onProjectTypeChange("technology")
+            else if (val === "Agriculture") onProjectTypeChange("agriculture")
+            else if (val === "Infrastructure") onProjectTypeChange("infrastructure")
             else onProjectTypeChange("general")
           }}
         />
+        {formData?.industrySector === "Other" && (
+          <InputField
+            label="Custom Industry Name"
+            type="text"
+            value={formData?.projectName} // Repurposing projectName or using a dedicated field
+            tooltip="Specify your industry sector if it's not listed."
+            onChange={(val) => updateFormData('industrySector', val)}
+            placeholder="e.g., Mining, Fintech, etc."
+          />
+        )}
         <InputField label="Project Type" value={formData?.projectType} type="select" tooltip="Classification of the project development stage (e.g., Greenfield for new builds)." options={["Greenfield", "Brownfield", "Expansion", "Acquisition", "Development"]} onChange={(value) => updateFormData('projectType', value)} defaultValue="Greenfield" />
       </div>
 
@@ -1825,7 +1861,7 @@ function RevenueForm({
   updateRevenueProduct: (index: number, field: string, value: any) => void
   addRevenueProduct: () => void
   removeRevenueProduct: (index: number) => void
-  projectType: "manufacturing" | "real-estate" | "energy" | "general"
+  projectType: "manufacturing" | "real_estate" | "energy" | "oil_gas" | "healthcare" | "technology" | "agriculture" | "infrastructure" | "general"
   detailMode: boolean
 }) {
   const [numProducts, setNumProducts] = useState(1)
@@ -1868,9 +1904,9 @@ function RevenueForm({
         <div key={idx} className="pt-6 border-t border-border">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-sm font-semibold text-foreground">
-              {projectType === "real-estate" ? `Property Type ${idx + 1}` :
+              {projectType === "real_estate" ? `Property Type ${idx + 1}` :
                 projectType === "manufacturing" ? `Product ${idx + 1}` :
-                  projectType === "energy" ? `Revenue Stream ${idx + 1}` :
+                  (projectType === "energy" || projectType === "oil_gas") ? `Revenue Stream ${idx + 1}` :
                     `Revenue Stream ${idx + 1}`}
             </h4>
             {idx > 0 && (
@@ -1906,23 +1942,23 @@ function RevenueForm({
               value={formData.revenueProducts[idx]?.unitOfMeasure}
               onChange={(value) => updateRevenueProduct(idx, 'unitOfMeasure', value)}
               options={
-                projectType === "real-estate"
+                projectType === "real_estate"
                   ? ["sq.ft", "sq.m", "units", "acres"]
                   : projectType === "manufacturing"
                     ? ["barrels", "tons", "liters", "kg", "pieces", "MT"]
-                    : projectType === "energy"
+                    : (projectType === "energy" || projectType === "oil_gas")
                       ? ["MWh", "kWh", "MW", "GWh"]
                       : ["units", "pieces", "kg", "liters"]
               }
               defaultValue={
-                projectType === "real-estate" ? "sq.ft" :
-                  projectType === "manufacturing" ? "barrels" :
-                    projectType === "energy" ? "MWh" :
+                formData?.industrySector === "Real Estate" ? "sq.ft" :
+                  formData?.industrySector === "Manufacturing" ? "barrels" :
+                    (formData?.industrySector === "Energy & Power" || formData?.industrySector === "Oil & Gas") ? "MWh" :
                       "units"
               }
             />
 
-            {projectType === "real-estate" ? (
+            {formData?.industrySector === "Real Estate" || projectType === "real_estate" ? (
               <>
                 <InputField label="Number of Units" type="number" defaultValue="18"
                   tooltip="The total count of buildings or apartments of this specific type."
@@ -1943,10 +1979,10 @@ function RevenueForm({
               </>
             ) : (
               <>
-                <InputField label="Year 1 Sales Volume" type="number" tooltip="The total number of units expected to be sold in the first operational year." onChange={(value) => updateRevenueProduct(idx, 'year1SalesVolume', Number(value))} defaultValue="10000" />
-                <InputField label="Unit Price (Year 1)" type="number" tooltip="The selling price per unit in the first year of operations." onChange={(value) => updateRevenueProduct(idx, 'unitPrice', Number(value))} prefix="$" defaultValue="80" />
-                <InputField label="Volume Growth Rate" type="number" tooltip="The annual percentage increase in the quantity of units sold." onChange={(value) => updateRevenueProduct(idx, 'volumeGrowthRate', Number(value))} suffix="%" defaultValue="5.0" />
-                <InputField label="Price Escalation Rate" type="number" tooltip="The annual percentage increase in the unit selling price (usually inflation-linked)." onChange={(value) => updateRevenueProduct(idx, 'priceEscalationRate', Number(value))} suffix="%" defaultValue="2.5" />
+                <InputField label="Year 1 Sales Volume" type="number" tooltip="The total number of units expected to be sold in the first operational year." onChange={(value) => updateRevenueProduct(idx, 'year1SalesVolume', Number(value))} defaultValue="500000" value={item.year1SalesVolume} />
+                <InputField label="Unit Price (Year 1)" type="number" tooltip="The selling price per unit in the first year of operations." onChange={(value) => updateRevenueProduct(idx, 'unitPriceYear1', Number(value))} prefix="$" defaultValue="120" value={item.unitPriceYear1} />
+                <InputField label="Volume Growth Rate" type="number" tooltip="The annual percentage increase in the quantity of units sold." onChange={(value) => updateRevenueProduct(idx, 'volumeGrowthRate', Number(value))} suffix="%" defaultValue="5.0" value={item.volumeGrowthRate} />
+                <InputField label="Price Escalation Rate" type="number" tooltip="The annual percentage increase in the unit selling price (usually inflation-linked)." onChange={(value) => updateRevenueProduct(idx, 'priceEscalationRate', Number(value))} suffix="%" defaultValue="2.5" value={item.priceEscalationRate} />
               </>
             )}
           </div>
@@ -1967,11 +2003,10 @@ function RevenueForm({
               suffix="days"
               defaultValue="45"
               tooltip="Days Sales Outstanding: The average number of days it takes to collect payment after a sale."
-
               value={formData?.receivablesDaysDso}
               onChange={(val) => updateFormData('receivablesDaysDso', Number(val))}
             />
-            {projectType !== "real-estate" && (
+            {projectType !== "real_estate" && (
               <>
                 <InputField
                   label="Revenue Ramp-up Period"
@@ -1979,7 +2014,6 @@ function RevenueForm({
                   suffix="months"
                   defaultValue="12"
                   tooltip="The duration (in months) it takes for sales to reach steady-state capacity."
-
                   value={formData?.revenueRampUpPeriod}
                   onChange={(val) => updateFormData('revenueRampUpPeriod', Number(val))}
                 />
@@ -1988,13 +2022,12 @@ function RevenueForm({
                   type="number"
                   defaultValue="1.0"
                   tooltip="A multiplier used to account for monthly fluctuations in demand (1.0 = baseline)."
-
                   value={formData?.seasonalAdjustmentFactor}
                   onChange={(val) => updateFormData('seasonalAdjustmentFactor', Number(val))}
                 />
               </>
             )}
-            {projectType === "real-estate" && (
+            {projectType === "real_estate" && (
               <>
                 <InputField
                   label="Sales/Absorption Period"
@@ -2002,7 +2035,6 @@ function RevenueForm({
                   suffix="months"
                   defaultValue="24"
                   tooltip="The total time expected to sell or lease all available inventory."
-
                   value={formData?.salesAbsorptionPeriod}
                   onChange={(val) => updateFormData('salesAbsorptionPeriod', Number(val))}
                 />
@@ -2012,7 +2044,6 @@ function RevenueForm({
                   suffix="%"
                   defaultValue="30"
                   tooltip="The percentage of total inventory sold before the project construction is finished."
-
                   value={formData?.preSalesOffPlanPct}
                   onChange={(val) => updateFormData('preSalesOffPlanPct', Number(val))}
                 />
@@ -2050,7 +2081,7 @@ function OpexForm({
   updateRevenueProduct: (index: number, field: string, value: any) => void
   addRevenueProduct: () => void
   removeRevenueProduct: (index: number) => void
-  projectType: "manufacturing" | "real-estate" | "energy" | "general"
+  projectType: "manufacturing" | "real_estate" | "energy" | "oil_gas" | "healthcare" | "technology" | "agriculture" | "infrastructure" | "general"
   detailMode: boolean
 }) {
   return (
@@ -2060,7 +2091,7 @@ function OpexForm({
         <p className="text-sm text-muted-foreground">Define operational costs and expense assumptions</p>
       </div>
 
-      {(projectType === "manufacturing" || projectType === "energy") && (
+      {(projectType === "manufacturing" || projectType === "energy" || projectType === "oil_gas") && (
         <div className="pt-0">
           <h4 className="text-sm font-semibold text-foreground mb-4">Raw Materials & Variable Costs</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2094,7 +2125,7 @@ function OpexForm({
               value={formData?.variableCostAsPctOfRevenue}
               onChange={(val) => updateFormData('variableCostAsPctOfRevenue', Number(val))}
             />
-            {projectType === "energy" && (
+            {(projectType === "energy" || projectType === "oil_gas") && (
               <InputField
                 label="Fuel/Gas Cost"
                 type="number"
@@ -2192,6 +2223,18 @@ function OpexForm({
             value={formData?.utilitiesEscalationRate}
             onChange={(val) => updateFormData('utilitiesEscalationRate', Number(val))}
           />
+          {(formData?.industrySector === "Energy & Power" || formData?.industrySector === "Oil & Gas") && (
+            <InputField
+              label="Fuel/Gas Cost"
+              type="number"
+              prefix="$"
+              suffix="/MMBTU"
+              defaultValue="3.50"
+              tooltip="The cost of natural gas or fuel used for power generation or industrial heating."
+              value={formData?.fuelGasCost}
+              onChange={(val) => updateFormData('fuelGasCost', Number(val))}
+            />
+          )}
           {projectType === "real-estate" && (
             <InputField
               label="Property Management"
@@ -2346,7 +2389,7 @@ function CapexForm({
   updateRevenueProduct: (index: number, field: string, value: any) => void
   addRevenueProduct: () => void
   removeRevenueProduct: (index: number) => void
-  projectType: "manufacturing" | "real-estate" | "energy" | "general"
+  projectType: "manufacturing" | "real_estate" | "energy" | "oil_gas" | "healthcare" | "technology" | "agriculture" | "infrastructure" | "general"
   detailMode: boolean
 }) {
   return (
@@ -2368,11 +2411,13 @@ function CapexForm({
           onChange={(val) => updateFormData('landCost', Number(val))}
         />
         <InputField
-          label={projectType === "real-estate" ? "Construction Cost" : "Building & Civil Works"}
+          label={projectType === "real_estate" ? "Construction Cost" : "Building & Civil Works"}
           type="number"
           prefix="$"
           defaultValue="109626400"
           tooltip="Total direct costs for building construction, site development, and civil infrastructure."
+          value={formData?.constructionBuildingCost}
+          onChange={(val) => updateFormData('constructionBuildingCost', Number(val))}
         />
         <InputField
           label="Equipment & Machinery"
@@ -2396,7 +2441,7 @@ function CapexForm({
         />
       </div>
 
-      {projectType === "real-estate" && detailMode && (
+      {projectType === "real_estate" && detailMode && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}

@@ -167,6 +167,48 @@ export default function UploadModelPage() {
         if (fileInputRef.current) fileInputRef.current.value = ""
     }
 
+    const handleProcessExtraction = async () => {
+        if (!parsedModel) return
+        setIsUploading(true)
+        
+        try {
+            const res = await fetch(`${API_BASE_URL}/models/import_as_calculated_model/`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `JWT ${getAuthToken()}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    filename: parsedModel.filename,
+                    sheets: parsedModel.sheets
+                })
+            })
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({ error: 'Sync failed' }))
+                throw new Error(errorData.error || 'Failed to sync model to dashboard')
+            }
+
+            const data = await res.json()
+            
+            toast({
+                title: "Model Synced Successfully",
+                description: "Your financial data has been extracted and added to your dashboard.",
+            })
+
+            // Redirect to dashboard or the new model's page
+            router.push('/dashboard')
+        } catch (error: any) {
+            toast({
+                title: "Sync Error",
+                description: error.message || "Could not sync model to dashboard.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsUploading(false)
+        }
+    }
+
     const formatFileSize = (bytes: number) => {
         if (bytes < 1024) return `${bytes} B`
         if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
@@ -186,8 +228,8 @@ export default function UploadModelPage() {
     }, [parsedModel, activeSheet])
 
     return (
-        <div className="flex flex-col h-full overflow-hidden flex-1 w-full bg-background">
-            <div className="flex-1 overflow-auto p-6 md:p-8 pt-6">
+        <div className="flex flex-col min-h-screen w-full bg-background">
+            <div className="flex-1 p-4 md:p-8 pt-6">
                 <div className="space-y-6 max-w-7xl mx-auto">
                     {/* Header */}
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -347,8 +389,18 @@ export default function UploadModelPage() {
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex flex-wrap items-center gap-3">
                                         <Badge variant="secondary" className="text-xs">{parsedModel.summary.detectedType}</Badge>
+                                        <Button 
+                                            variant="default" 
+                                            size="sm" 
+                                            onClick={handleProcessExtraction}
+                                            disabled={isUploading}
+                                            className="gap-2 text-xs bg-primary hover:bg-primary/90"
+                                        >
+                                            {isUploading ? <Loader2 className="w-3 h-3 animate-spin"/> : <Sparkles className="w-3 h-3" />}
+                                            Process & Sync to Dashboard
+                                        </Button>
                                         <Button variant="outline" size="sm" onClick={handleClearFile} className="gap-1.5 text-xs">
                                             <Upload className="w-3 h-3" />
                                             Upload New
@@ -397,7 +449,7 @@ export default function UploadModelPage() {
                                     )}
 
                                     {/* Data Table */}
-                                    <div className="overflow-auto" style={{ maxHeight: 'calc(100vh - 340px)' }}>
+                                    <div className="overflow-auto max-h-[60vh] md:max-h-[70vh] border-t border-border">
                                         {activeSheetData ? (
                                             <table className="w-full text-[11px] border-collapse font-mono" style={{ minWidth: `${Math.max(activeSheetData.headers.length * 120, 800)}px` }}>
                                                 <thead className="sticky top-0 z-20">
