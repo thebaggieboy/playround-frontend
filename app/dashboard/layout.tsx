@@ -49,12 +49,12 @@ export default function DashboardLayout({
     <div className="dashboard flex h-screen bg-background print:h-auto print:bg-white text-foreground print:text-black print:overflow-visible">
       <CommandPalette />
       <OnboardingTour />
-      <div className="print:hidden">
+      <div className="print:hidden relative z-50">
         <DashboardSidebar />
       </div>
 
       <motion.main
-        className="flex-1 flex flex-col overflow-hidden print:overflow-visible print:bg-white print:text-black"
+        className="flex-1 flex flex-col overflow-hidden pt-16 lg:pt-0 print:overflow-visible print:bg-white print:text-black"
         initial="hidden"
         animate="visible"
         variants={containerVariants}

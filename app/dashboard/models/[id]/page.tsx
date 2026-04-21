@@ -46,8 +46,8 @@ function MetricCard({
   label: string; value: React.ReactNode; icon: any; colorClass: string
 }) {
   return (
-    <Card className={`p-5 flex items-start gap-4 border-l-4 ${colorClass} hover:shadow-md transition-shadow dark:bg-card/50 backdrop-blur-sm`}>
-      <div className={`p-2 rounded-lg ${colorClass.replace('border-l-', 'bg-').replace('-500', '-500/10')}`}>
+    <Card className="p-5 flex items-start gap-4 hover:shadow-md transition-shadow dark:bg-card/50 backdrop-blur-sm">
+      <div className={`p-2 rounded-lg ${colorClass.replace('border-l-', 'bg-').replace('-500', '-500/10').replace('primary', 'primary/10')}`}>
         <Icon className={`w-5 h-5 ${colorClass.replace('border-l-', 'text-')}`} />
       </div>
       <div className="space-y-1">
@@ -326,9 +326,7 @@ export default function ModelDetailPage() {
           <MetricCard label="Last Calculated" value={lastCalcDate !== "Never" ? "Done" : "Never"} icon={Activity} colorClass={lastCalcDate !== "Never" ? "border-l-green-500" : "border-l-neutral-400"} />
           
           {/* Model Health Indicator */}
-          <Card className="p-5 flex items-start gap-4 border-l-4 hover:shadow-md transition-shadow dark:bg-card/50 backdrop-blur-sm" style={{
-            borderLeftColor: compPct >= 80 && !model.calculation_error ? '#10b981' : compPct >= 50 ? '#f59e0b' : '#ef4444'
-          }}>
+          <Card className="p-5 flex items-start gap-4 hover:shadow-md transition-shadow dark:bg-card/50 backdrop-blur-sm">
             <div className="relative w-12 h-12 flex-shrink-0">
               <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
                 <circle cx="18" cy="18" r="15.5" fill="none" stroke="hsl(var(--muted))" strokeWidth="3" />

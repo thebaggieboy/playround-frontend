@@ -22,7 +22,7 @@ export function ModelCard({ id, name, description, category, lastModified, type,
 
   return (
     <Link href={`/dashboard/models/${id}`}>
-      <Card className="group h-full p-6 cursor-pointer border-l-4 border-l-primary/50 hover:border-l-primary transition-all hover:shadow-lg hover:bg-secondary">
+      <Card className="group h-full p-6 cursor-pointer hover:border-primary transition-all hover:shadow-lg hover:bg-secondary">
         <div className="space-y-4">
           {/* Header */}
           <div className="flex items-start justify-between">

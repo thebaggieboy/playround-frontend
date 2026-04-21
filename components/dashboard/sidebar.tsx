@@ -30,7 +30,7 @@ const menuItems = [
 ]
 
 export default function DashboardSidebar() {
-  const [isOpen, setIsOpen] = useState(true)
+  const [isOpen, setIsOpen] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false)
   const pathname = usePathname()
   const dispatch = useDispatch()
@@ -68,16 +68,22 @@ export default function DashboardSidebar() {
 
   return (
     <>
-      {/* Mobile hamburger */}
-      <motion.button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-5 left-5 z-50 p-2.5 rounded-lg bg-primary text-primary-foreground lg:hidden shadow-sm hover:shadow-md transition-shadow"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        aria-label="Toggle menu"
-      >
-        {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-      </motion.button>
+      {/* Mobile Top Bar */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b border-border z-[100] flex items-center justify-between px-4 shadow-sm">
+        <Link href="/dashboard" className="flex items-center gap-2" onClick={closeSidebar}>
+          <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center shadow-sm">
+            <span className="text-primary-foreground font-bold text-sm">P</span>
+          </div>
+          <span className="font-bold text-md text-foreground">Playground</span>
+        </Link>
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="p-2 -mr-2 rounded-md hover:bg-secondary text-foreground transition-colors"
+          aria-label="Toggle menu"
+        >
+          {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
+      </div>
 
       {/* Mobile overlay */}
       <AnimatePresence>
@@ -87,7 +93,7 @@ export default function DashboardSidebar() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={closeSidebar}
-            className="fixed inset-0 bg-black/30 z-30 lg:hidden"
+            className="fixed inset-0 bg-black/30 z-[105] lg:hidden"
           />
         )}
       </AnimatePresence>
@@ -96,10 +102,10 @@ export default function DashboardSidebar() {
       <motion.aside
         animate={{ width: isCollapsed ? 56 : 208 }}
         transition={{ duration: 0.25, ease: "easeInOut" }}
-        className={`${isOpen ? "fixed lg:static" : "fixed lg:static"} h-screen border-r border-border bg-white flex flex-col z-40 overflow-hidden ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
+        className={`${isOpen ? "fixed lg:static" : "fixed lg:static"} top-16 lg:top-0 h-[calc(100vh-4rem)] lg:h-screen border-r border-border bg-card flex flex-col z-[110] overflow-hidden ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
-        {/* Logo */}
-        <div className="p-3 border-b border-border sticky top-0 bg-white flex items-center gap-2 overflow-hidden">
+        {/* Logo (Desktop only) */}
+        <div className="hidden lg:flex p-3 border-b border-border sticky top-0 bg-card items-center gap-2 overflow-hidden shrink-0">
           <Link href="/dashboard" className="flex items-center gap-2 min-w-0">
             <div className="w-7 h-7 bg-primary rounded-md flex items-center justify-center shadow-sm flex-shrink-0">
               <span className="text-primary-foreground font-bold text-xs">P</span>

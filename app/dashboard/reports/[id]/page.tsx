@@ -5,7 +5,7 @@ import Link from "next/link"
 import {
   ArrowLeft, MoreVertical, Share2, Download, Settings,
   TrendingUp, BarChart3, Loader2, AlertCircle, FileText,
-  DollarSign, TrendingDown, Activity
+  DollarSign, TrendingDown, Activity, PlayCircle
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -347,24 +347,25 @@ export default function ReportDetailPage() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => window.print()}><Download className="w-4 h-4 mr-2" />Export as PDF</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => {
-                  const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/reports/${id}/export_excel/`
-                  // If using JWT Token auth, we can append it or use a fetch blob approach.
-                  // For simplicity via window.location, appending token if supported by backend, or using a fast fetch & trigger download
-                  fetch(url, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                  })
-                  .then(res => res.blob())
-                  .then(blob => {
-                    const downloadUrl = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = downloadUrl;
-                    a.download = `Export_Report.xlsm`;
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                  })
-                  .catch(err => console.error("Export failed", err));
+                <DropdownMenuItem onClick={async () => {
+                  try {
+                    const url = `${API_BASE_URL}/reports/${id}/export_excel/`
+                    const res = await fetch(url, {
+                      headers: { 'Authorization': `JWT ${getAuthToken()}` }
+                    })
+                    if (!res.ok) throw new Error('Export failed')
+                    const blob = await res.blob()
+                    const downloadUrl = window.URL.createObjectURL(blob)
+                    const a = document.createElement('a')
+                    a.href = downloadUrl
+                    a.download = `Export_${report.name?.replace(/\s+/g, '_') || 'Report'}.xlsx`
+                    document.body.appendChild(a)
+                    a.click()
+                    window.URL.revokeObjectURL(downloadUrl)
+                    document.body.removeChild(a)
+                  } catch (err) {
+                    console.error("Export failed", err)
+                  }
                 }}>
                   <Download className="w-4 h-4 mr-2" />Export as Excel
                 </DropdownMenuItem>

@@ -26,6 +26,9 @@ interface Report {
   report_type: string
   date_created: string
   status: "completed" | "processing" | "failed"
+  calculated_data?: Record<string, any> | null
+  financial_model?: string | number
+  scenario?: string | number
 }
 
 export default function ReportsPage() {
@@ -36,6 +39,56 @@ export default function ReportsPage() {
   const { toast } = useToast()
 
   const token = useSelector(selectToken)
+
+  const getAuthToken = () => {
+    if (!token) return ''
+    if (typeof token === 'string') return token
+    if (typeof token === 'object' && (token as any).access) return (token as any).access
+    return ''
+  }
+
+  // ── Export handlers ─────────────────────────────────────────────────────
+  const handleExportExcel = async (reportId: string) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/reports/${reportId}/export_excel/`, {
+        headers: { 'Authorization': `JWT ${getAuthToken()}` }
+      })
+      if (!res.ok) throw new Error('Export failed')
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      const report = reports.find(r => r.id === reportId)
+      a.download = `Export_${report?.name?.replace(/\s+/g, '_') || 'Report'}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      toast({ title: 'Export Started', description: 'Your Excel download should begin shortly.' })
+    } catch (err: any) {
+      toast({ title: 'Export Error', description: err.message || 'Failed to export Excel.', variant: 'destructive' })
+    }
+  }
+
+  const handleExportPdf = (reportId: string) => {
+    // Open report detail page for printing
+    window.open(`/dashboard/reports/${reportId}`, '_blank')
+  }
+
+  const handleDeleteReport = async (reportId: string) => {
+    if (!confirm('Are you sure you want to delete this report?')) return
+    try {
+      const res = await fetch(`${API_BASE_URL}/reports/${reportId}/`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `JWT ${getAuthToken()}` }
+      })
+      if (!res.ok) throw new Error('Failed to delete report')
+      toast({ title: 'Report Deleted', description: 'The report has been removed.' })
+      fetchReports()
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message || 'Could not delete report.', variant: 'destructive' })
+    }
+  }
 
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false)
 
@@ -250,9 +303,17 @@ export default function ReportsPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>Export as PDF</DropdownMenuItem>
-                <DropdownMenuItem>Export as Excel</DropdownMenuItem>
-                <DropdownMenuItem>Export as CSV</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => window.print()}>Export as PDF</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
+                  if (filteredReports.length > 0) {
+                    handleExportExcel(filteredReports[0].id)
+                  } else {
+                    toast({ title: 'No reports', description: 'No reports available to export.', variant: 'destructive' })
+                  }
+                }}>Export as Excel</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
+                  toast({ title: 'Coming Soon', description: 'CSV export will be available in a future update.' })
+                }}>Export as CSV</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -301,7 +362,14 @@ export default function ReportsPage() {
           {filteredReports.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredReports.map((report) => (
-                <ReportCard key={report.id} {...report} />
+                <ReportCard
+                  key={report.id}
+                  {...report}
+                  calculated_data={report.calculated_data}
+                  onExportExcel={handleExportExcel}
+                  onExportPdf={handleExportPdf}
+                  onDelete={handleDeleteReport}
+                />
               ))}
             </div>
           ) : (
@@ -338,31 +406,31 @@ export default function ReportsPage() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-6 border-l-4 border-l-primary">
+        <Card className="p-6 border border-border">
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">Total Reports</p>
             <p className="text-3xl font-bold text-foreground">{isLoading ? "..." : reports.length}</p>
             <p className="text-xs text-muted-foreground">Generated to date</p>
           </div>
         </Card>
-        <Card className="p-6 border-l-4 border-l-green-500">
+        <Card className="p-6 border border-border">
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">Completed</p>
             <p className="text-3xl font-bold text-foreground">{isLoading ? "..." : completedCount}</p>
-            <p className="text-xs text-green-600">{successRate}% success rate</p>
+            <p className="text-xs text-muted-foreground">{successRate}% success rate</p>
           </div>
         </Card>
-        <Card className="p-6 border-l-4 border-l-blue-500">
+        <Card className="p-6 border border-border">
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">Processing</p>
             <p className="text-3xl font-bold text-foreground">{isLoading ? "..." : processingCount}</p>
-            <p className="text-xs text-blue-600">Currently generating</p>
+            <p className="text-xs text-muted-foreground">Currently generating</p>
           </div>
         </Card>
       </div>
 
       {/* Report Generation Tips */}
-      <Card className="p-6 border-l-4 border-l-primary bg-secondary/50">
+      <Card className="p-6 border border-border bg-secondary/50">
         <h3 className="font-semibold text-foreground mb-3">Report Generation Tips</h3>
         <ul className="space-y-2 text-sm text-muted-foreground">
           <li className="flex items-start gap-2">

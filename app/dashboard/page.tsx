@@ -77,15 +77,6 @@ function SortableStatCard({ stat, isLoading, statsData }: any) {
       whileHover={{ y: -3, scale: 1.02 }}
       className={`relative bg-card border ${isDragging ? 'border-primary shadow-lg' : 'border-border'} rounded-xl p-4 hover:shadow-md transition-all duration-300 group cursor-default overflow-hidden`}
     >
-      {/* Gradient accent line */}
-      <div className={`absolute top-0 left-0 right-0 h-1 rounded-t-xl bg-gradient-to-r ${
-        stat.color.includes('blue') ? 'from-blue-500 to-blue-400' :
-        stat.color.includes('purple') ? 'from-purple-500 to-purple-400' :
-        stat.color.includes('green') ? 'from-emerald-500 to-emerald-400' :
-        stat.color.includes('indigo') ? 'from-indigo-500 to-indigo-400' :
-        'from-primary to-primary/70'
-      } opacity-80`} />
-      
       <div 
         {...attributes} 
         {...listeners} 
@@ -93,9 +84,9 @@ function SortableStatCard({ stat, isLoading, statsData }: any) {
       >
         <GripHorizontal className="w-3.5 h-3.5" />
       </div>
-      <div className="flex items-start gap-3 mt-1">
-        <div className={`w-10 h-10 ${stat.color} rounded-lg flex items-center justify-center shrink-0 shadow-sm`}>
-          <stat.icon className="w-5 h-5" />
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center shrink-0">
+          <stat.icon className="w-5 h-5 text-muted-foreground" />
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-xs text-muted-foreground font-medium truncate mb-1">{stat.label}</p>
@@ -135,11 +126,11 @@ export default function DashboardPage() {
   )
 
   const defaultStats = [
-    { id: "active-models", label: "Active Models", valueKey: 'activeModels', icon: BarChart3, color: "bg-blue-50 text-blue-600" },
-    { id: "total-reports", label: "Total Reports", valueKey: 'totalReports', icon: FileText, color: "bg-purple-50 text-purple-600" },
-    { id: "scenarios", label: "Scenarios", valueKey: 'scenarios', icon: Activity, color: "bg-green-50 text-green-600" },
+    { id: "active-models", label: "Active Models", valueKey: 'activeModels', icon: BarChart3, color: "bg-secondary text-muted-foreground" },
+    { id: "total-reports", label: "Total Reports", valueKey: 'totalReports', icon: FileText, color: "bg-secondary text-muted-foreground" },
+    { id: "scenarios", label: "Scenarios", valueKey: 'scenarios', icon: Activity, color: "bg-secondary text-muted-foreground" },
   
-    { id: "completed", label: "Completed", valueKey: 'completedReports', icon: Activity, color: "bg-indigo-50 text-indigo-600" },
+    { id: "completed", label: "Completed", valueKey: 'completedReports', icon: Activity, color: "bg-secondary text-muted-foreground" },
   ]
   const [cardOrder, setCardOrder] = useState<string[]>([])
 
@@ -347,9 +338,9 @@ export default function DashboardPage() {
             <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Quick Actions</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <Link href="/dashboard/models/input/advanced">
-                <motion.div whileHover={{ y: -2, scale: 1.01 }} className="flex items-center gap-3 bg-card border border-border rounded-xl p-4 hover:shadow-md hover:border-primary/30 transition-all cursor-pointer group">
-                  <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center shrink-0 shadow-sm">
-                    <Plus className="w-5 h-5 text-white" />
+                <motion.div whileHover={{ y: -2, scale: 1.01 }} className="flex items-center gap-3 bg-card border border-border rounded-xl p-4 hover:shadow-md hover:border-border transition-all cursor-pointer group">
+                  <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center shrink-0">
+                    <Plus className="w-5 h-5 text-muted-foreground" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-foreground">Create Model</p>
@@ -359,9 +350,9 @@ export default function DashboardPage() {
                 </motion.div>
               </Link>
               <Link href="/dashboard/models/upload">
-                <motion.div whileHover={{ y: -2, scale: 1.01 }} className="flex items-center gap-3 bg-card border border-border rounded-xl p-4 hover:shadow-md hover:border-emerald-500/30 transition-all cursor-pointer group">
-                  <div className="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center shrink-0 shadow-sm">
-                    <Upload className="w-5 h-5 text-white" />
+                <motion.div whileHover={{ y: -2, scale: 1.01 }} className="flex items-center gap-3 bg-card border border-border rounded-xl p-4 hover:shadow-md hover:border-border transition-all cursor-pointer group">
+                  <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center shrink-0">
+                    <Upload className="w-5 h-5 text-muted-foreground" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-foreground">Import Model</p>
@@ -371,9 +362,9 @@ export default function DashboardPage() {
                 </motion.div>
               </Link>
               <Link href="/dashboard/scenarios/compare">
-                <motion.div whileHover={{ y: -2, scale: 1.01 }} className="flex items-center gap-3 bg-card border border-border rounded-xl p-4 hover:shadow-md hover:border-purple-500/30 transition-all cursor-pointer group">
-                  <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center shrink-0 shadow-sm">
-                    <GitCompareArrows className="w-5 h-5 text-white" />
+                <motion.div whileHover={{ y: -2, scale: 1.01 }} className="flex items-center gap-3 bg-card border border-border rounded-xl p-4 hover:shadow-md hover:border-border transition-all cursor-pointer group">
+                  <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center shrink-0">
+                    <GitCompareArrows className="w-5 h-5 text-muted-foreground" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-foreground">Compare Scenarios</p>
@@ -383,9 +374,9 @@ export default function DashboardPage() {
                 </motion.div>
               </Link>
               <Link href="/dashboard/analytics">
-                <motion.div whileHover={{ y: -2, scale: 1.01 }} className="flex items-center gap-3 bg-card border border-border rounded-xl p-4 hover:shadow-md hover:border-amber-500/30 transition-all cursor-pointer group">
-                  <div className="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center shrink-0 shadow-sm">
-                    <Zap className="w-5 h-5 text-white" />
+                <motion.div whileHover={{ y: -2, scale: 1.01 }} className="flex items-center gap-3 bg-card border border-border rounded-xl p-4 hover:shadow-md hover:border-border transition-all cursor-pointer group">
+                  <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center shrink-0">
+                    <Zap className="w-5 h-5 text-muted-foreground" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-foreground">Analytics</p>

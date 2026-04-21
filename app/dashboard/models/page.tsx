@@ -208,7 +208,7 @@ export default function ModelsPage() {
       </Tabs>
 
       {/* Quick Actions */}
-      <Card className="p-6 border-l-4 border-l-primary bg-secondary/50">
+      <Card className="p-6 bg-secondary/50">
         <h3 className="font-semibold text-foreground mb-3">Quick Actions</h3>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm">
