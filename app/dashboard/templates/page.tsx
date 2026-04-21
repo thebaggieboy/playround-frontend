@@ -1,17 +1,35 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Plus, Search, Star, FileText, Loader2 } from "lucide-react"
+import { Plus, Search, Star, FileText, Loader2, Building2, Factory, Laptop, ShoppingBag, Briefcase, Hotel, Zap, Droplet, Heart, Leaf, HardHat, Box } from "lucide-react"
 import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useSelector } from "react-redux"
 import { selectToken } from '@/features/token/tokenSlice'
+
+const INDUSTRY_ICONS: Record<string, { icon: any; color: string; bg: string }> = {
+  manufacturing: { icon: Factory, color: "text-blue-600", bg: "bg-blue-100 dark:bg-blue-900/30" },
+  technology: { icon: Laptop, color: "text-purple-600", bg: "bg-purple-100 dark:bg-purple-900/30" },
+  retail: { icon: ShoppingBag, color: "text-pink-600", bg: "bg-pink-100 dark:bg-pink-900/30" },
+  services: { icon: Briefcase, color: "text-teal-600", bg: "bg-teal-100 dark:bg-teal-900/30" },
+  real_estate: { icon: Building2, color: "text-amber-600", bg: "bg-amber-100 dark:bg-amber-900/30" },
+  hospitality: { icon: Hotel, color: "text-rose-600", bg: "bg-rose-100 dark:bg-rose-900/30" },
+  energy_and_power: { icon: Zap, color: "text-yellow-600", bg: "bg-yellow-100 dark:bg-yellow-900/30" },
+  oil_and_gas: { icon: Droplet, color: "text-orange-600", bg: "bg-orange-100 dark:bg-orange-900/30" },
+  healthcare: { icon: Heart, color: "text-red-600", bg: "bg-red-100 dark:bg-red-900/30" },
+  agriculture: { icon: Leaf, color: "text-green-600", bg: "bg-green-100 dark:bg-green-900/30" },
+  infrastructure: { icon: HardHat, color: "text-slate-600", bg: "bg-slate-100 dark:bg-slate-900/30" },
+  general: { icon: Box, color: "text-indigo-600", bg: "bg-indigo-100 dark:bg-indigo-900/30" },
+}
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
 
 export default function TemplatesPage() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("All")
 
@@ -131,6 +149,9 @@ export default function TemplatesPage() {
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
               {filteredTemplates.map((template, idx) => {
+                const typeKey = (template.project_type || 'general').toLowerCase().replace(/ /g, '_').replace(/&/g, 'and')
+                const industryStyle = INDUSTRY_ICONS[typeKey] || INDUSTRY_ICONS.general
+                const IndustryIcon = industryStyle.icon
                 return (
                   <motion.div
                     key={template.id}
@@ -139,20 +160,23 @@ export default function TemplatesPage() {
                     transition={{ delay: idx * 0.05 }}
                   >
                     <Link href={`/dashboard/templates/category/${(template.project_type || 'general').toLowerCase().replace(/_/g, '-')}`}>
-                      <Card className="p-6 hover:shadow-lg transition-shadow h-full flex flex-col cursor-pointer border hover:border-primary/50">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <FileText className="w-6 h-6 text-blue-600" />
+                      <Card className="group p-0 overflow-hidden hover:shadow-lg transition-all h-full flex flex-col cursor-pointer border hover:border-primary/50">
+                        {/* Gradient accent */}
+                        <div className={`h-1.5 ${industryStyle.bg.replace('bg-', 'bg-gradient-to-r from-').replace('dark:', '')} to-transparent`} />
+                        <div className="p-6 flex flex-col flex-1">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className={`w-12 h-12 ${industryStyle.bg} rounded-xl flex items-center justify-center`}>
+                              <IndustryIcon className={`w-6 h-6 ${industryStyle.color}`} />
+                            </div>
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              className="text-muted-foreground hover:text-yellow-500 transition-colors"
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
+                            >
+                              <Star className="w-5 h-5" />
+                            </motion.button>
                           </div>
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            className="text-muted-foreground hover:text-yellow-500"
-                            onClick={(e) => { e.preventDefault() }}
-                          >
-                            <Star className="w-5 h-5" />
-                          </motion.button>
-                        </div>
 
                         <h3 className="text-lg font-semibold text-foreground mb-2">{template.name}</h3>
                         <p className="text-sm text-muted-foreground mb-4 flex-1">{template.description || "No description provided."}</p>
@@ -173,13 +197,18 @@ export default function TemplatesPage() {
                           )}
                         </div>
 
-                        <div className="flex items-center justify-between pt-4 border-t border-border mt-auto">
-                          <span className="text-xs text-muted-foreground">
-                            {template.created_at ? new Date(template.created_at).toLocaleDateString() : 'Recent'}
-                          </span>
-                          <Button size="sm" variant="outline" onClick={(e) => { e.preventDefault(); /* router.push logic maybe later */ }}>
-                            Use Template
-                          </Button>
+                          <div className="flex items-center justify-between pt-4 border-t border-border mt-auto">
+                            <span className="text-xs text-muted-foreground">
+                              {template.created_at ? new Date(template.created_at).toLocaleDateString() : 'Recent'}
+                            </span>
+                            <Button size="sm" variant="outline" className="gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              router.push('/dashboard/models/input/advanced')
+                            }}>
+                              Use Template
+                            </Button>
+                          </div>
                         </div>
                       </Card>
                     </Link>

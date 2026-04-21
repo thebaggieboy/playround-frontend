@@ -5,13 +5,15 @@ import Link from "next/link"
 import {
   LayoutDashboard, FileText, BarChart3, Layout, Settings,
   LogOut, Menu, X, PenSquare, MessageSquare, PieChart,
-  Layers, ChevronLeft, ChevronRight
+  Layers, ChevronLeft, ChevronRight, GitCompareArrows,
+  Upload, Sun, Moon
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
 import { useDispatch } from "react-redux"
 import { setToken } from "@/features/token/tokenSlice"
 import { setUser } from "@/features/user/userSlice"
+import { useTheme } from "next-themes"
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
@@ -19,7 +21,9 @@ const menuItems = [
   { icon: PieChart, label: "Analytics", href: "/dashboard/analytics" },
   { icon: BarChart3, label: "Models", href: "/dashboard/models" },
   { icon: PenSquare, label: "Input Model", href: "/dashboard/models/input/advanced" },
+  { icon: Upload, label: "Import Model", href: "/dashboard/models/upload" },
   { icon: Layers, label: "Scenarios", href: "/dashboard/scenarios" },
+  { icon: GitCompareArrows, label: "Compare", href: "/dashboard/scenarios/compare" },
   { icon: Layout, label: "Templates", href: "/dashboard/templates" },
   { icon: FileText, label: "Reports", href: "/dashboard/reports" },
   { icon: Settings, label: "Settings", href: "/dashboard/settings" },
@@ -30,6 +34,10 @@ export default function DashboardSidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const pathname = usePathname()
   const dispatch = useDispatch()
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
 
   // Persist collapse state
   useEffect(() => {
@@ -157,8 +165,39 @@ export default function DashboardSidebar() {
           ))}
         </nav>
 
-        {/* Bottom: Logout + Collapse toggle */}
+        {/* Bottom: Dark mode + Logout + Collapse */}
         <div className="p-2 border-t border-border space-y-1">
+          {/* Dark Mode Toggle */}
+          {mounted && (
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              title={isCollapsed ? (theme === 'dark' ? 'Light mode' : 'Dark mode') : undefined}
+              className="relative w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-foreground hover:bg-secondary transition-colors group"
+            >
+              {theme === 'dark'
+                ? <Sun className="w-4 h-4 flex-shrink-0" />
+                : <Moon className="w-4 h-4 flex-shrink-0" />
+              }
+              <AnimatePresence>
+                {!isCollapsed && (
+                  <motion.span
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: "auto" }}
+                    exit={{ opacity: 0, width: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="font-medium text-xs whitespace-nowrap overflow-hidden"
+                  >
+                    {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+              {isCollapsed && (
+                <div className="absolute left-full ml-2 py-1 px-2 bg-foreground text-background text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-md">
+                  {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                </div>
+              )}
+            </button>
+          )}
           <button
             onClick={handleLogout}
             title={isCollapsed ? "Logout" : undefined}

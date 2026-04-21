@@ -27,6 +27,7 @@ import {
     ArrowDownRight,
     Shield,
     Clock,
+    Sliders,
 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -334,6 +335,10 @@ export default function ScenarioDetailPage() {
                     </div>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
+                    <Button variant="outline" onClick={() => router.push(`/dashboard/scenarios/${id}/sensitivity`)} className="gap-2" disabled={!hasResults}>
+                        <Sliders className="w-4 h-4" />
+                        Sensitivity
+                    </Button>
                     <Button variant="outline" onClick={handleExportExcel} disabled={isExporting} className="gap-2">
                         {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                         Excel
@@ -355,6 +360,9 @@ export default function ScenarioDetailPage() {
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="dashboard" disabled={!hasResults}>
                         Dashboard
+                    </TabsTrigger>
+                    <TabsTrigger value="charts" disabled={!hasResults}>
+                        Charts
                     </TabsTrigger>
                     <TabsTrigger value="statements" disabled={!hasResults}>
                         Statements
@@ -605,6 +613,136 @@ export default function ScenarioDetailPage() {
                                                     <Area type="monotone" dataKey="netMargin" name="Net Margin" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.1} strokeWidth={2} />
                                                 </AreaChart>
                                             </ResponsiveContainer>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </>
+                    )}
+                </TabsContent>
+
+                {/* ═══════════ CHARTS TAB ═══════════ */}
+                <TabsContent value="charts" className="space-y-6">
+                    {parsed && (
+                        <>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {/* Revenue & EBITDA & Net Income */}
+                                <Card>
+                                    <CardHeader className="pb-2">
+                                        <CardTitle className="text-base flex items-center gap-2">
+                                            <BarChart3 className="w-4 h-4 text-primary" />
+                                            Revenue, EBITDA & Net Income
+                                        </CardTitle>
+                                        <CardDescription>Annual financial performance trend</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="h-[350px]">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <BarChart data={parsed.trendData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                                                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                                                    <XAxis dataKey="period" tick={{ fontSize: 10 }} />
+                                                    <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => {
+                                                        if (Math.abs(v) >= 1e9) return `${(v / 1e9).toFixed(0)}B`
+                                                        if (Math.abs(v) >= 1e6) return `${(v / 1e6).toFixed(0)}M`
+                                                        return `${(v / 1e3).toFixed(0)}K`
+                                                    }} />
+                                                    <Tooltip formatter={(value: number) => formatCurrency(value)} contentStyle={{ borderRadius: "8px", fontSize: 12 }} />
+                                                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                                                    <Bar dataKey="revenue" name="Revenue" fill="#3b82f6" radius={[2, 2, 0, 0]} />
+                                                    <Bar dataKey="ebitda" name="EBITDA" fill="#10b981" radius={[2, 2, 0, 0]} />
+                                                    <Bar dataKey="netIncome" name="Net Income" fill="#8b5cf6" radius={[2, 2, 0, 0]} />
+                                                </BarChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Profitability Margins */}
+                                <Card>
+                                    <CardHeader className="pb-2">
+                                        <CardTitle className="text-base flex items-center gap-2">
+                                            <Percent className="w-4 h-4 text-primary" />
+                                            Profitability Margins (%)
+                                        </CardTitle>
+                                        <CardDescription>EBITDA and Net margins over time</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="h-[350px]">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <AreaChart data={parsed.marginData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                                                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                                                    <XAxis dataKey="period" tick={{ fontSize: 10 }} />
+                                                    <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${v}%`} />
+                                                    <Tooltip formatter={(value: number) => `${value.toFixed(1)}%`} contentStyle={{ borderRadius: "8px", fontSize: 12 }} />
+                                                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                                                    <Area type="monotone" dataKey="ebitdaMargin" name="EBITDA Margin" stroke="#10b981" fill="#10b981" fillOpacity={0.15} strokeWidth={2} />
+                                                    <Area type="monotone" dataKey="netMargin" name="Net Margin" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.1} strokeWidth={2} />
+                                                </AreaChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Net Income Area */}
+                                <Card>
+                                    <CardHeader className="pb-2">
+                                        <CardTitle className="text-base flex items-center gap-2">
+                                            <DollarSign className="w-4 h-4 text-primary" />
+                                            Net Income Trend
+                                        </CardTitle>
+                                        <CardDescription>Bottom line performance over project life</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="h-[350px]">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <AreaChart data={parsed.trendData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                                                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                                                    <XAxis dataKey="period" tick={{ fontSize: 10 }} />
+                                                    <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => {
+                                                        if (Math.abs(v) >= 1e9) return `${(v / 1e9).toFixed(0)}B`
+                                                        if (Math.abs(v) >= 1e6) return `${(v / 1e6).toFixed(0)}M`
+                                                        return `${(v / 1e3).toFixed(0)}K`
+                                                    }} />
+                                                    <Tooltip formatter={(value: number) => formatCurrency(value)} contentStyle={{ borderRadius: "8px", fontSize: 12 }} />
+                                                    <Area type="monotone" dataKey="netIncome" name="Net Income" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.15} strokeWidth={2} />
+                                                </AreaChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                {/* DSCR Over Time */}
+                                <Card>
+                                    <CardHeader className="pb-2">
+                                        <CardTitle className="text-base flex items-center gap-2">
+                                            <Shield className="w-4 h-4 text-primary" />
+                                            Debt Service Coverage Ratio (DSCR)
+                                        </CardTitle>
+                                        <CardDescription>DSCR over time with 1.3x threshold</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="h-[350px]">
+                                            {(() => {
+                                                const dscrLine = parsed.ratios.find((r: any) => r.line_item === 'DSCR')
+                                                const dscrData = dscrLine ? parsed.periods.map((p: string) => ({
+                                                    period: p,
+                                                    dscr: dscrLine.values_by_period[p] || 0,
+                                                    threshold: 1.3,
+                                                })) : []
+                                                return (
+                                                    <ResponsiveContainer width="100%" height="100%">
+                                                        <LineChart data={dscrData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                                                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                                                            <XAxis dataKey="period" tick={{ fontSize: 10 }} />
+                                                            <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${v}x`} />
+                                                            <Tooltip formatter={(value: number) => `${value.toFixed(2)}x`} contentStyle={{ borderRadius: "8px", fontSize: 12 }} />
+                                                            <Legend wrapperStyle={{ fontSize: 11 }} />
+                                                            <Line type="monotone" dataKey="dscr" name="DSCR" stroke="#3b82f6" strokeWidth={2.5} dot={{ r: 3 }} />
+                                                            <Line type="monotone" dataKey="threshold" name="Min Threshold (1.3x)" stroke="#ef4444" strokeDasharray="5 5" strokeWidth={1.5} dot={false} />
+                                                        </LineChart>
+                                                    </ResponsiveContainer>
+                                                )
+                                            })()}
                                         </div>
                                     </CardContent>
                                 </Card>

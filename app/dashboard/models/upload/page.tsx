@@ -325,129 +325,144 @@ export default function UploadModelPage() {
                         onChange={handleFileSelect}
                     />
 
-                    {/* Parsed Model Viewer */}
+                    {/* Parsed Model Viewer — Full Width, No Sidebar */}
                     <AnimatePresence>
                         {parsedModel && (
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0 }}
-                                className="space-y-6"
+                                className="space-y-4"
                             >
-                                {/* File Summary */}
-                                <Card>
-                                    <CardHeader className="pb-3">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                                                    <FileSpreadsheet className="w-5 h-5 text-primary" />
-                                                </div>
-                                                <div>
-                                                    <CardTitle className="text-lg">{parsedModel.filename}</CardTitle>
-                                                    <CardDescription>
-                                                        {parsedModel.summary.totalSheets} sheets · {parsedModel.summary.totalCells.toLocaleString()} cells · {formatFileSize(parsedModel.fileSize)}
-                                                    </CardDescription>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <Badge variant="secondary">{parsedModel.summary.detectedType}</Badge>
-                                                <Button variant="outline" size="sm" onClick={handleClearFile} className="gap-2">
-                                                    <Upload className="w-3 h-3" />
-                                                    Upload New
-                                                </Button>
-                                            </div>
+                                {/* File Summary Bar */}
+                                <div className="flex items-center justify-between bg-card border border-border rounded-xl px-5 py-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center">
+                                            <FileSpreadsheet className="w-4.5 h-4.5 text-primary" />
                                         </div>
-                                    </CardHeader>
-                                </Card>
+                                        <div>
+                                            <p className="font-semibold text-sm text-foreground">{parsedModel.filename}</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {parsedModel.summary.totalSheets} sheets · {parsedModel.summary.totalCells.toLocaleString()} cells · {formatFileSize(parsedModel.fileSize)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Badge variant="secondary" className="text-xs">{parsedModel.summary.detectedType}</Badge>
+                                        <Button variant="outline" size="sm" onClick={handleClearFile} className="gap-1.5 text-xs">
+                                            <Upload className="w-3 h-3" />
+                                            Upload New
+                                        </Button>
+                                    </div>
+                                </div>
 
-                                {/* Sheet Navigator + Data Viewer */}
-                                <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
-                                    {/* Sheet List */}
-                                    <Card className="lg:h-[600px] overflow-auto">
-                                        <CardHeader className="pb-2 sticky top-0 bg-card z-10">
-                                            <CardTitle className="text-sm">Sheets ({parsedModel.sheets.length})</CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="p-2 space-y-0.5">
-                                            {parsedModel.sheets.map(sheet => (
+                                {/* Spreadsheet Viewer */}
+                                <Card className="overflow-hidden border border-border shadow-sm">
+                                    {/* Sheet Tabs — Horizontal scrollable strip */}
+                                    <div className="border-b border-border bg-muted/30">
+                                        <div className="flex items-center overflow-x-auto scrollbar-none">
+                                            {parsedModel.sheets.map((sheet, idx) => (
                                                 <button
                                                     key={sheet.name}
                                                     onClick={() => setActiveSheet(sheet.name)}
-                                                    className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all ${
+                                                    className={`relative shrink-0 px-4 py-2.5 text-xs font-medium transition-all border-r border-border/50 whitespace-nowrap ${
                                                         activeSheet === sheet.name
-                                                            ? 'bg-primary text-primary-foreground font-medium'
-                                                            : 'hover:bg-muted text-foreground'
+                                                            ? 'bg-card text-foreground shadow-sm'
+                                                            : 'text-muted-foreground hover:bg-card/50 hover:text-foreground'
                                                     }`}
                                                 >
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="truncate">{sheet.name}</span>
-                                                        <Badge variant={activeSheet === sheet.name ? 'secondary' : 'outline'} className="text-[10px] shrink-0 ml-2">
-                                                            {sheet.totalRows}×{sheet.totalCols}
-                                                        </Badge>
-                                                    </div>
+                                                    {sheet.name}
+                                                    {activeSheet === sheet.name && (
+                                                        <motion.div
+                                                            layoutId="activeSheetTab"
+                                                            className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                                                        />
+                                                    )}
                                                 </button>
                                             ))}
-                                        </CardContent>
-                                    </Card>
+                                        </div>
+                                    </div>
+
+                                    {/* Sheet Info Bar */}
+                                    {activeSheetData && (
+                                        <div className="flex items-center justify-between px-4 py-2 bg-muted/20 border-b border-border/50 text-xs text-muted-foreground">
+                                            <span>{activeSheetData.totalRows} rows × {activeSheetData.totalCols} columns</span>
+                                            {activeSheetData.totalRows > activeSheetData.rows.length && (
+                                                <span className="text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                                                    <AlertTriangle className="w-3 h-3" />
+                                                    Showing first {activeSheetData.rows.length} of {activeSheetData.totalRows} rows
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
 
                                     {/* Data Table */}
-                                    <Card className="lg:h-[600px] overflow-hidden flex flex-col">
+                                    <div className="overflow-auto" style={{ maxHeight: 'calc(100vh - 340px)' }}>
                                         {activeSheetData ? (
-                                            <>
-                                                <CardHeader className="pb-2 shrink-0 border-b">
-                                                    <div className="flex items-center justify-between">
-                                                        <div>
-                                                            <CardTitle className="text-base">{activeSheetData.name}</CardTitle>
-                                                            <CardDescription>
-                                                                {activeSheetData.totalRows} rows × {activeSheetData.totalCols} columns
-                                                            </CardDescription>
-                                                        </div>
-                                                    </div>
-                                                </CardHeader>
-                                                <CardContent className="p-0 flex-1 overflow-auto">
-                                                    <table className="w-full text-sm border-collapse">
-                                                        <thead className="sticky top-0 z-10">
-                                                            <tr className="bg-muted">
-                                                                <th className="text-left p-2 font-medium text-muted-foreground border-b border-r text-xs w-10">#</th>
-                                                                {activeSheetData.headers.map((h, i) => (
-                                                                    <th key={i} className="text-left p-2 font-semibold border-b border-r text-xs min-w-[100px] max-w-[200px] truncate bg-muted">
-                                                                        {h || `Col ${i + 1}`}
-                                                                    </th>
-                                                                ))}
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {activeSheetData.rows.map((row, rowIdx) => (
-                                                                <tr key={rowIdx} className="hover:bg-muted/30 transition-colors border-b border-border/30">
-                                                                    <td className="p-2 text-xs text-muted-foreground border-r bg-muted/20 font-mono">{rowIdx + 1}</td>
-                                                                    {row.map((cell, colIdx) => (
-                                                                        <td key={colIdx} className={`p-2 text-xs border-r border-border/20 font-mono ${
-                                                                            typeof cell === 'number' ? 'text-right' : 'text-left'
-                                                                        } ${cell === null || cell === '' ? 'text-muted-foreground/30' : ''}`}>
-                                                                            {cell !== null && cell !== '' 
-                                                                                ? typeof cell === 'number' 
-                                                                                    ? cell.toLocaleString(undefined, { maximumFractionDigits: 2 })
-                                                                                    : String(cell)
-                                                                                : '—'}
-                                                                        </td>
-                                                                    ))}
-                                                                </tr>
-                                                            ))}
-                                                        </tbody>
-                                                    </table>
-                                                    {activeSheetData.totalRows > activeSheetData.rows.length && (
-                                                        <div className="p-3 text-center text-xs text-muted-foreground bg-muted/30 border-t">
-                                                            Showing first {activeSheetData.rows.length} of {activeSheetData.totalRows} rows
-                                                        </div>
-                                                    )}
-                                                </CardContent>
-                                            </>
+                                            <table className="w-full text-[11px] border-collapse font-mono" style={{ minWidth: `${Math.max(activeSheetData.headers.length * 120, 800)}px` }}>
+                                                <thead className="sticky top-0 z-20">
+                                                    <tr>
+                                                        {/* Row number header */}
+                                                        <th className="bg-[#f0f0f0] dark:bg-[#2a2a2a] text-center p-1.5 font-semibold text-muted-foreground border-b border-r border-[#d0d0d0] dark:border-[#444] w-12 sticky left-0 z-30">
+                                                            
+                                                        </th>
+                                                        {activeSheetData.headers.map((h, i) => (
+                                                            <th
+                                                                key={i}
+                                                                className="bg-[#f0f0f0] dark:bg-[#2a2a2a] text-left px-2 py-1.5 font-semibold border-b border-r border-[#d0d0d0] dark:border-[#444] text-foreground"
+                                                                style={{ minWidth: '100px' }}
+                                                                title={h}
+                                                            >
+                                                                <div className="flex flex-col">
+                                                                    <span className="text-[9px] text-muted-foreground font-normal mb-0.5">
+                                                                        {String.fromCharCode(65 + (i % 26))}{i >= 26 ? String.fromCharCode(65 + Math.floor(i / 26) - 1) : ''}
+                                                                    </span>
+                                                                    <span className="leading-tight">{h}</span>
+                                                                </div>
+                                                            </th>
+                                                        ))}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {activeSheetData.rows.map((row, rowIdx) => (
+                                                        <tr
+                                                            key={rowIdx}
+                                                            className={`${rowIdx % 2 === 0 ? 'bg-card' : 'bg-muted/10'} hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-colors`}
+                                                        >
+                                                            {/* Row number */}
+                                                            <td className="bg-[#f0f0f0] dark:bg-[#2a2a2a] text-center p-1.5 text-muted-foreground border-r border-b border-[#d0d0d0] dark:border-[#444] font-semibold sticky left-0 z-10 select-none">
+                                                                {rowIdx + 2}
+                                                            </td>
+                                                            {row.map((cell, colIdx) => {
+                                                                const isNumber = typeof cell === 'number'
+                                                                const isEmpty = cell === null || cell === ''
+                                                                return (
+                                                                    <td
+                                                                        key={colIdx}
+                                                                        className={`px-2 py-1 border-r border-b border-[#e8e8e8] dark:border-[#333] ${
+                                                                            isNumber ? 'text-right tabular-nums' : 'text-left'
+                                                                        } ${isEmpty ? 'text-muted-foreground/20' : 'text-foreground'}`}
+                                                                    >
+                                                                        {isEmpty
+                                                                            ? ''
+                                                                            : isNumber
+                                                                                ? cell.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                                                                                : String(cell)
+                                                                        }
+                                                                    </td>
+                                                                )
+                                                            })}
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
                                         ) : (
-                                            <CardContent className="flex-1 flex items-center justify-center">
-                                                <p className="text-muted-foreground">Select a sheet to view its data</p>
-                                            </CardContent>
+                                            <div className="flex items-center justify-center py-20 text-muted-foreground text-sm">
+                                                Select a sheet to view its data
+                                            </div>
                                         )}
-                                    </Card>
-                                </div>
+                                    </div>
+                                </Card>
                             </motion.div>
                         )}
                     </AnimatePresence>

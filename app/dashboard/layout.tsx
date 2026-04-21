@@ -5,6 +5,7 @@ import type React from "react"
 import { motion } from "framer-motion"
 import DashboardSidebar from "@/components/dashboard/sidebar"
 import { CommandPalette } from "@/components/CommandPalette"
+import OnboardingTour from "@/components/onboarding-tour"
 import { useSelector } from "react-redux"
 import { selectToken } from "@/features/token/tokenSlice"
 import { useRouter } from "next/navigation"
@@ -47,6 +48,7 @@ export default function DashboardLayout({
   return (
     <div className="dashboard flex h-screen bg-background print:h-auto print:bg-white text-foreground print:text-black print:overflow-visible">
       <CommandPalette />
+      <OnboardingTour />
       <div className="print:hidden">
         <DashboardSidebar />
       </div>

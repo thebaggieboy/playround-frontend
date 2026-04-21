@@ -318,12 +318,39 @@ export default function ModelDetailPage() {
           </div>
         </div>
 
-        {/* Global Key Metrics Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        {/* Global Key Metrics + Model Health */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
           <MetricCard label="Completion" value={`${compPct}%`} icon={CheckCircle2} colorClass="border-l-primary" />
           <MetricCard label="Scenarios" value={model.scenarios?.length || 0} icon={FileText} colorClass="border-l-blue-500" />
           <MetricCard label="Created On" value={createdDate} icon={Clock} colorClass="border-l-amber-500" />
           <MetricCard label="Last Calculated" value={lastCalcDate !== "Never" ? "Done" : "Never"} icon={Activity} colorClass={lastCalcDate !== "Never" ? "border-l-green-500" : "border-l-neutral-400"} />
+          
+          {/* Model Health Indicator */}
+          <Card className="p-5 flex items-start gap-4 border-l-4 hover:shadow-md transition-shadow dark:bg-card/50 backdrop-blur-sm" style={{
+            borderLeftColor: compPct >= 80 && !model.calculation_error ? '#10b981' : compPct >= 50 ? '#f59e0b' : '#ef4444'
+          }}>
+            <div className="relative w-12 h-12 flex-shrink-0">
+              <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
+                <circle cx="18" cy="18" r="15.5" fill="none" stroke="hsl(var(--muted))" strokeWidth="3" />
+                <circle cx="18" cy="18" r="15.5" fill="none"
+                  stroke={compPct >= 80 && !model.calculation_error ? '#10b981' : compPct >= 50 ? '#f59e0b' : '#ef4444'}
+                  strokeWidth="3" strokeDasharray={`${(compPct / 100) * 97.4} 97.4`} strokeLinecap="round"
+                />
+              </svg>
+              <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-foreground">
+                {compPct >= 80 && !model.calculation_error ? '✅' : compPct >= 50 ? '⚠️' : '❌'}
+              </span>
+            </div>
+            <div className="space-y-1 min-w-0">
+              <p className="text-sm font-medium text-muted-foreground">Model Health</p>
+              <p className="text-sm font-bold text-foreground">
+                {compPct >= 80 && !model.calculation_error ? 'Healthy' : compPct >= 50 ? 'Needs Review' : 'Incomplete'}
+              </p>
+              <p className="text-[10px] text-muted-foreground truncate">
+                {compPct}% complete{model.calculation_error ? ' · Has errors' : lastCalcDate !== "Never" ? ' · Calculated' : ''}
+              </p>
+            </div>
+          </Card>
         </div>
 
         {/* Main Tabs Area */}

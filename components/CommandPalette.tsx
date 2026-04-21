@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
   Search, LayoutDashboard, MessageSquare, PieChart,
   BarChart3, PenSquare, Layers, Layout, FileText,
-  Settings, Plus, ArrowRight
+  Settings, Plus, ArrowRight, Upload, GitCompareArrows,
+  Download, Keyboard
 } from "lucide-react"
 
 const navItems = [
@@ -15,15 +16,19 @@ const navItems = [
   { label: "Analytics", href: "/dashboard/analytics", icon: PieChart, group: "Navigate" },
   { label: "Models", href: "/dashboard/models", icon: BarChart3, group: "Navigate" },
   { label: "Input Model", href: "/dashboard/models/input/advanced", icon: PenSquare, group: "Navigate" },
+  { label: "Import Model", href: "/dashboard/models/upload", icon: Upload, group: "Navigate" },
   { label: "Scenarios", href: "/dashboard/scenarios", icon: Layers, group: "Navigate" },
+  { label: "Compare Scenarios", href: "/dashboard/scenarios/compare", icon: GitCompareArrows, group: "Navigate" },
   { label: "Templates", href: "/dashboard/templates", icon: Layout, group: "Navigate" },
   { label: "Reports", href: "/dashboard/reports", icon: FileText, group: "Navigate" },
   { label: "Settings", href: "/dashboard/settings", icon: Settings, group: "Navigate" },
 ]
 
 const actions = [
-  { label: "New Model", href: "/dashboard/models/input/basic", icon: Plus, group: "Actions" },
+  { label: "New Model", href: "/dashboard/models/input/basic", icon: Plus, group: "Actions", shortcut: "Ctrl+N" },
   { label: "New Advanced Model", href: "/dashboard/models/input/advanced", icon: PenSquare, group: "Actions" },
+  { label: "Import Model", href: "/dashboard/models/upload", icon: Upload, group: "Actions", shortcut: "Ctrl+U" },
+  { label: "Compare Scenarios", href: "/dashboard/scenarios/compare", icon: GitCompareArrows, group: "Actions", shortcut: "Ctrl+Shift+C" },
 ]
 
 const allItems = [...actions, ...navItems]
@@ -52,7 +57,22 @@ export function CommandPalette() {
         e.preventDefault()
         setOpen(prev => !prev)
       }
-      if (!open) return
+      // Global shortcuts (when palette is closed)
+      if (!open) {
+        if (e.key === "n" && (e.metaKey || e.ctrlKey) && !e.shiftKey) {
+          e.preventDefault()
+          router.push('/dashboard/models/input/basic')
+        }
+        if (e.key === "u" && (e.metaKey || e.ctrlKey)) {
+          e.preventDefault()
+          router.push('/dashboard/models/upload')
+        }
+        if (e.key === "C" && (e.metaKey || e.ctrlKey) && e.shiftKey) {
+          e.preventDefault()
+          router.push('/dashboard/scenarios/compare')
+        }
+        return
+      }
       if (e.key === "Escape") {
         setOpen(false)
         setQuery("")
@@ -150,6 +170,11 @@ export function CommandPalette() {
                           >
                             <item.icon className="w-4 h-4 flex-shrink-0" />
                             <span className="flex-1 text-left font-medium">{item.label}</span>
+                            {(item as any).shortcut && (
+                              <kbd className={`hidden sm:inline-flex h-5 items-center rounded border px-1.5 text-[10px] font-medium ${isSelected ? 'border-primary-foreground/30 text-primary-foreground/70' : 'border-border bg-muted text-muted-foreground'}`}>
+                                {(item as any).shortcut}
+                              </kbd>
+                            )}
                             {isSelected && <ArrowRight className="w-3.5 h-3.5 opacity-60" />}
                           </button>
                         )

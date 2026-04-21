@@ -1,7 +1,7 @@
 "use client"
 
 import { motion, AnimatePresence } from "framer-motion"
-import { BarChart3, TrendingUp, FileText, Plus, Clock, Activity, MessageSquare, Sliders, X, Sparkles } from "lucide-react"
+import { BarChart3, TrendingUp, FileText, Plus, Clock, Activity, MessageSquare, Sliders, X, Sparkles, Upload, GitCompareArrows, ArrowRight, Zap } from "lucide-react"
 import { selectToken } from '../../features/token/tokenSlice'
 import { selectUser } from "../../features/user/userSlice"
 import { useSelector } from "react-redux"
@@ -9,6 +9,7 @@ import { selectUserEmail } from '../../features/user/userActiveEmail'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 import {
   DndContext,
@@ -339,6 +340,61 @@ export default function DashboardPage() {
                 </div>
               </SortableContext>
             </DndContext>
+          </motion.section>
+
+          {/* Quick Actions */}
+          <motion.section variants={itemVariants} className="space-y-2">
+            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Quick Actions</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <Link href="/dashboard/models/input/advanced">
+                <motion.div whileHover={{ y: -2, scale: 1.01 }} className="flex items-center gap-3 bg-card border border-border rounded-xl p-4 hover:shadow-md hover:border-primary/30 transition-all cursor-pointer group">
+                  <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center shrink-0 shadow-sm">
+                    <Plus className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground">Create Model</p>
+                    <p className="text-xs text-muted-foreground">Build from scratch</p>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-muted-foreground ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                </motion.div>
+              </Link>
+              <Link href="/dashboard/models/upload">
+                <motion.div whileHover={{ y: -2, scale: 1.01 }} className="flex items-center gap-3 bg-card border border-border rounded-xl p-4 hover:shadow-md hover:border-emerald-500/30 transition-all cursor-pointer group">
+                  <div className="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center shrink-0 shadow-sm">
+                    <Upload className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground">Import Model</p>
+                    <p className="text-xs text-muted-foreground">Upload Excel/CSV</p>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-muted-foreground ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                </motion.div>
+              </Link>
+              <Link href="/dashboard/scenarios/compare">
+                <motion.div whileHover={{ y: -2, scale: 1.01 }} className="flex items-center gap-3 bg-card border border-border rounded-xl p-4 hover:shadow-md hover:border-purple-500/30 transition-all cursor-pointer group">
+                  <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center shrink-0 shadow-sm">
+                    <GitCompareArrows className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground">Compare Scenarios</p>
+                    <p className="text-xs text-muted-foreground">Side-by-side analysis</p>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-muted-foreground ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                </motion.div>
+              </Link>
+              <Link href="/dashboard/analytics">
+                <motion.div whileHover={{ y: -2, scale: 1.01 }} className="flex items-center gap-3 bg-card border border-border rounded-xl p-4 hover:shadow-md hover:border-amber-500/30 transition-all cursor-pointer group">
+                  <div className="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center shrink-0 shadow-sm">
+                    <Zap className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground">Analytics</p>
+                    <p className="text-xs text-muted-foreground">Portfolio insights</p>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-muted-foreground ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                </motion.div>
+              </Link>
+            </div>
           </motion.section>
 
           {/* Recent Reports */}
