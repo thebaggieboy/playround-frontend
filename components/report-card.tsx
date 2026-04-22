@@ -94,14 +94,16 @@ export function ReportCard({
 
   return (
     <Link href={`/dashboard/reports/${id}`}>
-      <Card className="group h-full p-6 cursor-pointer border-l-4 border-l-primary/50 hover:border-l-primary transition-all hover:shadow-lg hover:bg-secondary">
-        <div className="space-y-4">
+      <Card className="group h-full p-5 lg:p-6 cursor-pointer border border-border/50 bg-card hover:border-primary/20 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 rounded-2xl flex flex-col">
+        <div className="space-y-5 flex-1 flex flex-col">
           {/* Header */}
           <div className="flex items-start justify-between">
             <div className="space-y-1 flex-1">
-              <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-primary opacity-60" />
-                <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{name}</h3>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center border border-primary/10">
+                  <FileText className="w-4 h-4 text-primary" />
+                </div>
+                <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors text-base">{name}</h3>
               </div>
               <p className="text-sm text-muted-foreground line-clamp-2">{description}</p>
             </div>
@@ -153,41 +155,29 @@ export function ReportCard({
           </div>
 
           {/* Key Metrics — only shown when calculated data exists */}
-          {hasData && (
-            <div className="grid grid-cols-3 gap-2 py-2 border-y border-border/50">
-              <div className="text-center space-y-0.5">
-                <div className="flex items-center justify-center gap-1">
-                  <DollarSign className="w-3 h-3 text-primary opacity-60" />
-                  <span className="text-[10px] text-muted-foreground uppercase font-medium">Revenue</span>
-                </div>
-                <p className="text-sm font-bold text-foreground">{peakRevenue !== null ? fmt(peakRevenue) : '—'}</p>
+          {hasData ? (
+            <div className="grid grid-cols-3 gap-2 py-3 bg-secondary/30 rounded-xl px-3 border border-border/40 mt-auto">
+              <div className="text-center space-y-1">
+                <span className="text-[10px] text-muted-foreground uppercase font-medium tracking-wider flex items-center justify-center gap-1"><DollarSign className="w-3 h-3" /> Rev</span>
+                <p className="text-[13px] font-bold text-foreground">{peakRevenue !== null ? fmt(peakRevenue) : '—'}</p>
               </div>
-              <div className="text-center space-y-0.5">
-                <div className="flex items-center justify-center gap-1">
-                  <TrendingUp className="w-3 h-3 text-green-500 opacity-60" />
-                  <span className="text-[10px] text-muted-foreground uppercase font-medium">EBITDA</span>
-                </div>
-                <p className="text-sm font-bold text-foreground">{lastEbitda !== null ? fmt(lastEbitda) : '—'}</p>
+              <div className="text-center space-y-1 border-x border-border/40">
+                <span className="text-[10px] text-muted-foreground uppercase font-medium tracking-wider flex items-center justify-center gap-1"><TrendingUp className="w-3 h-3 text-green-500" /> EBITDA</span>
+                <p className="text-[13px] font-bold text-foreground">{lastEbitda !== null ? fmt(lastEbitda) : '—'}</p>
               </div>
-              <div className="text-center space-y-0.5">
-                <div className="flex items-center justify-center gap-1">
-                  <Activity className="w-3 h-3 text-blue-500 opacity-60" />
-                  <span className="text-[10px] text-muted-foreground uppercase font-medium">Net Income</span>
-                </div>
-                <p className="text-sm font-bold text-foreground">{lastNetIncome !== null ? fmt(lastNetIncome) : '—'}</p>
+              <div className="text-center space-y-1">
+                <span className="text-[10px] text-muted-foreground uppercase font-medium tracking-wider flex items-center justify-center gap-1"><Activity className="w-3 h-3 text-blue-500" /> Net</span>
+                <p className="text-[13px] font-bold text-foreground">{lastNetIncome !== null ? fmt(lastNetIncome) : '—'}</p>
               </div>
             </div>
-          )}
-
-          {/* No data indicator */}
-          {!hasData && (
-            <div className="py-2 border-y border-border/50 text-center">
-              <span className="text-xs text-muted-foreground italic">No calculated data — run calculation to see metrics</span>
+          ) : (
+            <div className="py-4 bg-secondary/30 rounded-xl border border-border/40 mt-auto text-center flex items-center justify-center">
+              <span className="text-xs text-muted-foreground flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin opacity-50" /> No calculated data</span>
             </div>
           )}
 
           {/* Meta Information */}
-          <div className="space-y-2">
+          <div className="space-y-2 mt-4 flex-1">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Model:</span>
               <span className="font-medium text-foreground">{model_name || 'N/A'}</span>

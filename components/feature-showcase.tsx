@@ -61,7 +61,7 @@ export function FeatureShowcase() {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center max-w-3xl mx-auto mb-20">
                     <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight mb-4">
-                        Everything you need for <span className="text-blue-400">financial clarity</span>
+                        Everything you need for <span className="text-blue-400 block sm:inline mt-2 sm:mt-0" style={{ fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400, fontSize: "1.15em" }}>financial clarity</span>
                     </h2>
                     <p className="text-lg text-slate-400">
                         A complete suite of tools designed to transform complex financial data into beautiful, actionable insights.
@@ -120,9 +120,9 @@ export function FeatureShowcase() {
                                     <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                                     {/* Aspect ratio container for the screenshot */}
-                                    <div className="relative aspect-[16/10] w-full">
+                                    <div className="relative aspect-[16/10] sm:aspect-video w-full bg-[#0a1128]">
                                         {/* Fallback styling in case image hasn't been uploaded yet by user */}
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0a1128] text-slate-500 text-sm">
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500 text-sm">
                                             <feature.icon className="w-12 h-12 mb-4 opacity-50" />
                                             Uploading screenshot...
                                         </div>
@@ -131,7 +131,7 @@ export function FeatureShowcase() {
                                             src={feature.imageSrc}
                                             alt={feature.imageAlt}
                                             fill
-                                            className="object-cover object-top relative z-10"
+                                            className="object-contain object-center relative z-10"
                                             onError={(e) => {
                                                 // Hide broken image icon if image doesn't exist yet
                                                 e.currentTarget.style.display = 'none'

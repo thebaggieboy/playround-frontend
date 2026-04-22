@@ -59,25 +59,25 @@ const SCENARIO_TYPE_COLORS: Record<string, string> = {
 /*  Stat Card                                                         */
 /* ------------------------------------------------------------------ */
 const StatCard = ({ title, value, subtitle, icon: Icon, iconColor, isLoading }: any) => (
-  <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
-    <Card className="relative overflow-hidden">
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1.5">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{title}</p>
+  <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }} className="h-full">
+    <Card className="relative overflow-hidden h-full">
+      <CardContent className="p-3 sm:p-5 flex flex-col justify-center h-full">
+        <div className="flex items-start justify-between gap-2">
+          <div className="space-y-1 sm:space-y-1.5 min-w-0 flex-1">
+            <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider truncate" title={title}>{title}</p>
             {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground mt-2" />
+              <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin text-muted-foreground mt-1 sm:mt-2" />
             ) : (
               <>
-                <p className="text-2xl font-bold tracking-tight">{value}</p>
+                <p className="text-lg sm:text-2xl font-bold tracking-tight truncate" title={String(value)}>{value}</p>
                 {subtitle && (
-                  <p className="text-xs text-muted-foreground">{subtitle}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground truncate" title={subtitle}>{subtitle}</p>
                 )}
               </>
             )}
           </div>
-          <div className={`p-2.5 rounded-xl ${iconColor || "bg-primary/10"}`}>
-            <Icon className={`h-4.5 w-4.5 ${iconColor ? "text-white" : "text-primary"}`} />
+          <div className={`p-2 sm:p-2.5 rounded-xl shrink-0 ${iconColor || "bg-primary/10"}`}>
+            <Icon className={`h-3.5 w-3.5 sm:h-4.5 sm:w-4.5 ${iconColor ? "text-white" : "text-primary"}`} />
           </div>
         </div>
       </CardContent>
@@ -370,6 +370,93 @@ export default function AnalyticsPage() {
     return ((stats.successfulCalcs / stats.totalCalcs) * 100).toFixed(0)
   }, [stats])
 
+  /* ---- CAPEX by Industry ---- */
+  const capexByIndustryData = useMemo(() => {
+    const capexMap: Record<string, number> = {}
+    const modelTypes: Record<string, string> = {}
+    models.forEach(m => {
+      const type = m.project_type || m.project_type_display || "general"
+      modelTypes[m.id] = type.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())
+    })
+
+    scenarios.forEach((scenario: any) => {
+      const modelId = scenario.model || scenario.model_id
+      const pType = modelTypes[modelId] || "Unknown"
+      
+      let capex = 0
+      if (scenario.capital_expenditure) {
+        const ce = scenario.capital_expenditure
+        capex = parseFloat(ce.total_capex || ce.total_development_cost || 0) ||
+          ((parseFloat(ce.land_cost) || 0) +
+          (parseFloat(ce.construction_building_cost) || 0) +
+          (parseFloat(ce.equipment_machinery_cost) || 0) +
+          (parseFloat(ce.ffe_cost) || 0))
+      }
+      if (capex > 0) {
+        capexMap[pType] = (capexMap[pType] || 0) + capex
+      }
+    })
+
+    return Object.entries(capexMap)
+      .map(([name, capex]) => ({ name, capex }))
+      .sort((a, b) => b.capex - a.capex)
+  }, [models, scenarios])
+
+  /* ---- IRR Distribution ---- */
+  const irrDistributionData = useMemo(() => {
+    const buckets = [
+      { name: "< 10%", count: 0 },
+      { name: "10% - 15%", count: 0 },
+      { name: "15% - 20%", count: 0 },
+      { name: "20% - 25%", count: 0 },
+      { name: "> 25%", count: 0 },
+    ]
+    
+    scenarios.forEach((scenario: any) => {
+      if (scenario.exit_valuation?.target_irr_pct) {
+        const irr = parseFloat(scenario.exit_valuation.target_irr_pct)
+        if (irr < 10) buckets[0].count++
+        else if (irr < 15) buckets[1].count++
+        else if (irr < 20) buckets[2].count++
+        else if (irr < 25) buckets[3].count++
+        else buckets[4].count++
+      }
+    })
+    
+    return buckets
+  }, [scenarios])
+
+  /* ---- Capital Stack Breakdown ---- */
+  const capitalStackData = useMemo(() => {
+    let totalDebt = 0
+    let totalEquity = 0
+    
+    scenarios.forEach((scenario: any) => {
+      let capex = 0
+      if (scenario.capital_expenditure) {
+        const ce = scenario.capital_expenditure
+        capex = parseFloat(ce.total_capex || ce.total_development_cost || 0) ||
+          ((parseFloat(ce.land_cost) || 0) +
+          (parseFloat(ce.construction_building_cost) || 0) +
+          (parseFloat(ce.equipment_machinery_cost) || 0) +
+          (parseFloat(ce.ffe_cost) || 0))
+      }
+      
+      if (capex > 0 && scenario.debt_financing) {
+        const debtPct = parseFloat(scenario.debt_financing.debt_percentage) || 0
+        const equityPct = parseFloat(scenario.debt_financing.equity_percentage) || (Math.max(0, 100 - debtPct))
+        
+        totalDebt += capex * (debtPct / 100)
+        totalEquity += capex * (equityPct / 100)
+      }
+    })
+    
+    return [
+      { name: "Total Equity", value: totalEquity, fill: "#0ea5e9" },
+      { name: "Total Debt", value: totalDebt, fill: "#f59e0b" }
+    ].filter(d => d.value > 0)
+  }, [scenarios])
+
   /* ---- Average completion percentage ---- */
   const avgCompletion = useMemo(() => {
     if (models.length === 0) return 0
@@ -394,19 +481,19 @@ export default function AnalyticsPage() {
     <div className="flex flex-col h-full bg-background overflow-hidden">
       <DashboardHeader />
 
-      <main className="flex-1 overflow-auto p-6 lg:p-8">
+      <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
         <motion.div
-          className="max-w-7xl mx-auto space-y-8"
+          className="max-w-7xl mx-auto space-y-6 sm:space-y-8"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
 
           {/* Page Header */}
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Analytics Dashboard</h1>
-              <p className="text-sm text-muted-foreground mt-1">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Analytics Dashboard</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1 text-balance">
                 Comprehensive overview of your financial models, scenarios, and activity.
               </p>
             </div>
@@ -415,7 +502,7 @@ export default function AnalyticsPage() {
           {/* ====== TOP KPIs ====== */}
           <motion.div variants={itemVariants}>
             <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">Key Metrics</h2>
-            <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            <div className="grid gap-3 sm:gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               <StatCard
                 isLoading={isLoading}
                 title="Total Models"
@@ -428,7 +515,7 @@ export default function AnalyticsPage() {
                 isLoading={isLoading}
                 title="Total Scenarios"
                 value={stats.totalScenarios}
-                subtitle={stats.totalScenarios > 0 ? `${stats.baseScenarios} base · ${stats.upsideScenarios + stats.downsideScenarios + stats.customScenarios} variants` : "No scenarios yet"}
+                subtitle={stats.totalScenarios > 0 ? `${stats.baseScenarios} base · ${stats.upsideScenarios + stats.downsideScenarios + stats.customScenarios} vars` : "No scenarios"}
                 icon={Activity}
                 iconColor="bg-emerald-500"
               />
@@ -436,7 +523,7 @@ export default function AnalyticsPage() {
                 isLoading={isLoading}
                 title="Reports Generated"
                 value={stats.totalReports}
-                subtitle={stats.totalReports > 0 ? `${stats.completedReports} completed` : "No reports yet"}
+                subtitle={stats.totalReports > 0 ? `${stats.completedReports} completed` : "No reports"}
                 icon={FileText}
                 iconColor="bg-purple-500"
               />
@@ -444,7 +531,7 @@ export default function AnalyticsPage() {
                 isLoading={isLoading}
                 title="Calculations Run"
                 value={stats.totalCalcs}
-                subtitle={stats.totalCalcs > 0 ? `${calcSuccessRate}% success rate` : "No calculations yet"}
+                subtitle={stats.totalCalcs > 0 ? `${calcSuccessRate}% success` : "No calcs"}
                 icon={Zap}
                 iconColor="bg-amber-500"
               />
@@ -452,7 +539,7 @@ export default function AnalyticsPage() {
                 isLoading={isLoading}
                 title="Models Generated"
                 value={stats.calculatedModels}
-                subtitle={stats.totalModels > 0 ? `${Math.round((stats.calculatedModels / stats.totalModels) * 100)}% of total` : "No models yet"}
+                subtitle={stats.totalModels > 0 ? `${Math.round((stats.calculatedModels / stats.totalModels) * 100)}% of total` : "No models"}
                 icon={CheckCircle2}
                 iconColor="bg-teal-500"
               />
@@ -462,58 +549,58 @@ export default function AnalyticsPage() {
           {/* ====== FINANCIAL METRICS ====== */}
           <motion.div variants={itemVariants}>
             <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">Financial Summary</h2>
-            <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            <div className="grid gap-3 sm:gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               <StatCard
                 isLoading={isLoading}
-                title="Avg. Target IRR"
+                title="Avg Target IRR"
                 value={stats.avgIrr ? `${stats.avgIrr}%` : "—"}
-                subtitle={stats.avgIrr ? "Across all scenarios" : "No IRR data"}
+                subtitle={stats.avgIrr ? "Across scenarios" : "No IRR data"}
                 icon={TrendingUp}
                 iconColor="bg-green-500"
               />
               <StatCard
                 isLoading={isLoading}
-                title="Total CAPEX Modeled"
+                title="Total CAPEX"
                 value={stats.totalCapex > 0 ? formatCurrency(stats.totalCapex, true) : "—"}
-                subtitle={stats.avgCapex ? `Avg: ${formatCurrency(stats.avgCapex, true)}/scenario` : "No CAPEX data"}
+                subtitle={stats.avgCapex ? `Avg: ${formatCurrency(stats.avgCapex, true)}/scen` : "No CAPEX data"}
                 icon={DollarSign}
                 iconColor="bg-sky-500"
               />
               <StatCard
                 isLoading={isLoading}
-                title="Avg. Equity Split"
+                title="Avg Equity Split"
                 value={stats.avgEquity ? `${stats.avgEquity}%` : "—"}
-                subtitle={stats.avgDebt ? `Debt: ${stats.avgDebt}%` : "No financing data"}
+                subtitle={stats.avgDebt ? `Debt: ${stats.avgDebt}%` : "No data"}
                 icon={PieChartIcon}
                 iconColor="bg-indigo-500"
               />
               <StatCard
                 isLoading={isLoading}
-                title="Avg. Payback Period"
+                title="Avg Payback"
                 value={stats.avgPayback ? `${stats.avgPayback} yrs` : "—"}
-                subtitle={stats.avgLoanTenor ? `Loan tenor: ${stats.avgLoanTenor} yrs` : "No payback data"}
+                subtitle={stats.avgLoanTenor ? `Loan tenor: ${stats.avgLoanTenor} yrs` : "No data"}
                 icon={Clock}
                 iconColor="bg-rose-500"
               />
               <StatCard
                 isLoading={isLoading}
-                title="Avg. Loan Tenor"
+                title="Avg Loan Tenor"
                 value={stats.avgLoanTenor ? `${stats.avgLoanTenor} yrs` : "—"}
-                subtitle="Average across scenarios"
+                subtitle="Across scenarios"
                 icon={CreditCard}
                 iconColor="bg-orange-500"
               />
               <StatCard
                 isLoading={isLoading}
-                title="Avg. Tax Rate"
+                title="Avg Tax Rate"
                 value={stats.avgTaxRate ? `${stats.avgTaxRate}%` : "—"}
-                subtitle="Corporate income tax"
+                subtitle="Corporate tax"
                 icon={Percent}
                 iconColor="bg-red-500"
               />
               <StatCard
                 isLoading={isLoading}
-                title="Avg. WACC"
+                title="Avg WACC"
                 value={stats.avgWacc ? `${stats.avgWacc}%` : "—"}
                 subtitle="Discount rate"
                 icon={Target}
@@ -521,9 +608,9 @@ export default function AnalyticsPage() {
               />
               <StatCard
                 isLoading={isLoading}
-                title="Avg. Completion"
+                title="Avg Completion"
                 value={`${avgCompletion}%`}
-                subtitle="Model input progress"
+                subtitle="Model progress"
                 icon={CheckCircle2}
                 iconColor="bg-cyan-500"
               />
@@ -539,7 +626,7 @@ export default function AnalyticsPage() {
                 <CardDescription>Models, scenarios, and reports created per month</CardDescription>
               </CardHeader>
               <CardContent className="pl-2">
-                <div className="h-[320px] w-full flex items-center justify-center">
+                <div className="h-[200px] sm:h-[320px] w-full flex items-center justify-center">
                   {isLoading ? (
                     <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
                   ) : monthlyActivityData.every((d) => d.models === 0 && d.scenarios === 0 && d.reports === 0) ? (
@@ -574,7 +661,7 @@ export default function AnalyticsPage() {
                 <CardDescription>Distribution of models across sectors</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-[320px] w-full flex items-center justify-center">
+                <div className="h-[200px] sm:h-[320px] w-full flex items-center justify-center">
                   {isLoading ? (
                     <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
                   ) : projectTypesData.length === 0 ? (
@@ -611,8 +698,8 @@ export default function AnalyticsPage() {
             </Card>
           </motion.div>
 
-          {/* ====== CHARTS ROW 2: Model Status + Scenario Types ====== */}
-          <motion.div variants={itemVariants} className="grid gap-6 md:grid-cols-2">
+          {/* ====== CHARTS ROW 2: Model Status + Scenario Types + IRR Distribution ====== */}
+          <motion.div variants={itemVariants} className="grid gap-6 lg:grid-cols-3">
             {/* Model Status */}
             <Card className="shadow-sm">
               <CardHeader>
@@ -620,7 +707,7 @@ export default function AnalyticsPage() {
                 <CardDescription>Current status distribution of your models</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-[260px] w-full flex items-center justify-center">
+                <div className="h-[180px] sm:h-[260px] w-full flex items-center justify-center">
                   {isLoading ? (
                     <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
                   ) : modelStatusData.length === 0 ? (
@@ -663,7 +750,7 @@ export default function AnalyticsPage() {
                 <CardDescription>Types of scenarios across all models</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-[260px] w-full flex items-center justify-center">
+                <div className="h-[180px] sm:h-[260px] w-full flex items-center justify-center">
                   {isLoading ? (
                     <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
                   ) : scenarioTypeData.length === 0 ? (
@@ -702,6 +789,119 @@ export default function AnalyticsPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* IRR Distribution */}
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-base">Target IRR Distribution</CardTitle>
+                <CardDescription>Frequency of target IRRs across all scenarios</CardDescription>
+              </CardHeader>
+              <CardContent className="pl-2">
+                <div className="h-[180px] sm:h-[260px] w-full flex items-center justify-center">
+                  {isLoading ? (
+                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                  ) : irrDistributionData.every((d) => d.count === 0) ? (
+                    <div className="text-center">
+                      <BarChart3 className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">No IRR data found</p>
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={irrDistributionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                        <XAxis dataKey="name" stroke="#888888" fontSize={10} tickLine={false} axisLine={false} />
+                        <YAxis stroke="#888888" fontSize={10} tickLine={false} axisLine={false} allowDecimals={false} />
+                        <Tooltip
+                          contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: 12 }}
+                          formatter={(val) => [val, "Count"]}
+                        />
+                        <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* ====== CHARTS ROW 3: CapEx by Industry + Capital Stack ====== */}
+          <motion.div variants={itemVariants} className="grid gap-6 lg:grid-cols-7">
+            {/* CAPEX by Industry */}
+            <Card className="lg:col-span-4 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-base">CAPEX Deployment by Industry</CardTitle>
+                <CardDescription>Total capital expenditure modeled across project types</CardDescription>
+              </CardHeader>
+              <CardContent className="pl-2">
+                <div className="h-[200px] sm:h-[320px] w-full flex items-center justify-center">
+                  {isLoading ? (
+                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                  ) : capexByIndustryData.length === 0 ? (
+                    <div className="text-center">
+                      <Target className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">No capex data yet</p>
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={capexByIndustryData} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                        <XAxis dataKey="name" stroke="#888888" fontSize={11} tickLine={false} axisLine={false} />
+                        <YAxis stroke="#888888" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(value) => `$${(value / 1000000).toFixed(0)}M`} />
+                        <Tooltip
+                          formatter={(value: number) => formatCurrency(value, true)}
+                          contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)", fontSize: 12 }}
+                        />
+                        <Bar dataKey="capex" fill="#14b8a6" radius={[4, 4, 0, 0]} name="CAPEX" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Capital Stack */}
+            <Card className="lg:col-span-3 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-base">Global Capital Stack</CardTitle>
+                <CardDescription>Total Debt vs. Equity modeled across all scenarios</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[200px] sm:h-[320px] w-full flex items-center justify-center">
+                  {isLoading ? (
+                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                  ) : capitalStackData.length === 0 ? (
+                    <div className="text-center">
+                      <PieChartIcon className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">No financing data yet</p>
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={capitalStackData}
+                          cx="50%"
+                          cy="45%"
+                          innerRadius={65}
+                          outerRadius={100}
+                          paddingAngle={4}
+                          dataKey="value"
+                          stroke="none"
+                        >
+                          {capitalStackData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={(value: number) => formatCurrency(value, true)}
+                          contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)", fontSize: 12 }}
+                        />
+                        <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: 12 }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
 
           {/* ====== RECENT MODELS TABLE ====== */}
@@ -728,27 +928,27 @@ export default function AnalyticsPage() {
                     <table className="w-full text-sm text-left border-collapse whitespace-nowrap">
                       <thead className="sticky top-0 bg-card/95 backdrop-blur-xl z-20 shadow-sm border-b border-border/50">
                         <tr>
-                          <th className="py-3.5 px-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">Model Name</th>
-                          <th className="py-3.5 px-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">Type</th>
-                          <th className="py-3.5 px-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">Status</th>
-                          <th className="py-3.5 px-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">Completion</th>
-                          <th className="py-3.5 px-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">Last Updated</th>
-                          <th className="py-3.5 px-4 text-xs font-bold text-muted-foreground uppercase tracking-widest text-right">Calculated</th>
+                          <th className="py-2.5 sm:py-3.5 px-3 sm:px-4 text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest">Model Name</th>
+                          <th className="py-2.5 sm:py-3.5 px-3 sm:px-4 text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest">Type</th>
+                          <th className="py-2.5 sm:py-3.5 px-3 sm:px-4 text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest">Status</th>
+                          <th className="py-2.5 sm:py-3.5 px-3 sm:px-4 text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest">Completion</th>
+                          <th className="py-2.5 sm:py-3.5 px-3 sm:px-4 text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest">Last Updated</th>
+                          <th className="py-2.5 sm:py-3.5 px-3 sm:px-4 text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest text-right">Calculated</th>
                         </tr>
                       </thead>
                       <tbody>
                         {recentModels.map((model: any, idx: number) => (
                           <tr key={model.id} className={`group border-b border-border/30 hover:bg-primary/5 transition-colors duration-200 ${idx % 2 === 0 ? 'bg-transparent' : 'bg-muted/10'}`}>
-                            <td className="py-3 px-4 font-semibold text-foreground">{model.name || "Untitled"}</td>
-                            <td className="py-3 px-4">
-                              <Badge variant="secondary" className="text-[10px] font-medium tracking-wide bg-secondary/50">
+                            <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-semibold text-foreground text-xs sm:text-sm">{model.name || "Untitled"}</td>
+                            <td className="py-2.5 sm:py-3 px-3 sm:px-4">
+                              <Badge variant="secondary" className="text-[9px] sm:text-[10px] font-medium tracking-wide bg-secondary/50">
                                 {(model.project_type_display || model.project_type || "General").replace(/_/g, " ")}
                               </Badge>
                             </td>
-                            <td className="py-3 px-4">
+                            <td className="py-2.5 sm:py-3 px-3 sm:px-4">
                               <Badge
                                 variant="outline"
-                                className={`text-[10px] font-medium tracking-wide bg-transparent backdrop-blur-sm ${
+                                className={`text-[9px] sm:text-[10px] font-medium tracking-wide bg-transparent backdrop-blur-sm ${
                                   model.status === "active"
                                     ? "border-blue-400 text-blue-700 bg-blue-500/10 dark:border-blue-500/40 dark:text-blue-300"
                                     : model.status === "archived"
@@ -759,32 +959,33 @@ export default function AnalyticsPage() {
                                 {(model.status_display || model.status || "draft").charAt(0).toUpperCase() + (model.status_display || model.status || "draft").slice(1)}
                               </Badge>
                             </td>
-                            <td className="py-3 px-4">
-                              <div className="flex items-center gap-3">
-                                <div className="w-20 h-2 bg-muted/50 rounded-full overflow-hidden shadow-inner">
+                            <td className="py-2.5 sm:py-3 px-3 sm:px-4">
+                              <div className="flex items-center gap-2 sm:gap-3">
+                                <div className="w-12 sm:w-20 h-1.5 sm:h-2 bg-muted/50 rounded-full overflow-hidden shadow-inner flex-shrink-0">
                                   <div
                                     className="h-full bg-gradient-to-r from-primary/80 to-primary rounded-full transition-all duration-700 ease-out shadow-[0_0_8px_rgba(var(--color-primary),0.5)]"
                                     style={{ width: `${model.completion_percentage || 0}%` }}
                                   />
                                 </div>
-                                <span className="text-[11px] font-medium text-muted-foreground w-6 text-right">{model.completion_percentage || 0}%</span>
+                                <span className="text-[10px] sm:text-[11px] font-medium text-muted-foreground w-5 text-right flex-shrink-0">{model.completion_percentage || 0}%</span>
                               </div>
                             </td>
-                            <td className="py-3 px-4 text-muted-foreground text-xs font-medium">
+                            <td className="py-2.5 sm:py-3 px-3 sm:px-4 text-muted-foreground text-[10px] sm:text-xs font-medium">
                               {model.updated_at
-                                ? new Date(model.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                                ? new Date(model.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" })
                                 : "—"
                               }
                             </td>
-                            <td className="py-3 px-4 text-right">
+                            <td className="py-2.5 sm:py-3 px-3 sm:px-4 text-right">
                               {model.last_calculated_at ? (
-                                <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-                                  <CheckCircle2 className="w-3.5 h-3.5" />
-                                  {new Date(model.last_calculated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                <span className="inline-flex items-center gap-1 sm:gap-1.5 text-[9px] sm:text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full border border-emerald-500/20">
+                                  <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                                  <span className="hidden sm:inline">{new Date(model.last_calculated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                                  <span className="sm:hidden">{new Date(model.last_calculated_at).toLocaleDateString("en-US", { month: "numeric", day: "numeric" })}</span>
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground bg-muted/40 px-2.5 py-1 rounded-full border border-border/50">
-                                  <AlertCircle className="w-3.5 h-3.5" />
+                                <span className="inline-flex items-center gap-1 sm:gap-1.5 text-[9px] sm:text-[11px] font-semibold text-muted-foreground bg-muted/40 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full border border-border/50">
+                                  <AlertCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                                   Not yet
                                 </span>
                               )}

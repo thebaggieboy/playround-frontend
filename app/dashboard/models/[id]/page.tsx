@@ -23,6 +23,10 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { selectToken } from "@/features/token/tokenSlice"
@@ -46,13 +50,13 @@ function MetricCard({
   label: string; value: React.ReactNode; icon: any; colorClass: string
 }) {
   return (
-    <Card className="p-5 flex items-start gap-4 hover:shadow-md transition-shadow dark:bg-card/50 backdrop-blur-sm">
-      <div className={`p-2 rounded-lg ${colorClass.replace('border-l-', 'bg-').replace('-500', '-500/10').replace('primary', 'primary/10')}`}>
-        <Icon className={`w-5 h-5 ${colorClass.replace('border-l-', 'text-')}`} />
+    <Card className="p-3 sm:p-5 flex items-start gap-3 sm:gap-4 hover:shadow-md transition-shadow dark:bg-card/50 backdrop-blur-sm">
+      <div className={`p-1.5 sm:p-2 rounded-lg flex-shrink-0 ${colorClass.replace('border-l-', 'bg-').replace('-500', '-500/10').replace('primary', 'primary/10')}`}>
+        <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${colorClass.replace('border-l-', 'text-')}`} />
       </div>
-      <div className="space-y-1">
-        <p className="text-sm font-medium text-muted-foreground">{label}</p>
-        <p className="text-xl font-bold text-foreground">{value}</p>
+      <div className="space-y-0.5 sm:space-y-1 min-w-0">
+        <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{label}</p>
+        <p className="text-sm sm:text-xl font-bold text-foreground truncate">{value}</p>
       </div>
     </Card>
   )
@@ -70,6 +74,12 @@ export default function ModelDetailPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [isExportingPdf, setIsExportingPdf] = useState(false)
+
+  // Add Scenario States
+  const [isAddingScenario, setIsAddingScenario] = useState(false)
+  const [newScenarioName, setNewScenarioName] = useState("")
+  const [newScenarioType, setNewScenarioType] = useState<"upside" | "downside" | "custom">("upside")
+  const [isScenarioDialogOpen, setIsScenarioDialogOpen] = useState(false)
 
   const token = useSelector(selectToken)
   const { toast } = useToast()
@@ -108,6 +118,58 @@ export default function ModelDetailPage() {
       fetchModelDetails()
     }
   }, [id, token])
+
+  const handleAddScenario = async () => {
+      if (!newScenarioName.trim()) {
+          toast({ title: "Validation Error", description: "Scenario name is required", variant: "destructive" })
+          return
+      }
+
+      const baseScenario = model?.scenarios?.find((s: any) => s.scenario_type === 'base') || model?.scenarios?.[0]
+      if (!baseScenario) {
+          toast({ title: "Error", description: "No base scenario found to duplicate from.", variant: "destructive" })
+          return
+      }
+
+      setIsAddingScenario(true)
+      try {
+          const res = await fetch(`${API_BASE_URL}/scenarios/${baseScenario.id}/`, {
+              headers: { 'Authorization': `JWT ${getAuthToken()}` }
+          })
+          if (!res.ok) throw new Error("Failed to fetch base scenario for cloning")
+          
+          let fullScenarioData = await res.json()
+          
+          delete fullScenarioData.id
+          delete fullScenarioData.created_at
+          delete fullScenarioData.updated_at
+          delete fullScenarioData.results
+          
+          fullScenarioData.name = newScenarioName
+          fullScenarioData.scenario_type = newScenarioType
+          fullScenarioData.model = model.id
+
+          const createRes = await fetch(`${API_BASE_URL}/scenarios/`, {
+              method: 'POST',
+              headers: { 
+                  'Authorization': `JWT ${getAuthToken()}`,
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(fullScenarioData)
+          })
+
+          if (!createRes.ok) throw new Error("Failed to create new scenario")
+
+          toast({ title: "Scenario added!", description: "Successfully duplicated base case." })
+          setIsScenarioDialogOpen(false)
+          setNewScenarioName("")
+          window.location.reload()
+      } catch (err: any) {
+          toast({ title: "Error", description: err.message, variant: "destructive" })
+      } finally {
+          setIsAddingScenario(false)
+      }
+  }
 
   const handleCalculate = async () => {
     try {
@@ -326,22 +388,22 @@ export default function ModelDetailPage() {
           <MetricCard label="Last Calculated" value={lastCalcDate !== "Never" ? "Done" : "Never"} icon={Activity} colorClass={lastCalcDate !== "Never" ? "border-l-green-500" : "border-l-neutral-400"} />
           
           {/* Model Health Indicator */}
-          <Card className="p-5 flex items-start gap-4 hover:shadow-md transition-shadow dark:bg-card/50 backdrop-blur-sm">
-            <div className="relative w-12 h-12 flex-shrink-0">
-              <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
+          <Card className="p-3 sm:p-5 flex items-start gap-3 sm:gap-4 hover:shadow-md transition-shadow dark:bg-card/50 backdrop-blur-sm">
+            <div className="relative w-8 h-8 sm:w-12 sm:h-12 flex-shrink-0">
+              <svg className="w-8 h-8 sm:w-12 sm:h-12 -rotate-90" viewBox="0 0 36 36">
                 <circle cx="18" cy="18" r="15.5" fill="none" stroke="hsl(var(--muted))" strokeWidth="3" />
                 <circle cx="18" cy="18" r="15.5" fill="none"
                   stroke={compPct >= 80 && !model.calculation_error ? '#10b981' : compPct >= 50 ? '#f59e0b' : '#ef4444'}
                   strokeWidth="3" strokeDasharray={`${(compPct / 100) * 97.4} 97.4`} strokeLinecap="round"
                 />
               </svg>
-              <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-foreground">
+              <span className="absolute inset-0 flex items-center justify-center text-[8px] sm:text-[10px] font-bold text-foreground">
                 {compPct >= 80 && !model.calculation_error ? '✅' : compPct >= 50 ? '⚠️' : '❌'}
               </span>
             </div>
-            <div className="space-y-1 min-w-0">
-              <p className="text-sm font-medium text-muted-foreground">Model Health</p>
-              <p className="text-sm font-bold text-foreground">
+            <div className="space-y-0.5 sm:space-y-1 min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">Model Health</p>
+              <p className="text-sm font-bold text-foreground truncate">
                 {compPct >= 80 && !model.calculation_error ? 'Healthy' : compPct >= 50 ? 'Needs Review' : 'Incomplete'}
               </p>
               <p className="text-[10px] text-muted-foreground truncate">
@@ -353,47 +415,92 @@ export default function ModelDetailPage() {
 
         {/* Main Tabs Area */}
         <Tabs defaultValue="scenarios" className="w-full animate-in fade-in duration-500">
-          <TabsList className="flex w-full justify-start overflow-x-auto rounded-none text-muted-foreground border-b border-border bg-transparent h-auto p-0 gap-6">
-            <TabsTrigger 
-              value="scenarios" 
-              className="px-0 pb-3 pt-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none truncate"
-            >
-              Scenarios Overview
-            </TabsTrigger>
-            <TabsTrigger 
-              value="metadata" 
-              className="px-0 pb-3 pt-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none truncate"
-            >
-              Project Metadata
-            </TabsTrigger>
-            <TabsTrigger 
-              value="settings" 
-              className="px-0 pb-3 pt-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none truncate"
-            >
-              Settings & Config
-            </TabsTrigger>
-            <TabsTrigger 
-              value="sensitivity" 
-              className="px-0 pb-3 pt-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none truncate"
-            >
-              Sensitivity Analysis
-            </TabsTrigger>
-            <TabsTrigger 
-              value="comparison" 
-              className="px-0 pb-3 pt-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none truncate text-primary"
-            >
-              Scenario Comparison
-            </TabsTrigger>
-          </TabsList>
+          <div className="w-full overflow-x-auto no-scrollbar border-b border-border">
+            <TabsList className="inline-flex w-max min-w-full justify-start rounded-none text-muted-foreground bg-transparent h-auto p-0 gap-6 whitespace-nowrap">
+              <TabsTrigger 
+                value="scenarios" 
+                className="px-0 pb-3 pt-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              >
+                Scenarios Overview
+              </TabsTrigger>
+              <TabsTrigger 
+                value="metadata" 
+                className="px-0 pb-3 pt-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              >
+                Project Metadata
+              </TabsTrigger>
+              <TabsTrigger 
+                value="settings" 
+                className="px-0 pb-3 pt-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              >
+                Settings & Config
+              </TabsTrigger>
+              <TabsTrigger 
+                value="sensitivity" 
+                className="px-0 pb-3 pt-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              >
+                Sensitivity Analysis
+              </TabsTrigger>
+              <TabsTrigger 
+                value="comparison" 
+                className="px-0 pb-3 pt-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-primary flex items-center gap-2"
+              >
+                Scenario Comparison
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Scenarios Content */}
           <TabsContent value="scenarios" className="space-y-6 mt-8">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <div>
                 <h3 className="text-xl font-semibold text-foreground">Configured Scenarios</h3>
                 <p className="text-muted-foreground text-sm">Review the active assumptions sets configured for this model.</p>
               </div>
-              <Button variant="outline" size="sm" className="hidden sm:flex rounded-full">Add Scenario</Button>
+              <Dialog open={isScenarioDialogOpen} onOpenChange={setIsScenarioDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="hidden sm:flex rounded-full">Add Scenario</Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Add New Scenario</DialogTitle>
+                    <DialogDescription>
+                      Duplicate your base case to create a new forecasting scenario.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="name">Scenario Name</Label>
+                      <Input
+                        id="name"
+                        placeholder="e.g., Aggressive Growth"
+                        value={newScenarioName}
+                        onChange={(e) => setNewScenarioName(e.target.value)}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label>Scenario Type</Label>
+                      <Select value={newScenarioType} onValueChange={(val: any) => setNewScenarioType(val)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="upside">Upside Case</SelectItem>
+                          <SelectItem value="downside">Downside Case</SelectItem>
+                          <SelectItem value="custom">Custom Case</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsScenarioDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={handleAddScenario} disabled={isAddingScenario}>
+                      {isAddingScenario ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                      {isAddingScenario ? "Creating..." : "Create Scenario"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

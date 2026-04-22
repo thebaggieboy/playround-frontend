@@ -59,6 +59,7 @@ export default function ScenariosPage() {
     const [scenarios, setScenarios] = useState<Scenario[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
+    const [typeFilter, setTypeFilter] = useState<string>("all")
 
     const getAuthToken = () => {
         if (!token) return '';
@@ -110,10 +111,12 @@ export default function ScenariosPage() {
         }
     }
 
-    const filteredScenarios = scenarios.filter(scenario =>
-        scenario.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (scenario.model_name || '').toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    const filteredScenarios = scenarios.filter(scenario => {
+        const matchesSearch = scenario.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (scenario.model_name || '').toLowerCase().includes(searchQuery.toLowerCase())
+        const matchesType = typeFilter === "all" || scenario.scenario_type === typeFilter
+        return matchesSearch && matchesType
+    })
 
     return (
         <div className="flex flex-col h-full overflow-hidden flex-1 w-full bg-background">
@@ -157,10 +160,33 @@ export default function ScenariosPage() {
                                 <Button variant="outline" size="icon" className="shrink-0" onClick={fetchScenarios}>
                                     <Activity className="w-4 h-4" />
                                 </Button>
-                                <Button variant="outline" className="gap-2 w-full sm:w-auto">
-                                    <Filter className="w-4 h-4" />
-                                    Filter
-                                </Button>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant={typeFilter !== "all" ? "default" : "outline"} className="gap-2 w-full sm:w-auto max-sm:flex-1">
+                                            <Filter className="w-4 h-4" />
+                                            {typeFilter === "all" ? "Filter Type" : <span className="capitalize">{typeFilter} Case</span>}
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-[180px]">
+                                        <DropdownMenuLabel>Filter by Case</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={() => setTypeFilter("all")} className={typeFilter === "all" ? "bg-muted" : ""}>
+                                            All Scenarios
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => setTypeFilter("base")} className={typeFilter === "base" ? "bg-muted" : ""}>
+                                            Base Case
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => setTypeFilter("upside")} className={typeFilter === "upside" ? "bg-muted" : ""}>
+                                            Upside Case
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => setTypeFilter("downside")} className={typeFilter === "downside" ? "bg-muted" : ""}>
+                                            Downside Case
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => setTypeFilter("custom")} className={typeFilter === "custom" ? "bg-muted" : ""}>
+                                            Custom Case
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </div>
                         </CardContent>
                     </Card>

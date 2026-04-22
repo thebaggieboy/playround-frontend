@@ -70,8 +70,8 @@ export function WhyMatters() {
             your financial workflows with enterprise-grade modeling capabilities.
           </p>
 
-          <p className="text-white/80 font-semibold mb-5 text-sm uppercase tracking-wider">
-            This improves:
+          <p className="text-white/80 font-semibold mb-5 text-lg uppercase tracking-wider flex items-center gap-2">
+            This <span className="text-blue-400 lowercase" style={{ fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400, fontSize: "1.3em", letterSpacing: "normal" }}>improves</span>:
           </p>
 
           <div className="flex flex-col gap-3">

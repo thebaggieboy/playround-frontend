@@ -70,6 +70,21 @@ export default function ScenarioComparePage() {
                 const data = await res.json()
                 const list = Array.isArray(data) ? data : data.results || []
                 setModels(list)
+                
+                let paramIds: string | null = null;
+                if (typeof window !== 'undefined') {
+                    const params = new URLSearchParams(window.location.search)
+                    paramIds = params.get('ids')
+                }
+
+                if (paramIds) {
+                    const targetModel = list.find((m: any) => m.scenarios?.some((s: any) => s.id.toString() === paramIds))
+                    if (targetModel) {
+                        setSelectedModelId(String(targetModel.id))
+                        return
+                    }
+                }
+                
                 if (list.length > 0) setSelectedModelId(String(list[0].id))
             } catch (e) { console.error(e) } finally { setIsLoading(false) }
         }

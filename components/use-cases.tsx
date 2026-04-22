@@ -71,7 +71,7 @@ export function UseCases() {
             </span>
           </div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 text-balance">
-            Use Cases for Every Role
+            Use Cases for <span className="text-blue-400 block sm:inline mt-1 sm:mt-0" style={{ fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400, fontSize: "1.15em" }}>Every Role</span>
           </h2>
           <p className="text-base md:text-lg text-white/60 max-w-xl mx-auto leading-relaxed font-light">
             Whether you're a CFO, analyst, or finance novice, our platform

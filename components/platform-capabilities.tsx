@@ -148,7 +148,7 @@ export function PlatformCapabilities() {
           </div>
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 text-balance">
             Enterprise Planning,{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300 drop-shadow-[0_0_16px_rgba(96,165,250,0.3)]">Simplified</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300 drop-shadow-[0_0_16px_rgba(96,165,250,0.3)] block sm:inline" style={{ fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400, fontSize: "1.15em" }}>Simplified</span>
           </h2>
           <p className="text-base md:text-lg text-white/50 max-w-2xl mx-auto leading-relaxed font-light">
             The same powerful capabilities found in Anaplan and Jedox, built for

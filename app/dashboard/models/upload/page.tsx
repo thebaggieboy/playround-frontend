@@ -233,18 +233,18 @@ export default function UploadModelPage() {
                 <div className="space-y-6 max-w-7xl mx-auto">
                     {/* Header */}
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <div>
+                        <div className="w-full min-w-0">
                             <div className="flex items-center gap-3 mb-1">
-                                <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard/models/input/advanced')} className="h-8 w-8">
+                                <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard/models/input/advanced')} className="h-8 w-8 shrink-0">
                                     <ArrowLeft className="h-4 w-4" />
                                 </Button>
-                                <h2 className="text-3xl font-bold tracking-tight text-foreground">Import Model</h2>
+                                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground truncate">Import Model</h2>
                             </div>
-                            <p className="text-muted-foreground ml-11">Upload an existing financial model to view and analyze it.</p>
+                            <p className="text-muted-foreground ml-11 text-sm sm:text-base">Upload an existing financial model to view and analyze it.</p>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Link href="/dashboard/models/input/advanced">
-                                <Button variant="outline" className="gap-2">
+                        <div className="flex items-center w-full md:w-auto">
+                            <Link href="/dashboard/models/input/advanced" className="w-full md:w-auto">
+                                <Button variant="outline" className="gap-2 w-full md:w-auto">
                                     <Sparkles className="w-4 h-4" />
                                     Build from Scratch
                                 </Button>
@@ -303,15 +303,15 @@ export default function UploadModelPage() {
                                     ) : (
                                         <div className="flex flex-col items-center py-6">
                                             {/* File preview */}
-                                            <div className="flex items-center gap-4 bg-card border border-border rounded-xl p-4 w-full max-w-lg mb-6">
-                                                <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-lg flex items-center justify-center">
+                                            <div className="flex items-center gap-3 sm:gap-4 bg-card border border-border rounded-xl p-3 sm:p-4 w-full max-w-lg mb-6">
+                                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
                                                     {getFileIcon(uploadedFile.name)}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="font-semibold text-foreground truncate">{uploadedFile.name}</p>
-                                                    <p className="text-sm text-muted-foreground">{formatFileSize(uploadedFile.size)}</p>
+                                                    <p className="font-semibold text-foreground truncate text-sm sm:text-base">{uploadedFile.name}</p>
+                                                    <p className="text-xs sm:text-sm text-muted-foreground truncate">{formatFileSize(uploadedFile.size)}</p>
                                                 </div>
-                                                <Button variant="ghost" size="icon" onClick={handleClearFile} className="shrink-0">
+                                                <Button variant="ghost" size="icon" onClick={handleClearFile} className="shrink-0 h-8 w-8">
                                                     <X className="w-4 h-4" />
                                                 </Button>
                                             </div>
@@ -334,12 +334,12 @@ export default function UploadModelPage() {
                                                 </div>
                                             )}
 
-                                            <div className="flex gap-3">
+                                            <div className="flex flex-col sm:flex-row gap-3 w-full max-w-lg">
                                                 <Button
                                                     size="lg"
                                                     onClick={handleUploadAndParse}
                                                     disabled={isUploading}
-                                                    className="gap-2"
+                                                    className="gap-2 w-full sm:flex-1"
                                                 >
                                                     {isUploading ? (
                                                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -348,7 +348,7 @@ export default function UploadModelPage() {
                                                     )}
                                                     {isUploading ? 'Parsing...' : 'Parse & View Model'}
                                                 </Button>
-                                                <Button variant="outline" size="lg" onClick={handleClearFile} disabled={isUploading}>
+                                                <Button variant="outline" size="lg" onClick={handleClearFile} disabled={isUploading} className="w-full sm:flex-1">
                                                     Choose Different File
                                                 </Button>
                                             </div>
@@ -377,31 +377,31 @@ export default function UploadModelPage() {
                                 className="space-y-4"
                             >
                                 {/* File Summary Bar */}
-                                <div className="flex items-center justify-between bg-card border border-border rounded-xl px-5 py-3">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center">
+                                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-card border border-border rounded-xl px-4 md:px-5 py-3 md:py-4">
+                                    <div className="flex items-center gap-3 w-full md:w-auto min-w-0">
+                                        <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
                                             <FileSpreadsheet className="w-4.5 h-4.5 text-primary" />
                                         </div>
-                                        <div>
-                                            <p className="font-semibold text-sm text-foreground">{parsedModel.filename}</p>
-                                            <p className="text-xs text-muted-foreground">
+                                        <div className="min-w-0 flex-1">
+                                            <p className="font-semibold text-sm text-foreground truncate">{parsedModel.filename}</p>
+                                            <p className="text-xs text-muted-foreground truncate">
                                                 {parsedModel.summary.totalSheets} sheets · {parsedModel.summary.totalCells.toLocaleString()} cells · {formatFileSize(parsedModel.fileSize)}
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="flex flex-wrap items-center gap-3">
-                                        <Badge variant="secondary" className="text-xs">{parsedModel.summary.detectedType}</Badge>
+                                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto shrink-0">
+                                        <Badge variant="secondary" className="text-xs self-start sm:self-auto hidden md:inline-flex mb-2 sm:mb-0">{parsedModel.summary.detectedType}</Badge>
                                         <Button 
                                             variant="default" 
                                             size="sm" 
                                             onClick={handleProcessExtraction}
                                             disabled={isUploading}
-                                            className="gap-2 text-xs bg-primary hover:bg-primary/90"
+                                            className="gap-2 text-xs bg-primary hover:bg-primary/90 w-full sm:w-auto"
                                         >
                                             {isUploading ? <Loader2 className="w-3 h-3 animate-spin"/> : <Sparkles className="w-3 h-3" />}
                                             Process & Sync to Dashboard
                                         </Button>
-                                        <Button variant="outline" size="sm" onClick={handleClearFile} className="gap-1.5 text-xs">
+                                        <Button variant="outline" size="sm" onClick={handleClearFile} className="gap-1.5 text-xs w-full sm:w-auto">
                                             <Upload className="w-3 h-3" />
                                             Upload New
                                         </Button>

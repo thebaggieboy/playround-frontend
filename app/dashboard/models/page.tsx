@@ -105,16 +105,18 @@ export default function ModelsPage() {
             <p className="text-muted-foreground mt-1">Create, manage, and analyze your financial models</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
-            <Link href="/dashboard/models/input/basic">
+            <Link href="/dashboard/models/input/advanced">
               <Button className="gap-2 w-full">
                 <Plus className="w-4 h-4" />
                 New Model
               </Button>
             </Link>
-            <Button variant="outline" className="gap-2 bg-transparent">
-              <Plus className="w-4 h-4" />
-              Import
-            </Button>
+            <Link href="/dashboard/models/upload">
+              <Button variant="outline" className="gap-2 bg-transparent w-full border-border/80">
+                <Plus className="w-4 h-4" />
+                Import
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -198,7 +200,7 @@ export default function ModelsPage() {
               </p>
               
               {!searchTerm && (
-                <Link href="/dashboard/models/input/basic" className="relative z-10">
+                <Link href="/dashboard/models/input/advanced" className="relative z-10">
                   <motion.button 
                     whileHover={{ scale: 1.05 }} 
                     whileTap={{ scale: 0.95 }}
@@ -218,15 +220,16 @@ export default function ModelsPage() {
       <Card className="p-6 bg-secondary/50">
         <h3 className="font-semibold text-foreground mb-3">Quick Actions</h3>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm">
-            Import from Template
-          </Button>
-          <Button variant="outline" size="sm">
-            Duplicate Model
-          </Button>
-          <Button variant="outline" size="sm">
-            Export Model
-          </Button>
+          <Link href="/dashboard/models/upload">
+            <Button variant="outline" size="sm">
+              Import from Template
+            </Button>
+          </Link>
+          <Link href="/dashboard/models/input/advanced">
+            <Button variant="outline" size="sm">
+              Create Custom Model
+            </Button>
+          </Link>
         </div>
       </Card>
     </div>

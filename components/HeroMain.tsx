@@ -22,9 +22,14 @@ export function HeroMain() {
                 </span>
               </div>
 
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-balance leading-tight text-white tracking-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-balance leading-[1.1] text-white tracking-tight">
                 Transform Your Financial Data Into{" "}
-                <span className="text-blue-400">Actionable Insights</span>
+                <span 
+                  className="text-blue-400/90 block mt-2 drop-shadow-[0_0_16px_rgba(96,165,250,0.3)]"
+                  style={{ fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400, fontSize: "1.1em" }}
+                >
+                  Actionable Insights
+                </span>
               </h1>
 
               <p className="text-lg text-slate-400 leading-relaxed max-w-lg">

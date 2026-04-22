@@ -23,7 +23,6 @@ const menuItems = [
   { icon: PenSquare, label: "Input Model", href: "/dashboard/models/input/advanced" },
   { icon: Upload, label: "Import Model", href: "/dashboard/models/upload" },
   { icon: Layers, label: "Scenarios", href: "/dashboard/scenarios" },
-  { icon: GitCompareArrows, label: "Compare", href: "/dashboard/scenarios/compare" },
   { icon: Layout, label: "Templates", href: "/dashboard/templates" },
   { icon: FileText, label: "Reports", href: "/dashboard/reports" },
   { icon: Settings, label: "Settings", href: "/dashboard/settings" },

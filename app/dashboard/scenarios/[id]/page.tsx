@@ -356,22 +356,24 @@ export default function ScenarioDetailPage() {
 
             {/* Main Content Tabs */}
             <Tabs defaultValue={hasResults ? "dashboard" : "overview"} className="space-y-6">
-                <TabsList className="bg-muted p-1 rounded-lg">
-                    <TabsTrigger value="overview">Overview</TabsTrigger>
-                    <TabsTrigger value="dashboard" disabled={!hasResults}>
-                        Dashboard
-                    </TabsTrigger>
-                    <TabsTrigger value="charts" disabled={!hasResults}>
-                        Charts
-                    </TabsTrigger>
-                    <TabsTrigger value="statements" disabled={!hasResults}>
-                        Statements
-                    </TabsTrigger>
-                    <TabsTrigger value="ratios" disabled={!hasResults}>
-                        Ratios & Valuation
-                    </TabsTrigger>
-                    <TabsTrigger value="inputs">Inputs</TabsTrigger>
-                </TabsList>
+                <div className="w-full overflow-x-auto no-scrollbar pb-2">
+                    <TabsList className="bg-muted p-1 rounded-lg inline-flex w-max min-w-full justify-start">
+                        <TabsTrigger value="overview">Overview</TabsTrigger>
+                        <TabsTrigger value="dashboard" disabled={!hasResults}>
+                            Dashboard
+                        </TabsTrigger>
+                        <TabsTrigger value="charts" disabled={!hasResults}>
+                            Charts
+                        </TabsTrigger>
+                        <TabsTrigger value="statements" disabled={!hasResults}>
+                            Statements
+                        </TabsTrigger>
+                        <TabsTrigger value="ratios" disabled={!hasResults}>
+                            Ratios & Valuation
+                        </TabsTrigger>
+                        <TabsTrigger value="inputs">Inputs</TabsTrigger>
+                    </TabsList>
+                </div>
 
                 {/* ═══════════ OVERVIEW TAB ═══════════ */}
                 <TabsContent value="overview" className="space-y-6">
@@ -755,12 +757,14 @@ export default function ScenarioDetailPage() {
                 <TabsContent value="statements" className="space-y-6">
                     {parsed && (
                         <Tabs defaultValue="is" className="space-y-4">
-                            <TabsList>
-                                <TabsTrigger value="is">Income Statement</TabsTrigger>
-                                <TabsTrigger value="bs">Balance Sheet</TabsTrigger>
-                                <TabsTrigger value="cfs">Cash Flow</TabsTrigger>
-                                <TabsTrigger value="debt">Debt Schedule</TabsTrigger>
-                            </TabsList>
+                            <div className="w-full overflow-x-auto no-scrollbar pb-2">
+                                <TabsList className="inline-flex w-max min-w-full justify-start">
+                                    <TabsTrigger value="is">Income Statement</TabsTrigger>
+                                    <TabsTrigger value="bs">Balance Sheet</TabsTrigger>
+                                    <TabsTrigger value="cfs">Cash Flow</TabsTrigger>
+                                    <TabsTrigger value="debt">Debt Schedule</TabsTrigger>
+                                </TabsList>
+                            </div>
 
                             <TabsContent value="is">
                                 <FinancialStatementTable

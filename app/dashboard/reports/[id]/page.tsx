@@ -18,6 +18,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, ComposedChart
 } from "recharts"
+import { useToast } from "@/hooks/use-toast"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
 
@@ -125,36 +126,22 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   )
 }
 
-// ─── Metric Card ─────────────────────────────────────────────────────────────
-
 function MetricCard({
   label, value, sub, color = "primary", icon: Icon
 }: {
   label: string; value: string; sub?: string; color?: string; icon: any
 }) {
-  const borderColors: Record<string, string> = {
-    primary: "border-l-primary",
-    green: "border-l-green-500",
-    blue: "border-l-blue-500",
-    orange: "border-l-orange-500",
-    red: "border-l-red-500",
-  }
-  const iconColors: Record<string, string> = {
-    primary: "text-primary",
-    green: "text-green-500",
-    blue: "text-blue-500",
-    orange: "text-orange-500",
-    red: "text-red-500",
-  }
   return (
-    <Card className={`p-5 border-l-4 ${borderColors[color]}`}>
+    <Card className="p-4 sm:p-5 hover:shadow-md hover:border-border/80 transition-all duration-300">
       <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <p className="text-xs text-muted-foreground">{label}</p>
-          <p className="text-2xl font-bold text-foreground">{value}</p>
-          {sub && <p className={`text-xs ${iconColors[color]}`}>{sub}</p>}
+        <div className="space-y-1 sm:space-y-1.5 overflow-hidden pr-2">
+          <p className="text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate">{label}</p>
+          <p className="text-lg sm:text-2xl font-bold text-foreground truncate">{value}</p>
+          {sub && <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{sub}</p>}
         </div>
-        <Icon className={`w-5 h-5 ${iconColors[color]} opacity-70 mt-1`} />
+        <div className="p-2 sm:p-2.5 bg-secondary/50 rounded-lg shrink-0">
+          <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-foreground/70" />
+        </div>
       </div>
     </Card>
   )
@@ -172,6 +159,7 @@ export default function ReportDetailPage() {
   const [isCalculating, setIsCalculating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const token = useSelector(selectToken)
+  const { toast } = useToast()
 
   // Safely retrieve the auth token string
   const getAuthToken = () => {
@@ -181,33 +169,36 @@ export default function ReportDetailPage() {
     return ""
   }
 
-  useEffect(() => {
-    const fetchReport = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-        const res = await fetch(`${API_BASE_URL}/reports/${id}/`, {
-          headers: { Authorization: `JWT ${getAuthToken()}` }
-        })
+  const fetchReport = async (showLoadingState = true) => {
+    try {
+      if (showLoadingState) setIsLoading(true)
+      setError(null)
+      const res = await fetch(`${API_BASE_URL}/reports/${id}/`, {
+        headers: { Authorization: `JWT ${getAuthToken()}` },
+        cache: 'no-store'
+      })
 
-        if (!res.ok) {
-          let errDetail = `Failed to fetch report (${res.status})`
-          try {
-            const errData = await res.json()
-            errDetail = errData.detail || JSON.stringify(errData)
-          } catch (_) { }
-          throw new Error(errDetail)
-        }
-
-        const data = await res.json()
-        setReport(data)
-      } catch (err: any) {
-        setError(err.message || "Failed to load report")
-      } finally {
-        setIsLoading(false)
+      if (!res.ok) {
+        let errDetail = `Failed to fetch report (${res.status})`
+        try {
+          const errData = await res.json()
+          errDetail = errData.detail || JSON.stringify(errData)
+        } catch (_) { }
+        throw new Error(errDetail)
       }
+
+      const data = await res.json()
+      setReport(data)
+    } catch (err: any) {
+      setError(err.message || "Failed to load report")
+    } finally {
+      if (showLoadingState) setIsLoading(false)
     }
+  }
+
+  useEffect(() => {
     if (token && id) fetchReport()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, token])
 
   const handleCalculate = async () => {
@@ -240,8 +231,8 @@ export default function ReportDetailPage() {
         description: "Report data has been calculated successfully.",
       })
       
-      // Reload the page to fetch fresh data
-      window.location.reload()
+      // Reload the report data seamlessly
+      await fetchReport(false)
       
     } catch (err: any) {
       toast({
@@ -308,7 +299,7 @@ export default function ReportDetailPage() {
   }
 
   return (
-    <div className="flex flex-col flex-1 overflow-auto h-full p-5 md:p-8 space-y-6 print:overflow-visible print:h-auto print:p-0 print:block print:space-y-6 print:text-black print:bg-white">
+    <div className="flex flex-col flex-1 overflow-auto h-full p-4 sm:p-5 md:p-8 space-y-6 print:overflow-visible print:h-auto print:p-0 print:block print:space-y-6 print:text-black print:bg-white w-full">
 
       {/* ── Header ─────────────────────────────────────────────────── */}
       <div className="space-y-4 print:mb-8 print:break-after-avoid">
@@ -321,9 +312,9 @@ export default function ReportDetailPage() {
 
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
           <div className="space-y-2 print:w-full">
-            <h1 className="text-3xl font-bold text-foreground print:text-black print:text-5xl">{report.name || "Untitled Report"}</h1>
-            <p className="text-muted-foreground print:text-gray-800 print:text-lg">{report.description || "No description provided."}</p>
-            <div className="flex flex-wrap gap-2 mt-3 text-xs print:hidden">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight print:text-black print:text-5xl">{report.name || "Untitled Report"}</h1>
+            <p className="text-sm sm:text-base text-muted-foreground print:text-gray-800 print:text-lg">{report.description || "No description provided."}</p>
+            <div className="flex flex-wrap gap-2 mt-3 text-[10px] sm:text-xs print:hidden">
               <span className="px-3 py-1 bg-primary/10 text-primary rounded-full font-medium">{report.report_type}</span>
               <span className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full font-medium capitalize">{report.status}</span>
               {report.model_name && (
@@ -402,7 +393,7 @@ export default function ReportDetailPage() {
 
       {/* ── Key Metrics ─────────────────────────────────────────────── */}
       {hasData && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <MetricCard icon={DollarSign} label="Peak Revenue" value={fmt(peakRevenue)} sub="Highest single period" color="primary" />
           <MetricCard icon={TrendingUp} label="Peak EBITDA" value={fmt(lastEbitda)} sub="Latest period" color="green" />
           <MetricCard icon={Activity} label="Net Income" value={fmt(lastNetIncome)} sub="Latest period" color="blue" />
@@ -413,22 +404,24 @@ export default function ReportDetailPage() {
       {/* ── Charts tabs ──────────────────────────────────────────────── */}
       {hasData && (
         <Tabs defaultValue="income" className="w-full">
-          <TabsList className="flex flex-wrap h-auto gap-1 bg-secondary/50">
-            <TabsTrigger value="income">Income Statement</TabsTrigger>
-            <TabsTrigger value="profitability">Profitability</TabsTrigger>
-            <TabsTrigger value="cashflow">Cash Flow</TabsTrigger>
-            {debtData.length > 0 && <TabsTrigger value="debt">Debt Schedule</TabsTrigger>}
-            <TabsTrigger value="summary">Summary</TabsTrigger>
-          </TabsList>
+          <div className="w-full overflow-x-auto pb-2 scrollbar-none">
+            <TabsList className="inline-flex w-max min-w-full justify-start sm:justify-center p-1 bg-secondary/50 rounded-lg h-auto">
+              <TabsTrigger className="text-[11px] sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4" value="income">Income Statement</TabsTrigger>
+              <TabsTrigger className="text-[11px] sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4" value="profitability">Profitability</TabsTrigger>
+              <TabsTrigger className="text-[11px] sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4" value="cashflow">Cash Flow</TabsTrigger>
+              {debtData.length > 0 && <TabsTrigger className="text-[11px] sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4" value="debt">Debt Schedule</TabsTrigger>}
+              <TabsTrigger className="text-[11px] sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4" value="summary">Summary</TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* ── Income Statement ───────────────── */}
-          <TabsContent value="income" className="mt-6 space-y-4">
-            <Card className="p-6">
-              <h3 className="font-semibold text-foreground mb-1 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-primary" />
+          <TabsContent value="income" className="mt-4 sm:mt-6 space-y-4">
+            <Card className="p-4 sm:p-6">
+              <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1 flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                 Revenue vs Operating Expenses
               </h3>
-              <p className="text-xs text-muted-foreground mb-4">All periods — click legend to toggle series</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mb-4">All periods — click legend to toggle series</p>
               {revenueVsOpex.length > 0 ? (
                 <ResponsiveContainer width="100%" height={320}>
                   <ComposedChart data={revenueVsOpex} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
@@ -449,21 +442,21 @@ export default function ReportDetailPage() {
 
             {/* Full IS table */}
             {(cd["is"] ?? []).length > 0 && (
-              <Card className="p-6 overflow-auto">
-                <h3 className="font-semibold text-foreground mb-4">Income Statement — All Periods</h3>
+              <Card className="p-4 sm:p-6 overflow-hidden">
+                <h3 className="text-sm sm:text-base font-semibold text-foreground mb-4">Income Statement — All Periods</h3>
                 <FinancialTable rows={cd["is"]} />
               </Card>
             )}
           </TabsContent>
 
           {/* ── Profitability ──────────────────── */}
-          <TabsContent value="profitability" className="mt-6 space-y-4">
-            <Card className="p-6">
-              <h3 className="font-semibold text-foreground mb-1 flex items-center gap-2">
-                <Activity className="w-5 h-5 text-primary" />
+          <TabsContent value="profitability" className="mt-4 sm:mt-6 space-y-4">
+            <Card className="p-4 sm:p-6">
+              <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1 flex items-center gap-2">
+                <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                 EBITDA / EBIT / Net Income
               </h3>
-              <p className="text-xs text-muted-foreground mb-4">Profitability waterfall across all periods</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mb-4">Profitability waterfall across all periods</p>
               {profitabilityData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={320}>
                   <AreaChart data={profitabilityData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
@@ -494,21 +487,21 @@ export default function ReportDetailPage() {
 
             {/* Ratios table */}
             {(cd["ratio"] ?? []).length > 0 && (
-              <Card className="p-6 overflow-auto">
-                <h3 className="font-semibold text-foreground mb-4">Financial Ratios</h3>
+              <Card className="p-4 sm:p-6 overflow-hidden">
+                <h3 className="text-sm sm:text-base font-semibold text-foreground mb-4">Financial Ratios</h3>
                 <FinancialTable rows={cd["ratio"]} isRatio />
               </Card>
             )}
           </TabsContent>
 
           {/* ── Cash Flow ─────────────────────── */}
-          <TabsContent value="cashflow" className="mt-6 space-y-4">
-            <Card className="p-6">
-              <h3 className="font-semibold text-foreground mb-1 flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-primary" />
+          <TabsContent value="cashflow" className="mt-4 sm:mt-6 space-y-4">
+            <Card className="p-4 sm:p-6">
+              <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1 flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                 Cash Flow Waterfall
               </h3>
-              <p className="text-xs text-muted-foreground mb-4">Operating, investing, and net cash generation</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mb-4">Operating, investing, and net cash generation</p>
               {cashFlowData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={320}>
                   <BarChart data={cashFlowData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
@@ -528,8 +521,8 @@ export default function ReportDetailPage() {
             </Card>
 
             {(cd["cfs"] ?? []).length > 0 && (
-              <Card className="p-6 overflow-auto">
-                <h3 className="font-semibold text-foreground mb-4">Cash Flow Statement — All Periods</h3>
+              <Card className="p-4 sm:p-6 overflow-hidden">
+                <h3 className="text-sm sm:text-base font-semibold text-foreground mb-4">Cash Flow Statement — All Periods</h3>
                 <FinancialTable rows={cd["cfs"]} />
               </Card>
             )}
@@ -537,13 +530,13 @@ export default function ReportDetailPage() {
 
           {/* ── Debt Schedule ─────────────────── */}
           {debtData.length > 0 && (
-            <TabsContent value="debt" className="mt-6 space-y-4">
-              <Card className="p-6">
-                <h3 className="font-semibold text-foreground mb-1 flex items-center gap-2">
-                  <TrendingDown className="w-5 h-5 text-red-500" />
+            <TabsContent value="debt" className="mt-4 sm:mt-6 space-y-4">
+              <Card className="p-4 sm:p-6">
+                <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1 flex items-center gap-2">
+                  <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                   Debt Schedule
                 </h3>
-                <p className="text-xs text-muted-foreground mb-4">Opening balance, closing balance, and interest expense</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground mb-4">Opening balance, closing balance, and interest expense</p>
                 <ResponsiveContainer width="100%" height={320}>
                   <ComposedChart data={debtData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -558,18 +551,18 @@ export default function ReportDetailPage() {
                 </ResponsiveContainer>
               </Card>
 
-              <Card className="p-6 overflow-auto">
-                <h3 className="font-semibold text-foreground mb-4">Debt Schedule — All Periods</h3>
+              <Card className="p-4 sm:p-6 overflow-hidden">
+                <h3 className="text-sm sm:text-base font-semibold text-foreground mb-4">Debt Schedule — All Periods</h3>
                 <FinancialTable rows={cd["debt"]} />
               </Card>
             </TabsContent>
           )}
 
           {/* ── Summary ──────────────────────── */}
-          <TabsContent value="summary" className="mt-6 space-y-4">
-            <Card className="p-6">
-              <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-primary" />
+          <TabsContent value="summary" className="mt-4 sm:mt-6 space-y-4">
+            <Card className="p-4 sm:p-6">
+              <h3 className="text-sm sm:text-base font-semibold text-foreground mb-4 flex items-center gap-2">
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                 Report Metadata
               </h3>
               <div className="grid gap-3 text-sm">
@@ -591,8 +584,8 @@ export default function ReportDetailPage() {
 
             {/* Valuation metrics if present */}
             {(cd["valuation"] ?? []).length > 0 && (
-              <Card className="p-6">
-                <h3 className="font-semibold text-foreground mb-4">Valuation Metrics</h3>
+              <Card className="p-4 sm:p-6">
+                <h3 className="text-sm sm:text-base font-semibold text-foreground mb-4">Valuation Metrics</h3>
                 <div className="grid gap-3 text-sm">
                   {cd["valuation"].map((stmt: any) =>
                     Object.entries(stmt.values_by_period ?? {}).map(([key, val]) => (
