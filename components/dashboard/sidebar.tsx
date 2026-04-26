@@ -21,7 +21,6 @@ const menuItems = [
   { icon: PieChart, label: "Analytics", href: "/dashboard/analytics" },
   { icon: BarChart3, label: "Models", href: "/dashboard/models" },
   { icon: PenSquare, label: "Input Model", href: "/dashboard/models/input/advanced" },
-  { icon: Upload, label: "Import Model", href: "/dashboard/models/upload" },
   { icon: Layers, label: "Scenarios", href: "/dashboard/scenarios" },
   { icon: Layout, label: "Templates", href: "/dashboard/templates" },
   { icon: FileText, label: "Reports", href: "/dashboard/reports" },

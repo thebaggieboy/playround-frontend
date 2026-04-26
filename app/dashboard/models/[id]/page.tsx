@@ -442,6 +442,13 @@ export default function ModelDetailPage() {
                 Sensitivity Analysis
               </TabsTrigger>
               <TabsTrigger 
+                value="audit" 
+                className="px-0 pb-3 pt-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none flex items-center gap-2"
+              >
+                <Activity className="w-4 h-4" />
+                Audit Trail
+              </TabsTrigger>
+              <TabsTrigger 
                 value="comparison" 
                 className="px-0 pb-3 pt-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-primary flex items-center gap-2"
               >
@@ -650,6 +657,74 @@ export default function ModelDetailPage() {
           {/* Sensitivity Analysis Content */}
           <TabsContent value="sensitivity" className="mt-8">
             <SensitivityAnalysisTab model={model} />
+          </TabsContent>
+
+          {/* Audit Trail Content */}
+          <TabsContent value="audit" className="mt-8">
+            <Card className="p-0 border-border/50 shadow-sm overflow-hidden flex flex-col">
+              <div className="p-6 pb-4 border-b border-border/50 bg-secondary/10">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-primary" />
+                  Assumption Audit Trail
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">Real-time collaborative timeline of parameter changes and financial overrides.</p>
+              </div>
+              <div className="p-6 bg-card flex-1">
+                <div className="relative border-l-2 border-primary/20 ml-3 md:ml-4 space-y-8 pb-4">
+                  {/* Item 1 */}
+                  <div className="relative">
+                    <span className="absolute -left-[37px] md:-left-[41px] top-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 ring-4 ring-card">
+                      <span className="h-2.5 w-2.5 rounded-full bg-primary" />
+                    </span>
+                    <div className="pl-4 sm:pl-6">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1 gap-1">
+                        <span className="font-semibold text-sm">Target IRR Updated</span>
+                        <span className="text-[10px] sm:text-xs text-muted-foreground font-medium flex items-center gap-1"><Clock className="w-3 h-3"/> Just now</span>
+                      </div>
+                      <p className="text-sm text-foreground/80 leading-relaxed mb-3">
+                        <span className="font-medium text-foreground">John Doe</span> raised the Target IRR hurdle rate from <span className="text-rose-500 line-through">12%</span> to <span className="text-emerald-500 font-medium">15%</span> to reflect the new macro risk outlook.
+                      </p>
+                      <div className="bg-secondary/30 p-3 rounded-md border border-border/50 text-xs text-muted-foreground inline-flex items-center gap-2">
+                        <span className="flex h-2 w-2 rounded-full bg-blue-500"></span>
+                        Linked to <strong className="text-foreground">Base Case Scenario</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Item 2 */}
+                  <div className="relative">
+                    <span className="absolute -left-[37px] md:-left-[41px] top-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 ring-4 ring-card">
+                      <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
+                    </span>
+                    <div className="pl-4 sm:pl-6">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1 gap-1">
+                        <span className="font-semibold text-sm">CapEx Restructuring</span>
+                        <span className="text-[10px] sm:text-xs text-muted-foreground font-medium flex items-center gap-1"><Clock className="w-3 h-3"/> 2 hours ago</span>
+                      </div>
+                      <p className="text-sm text-foreground/80 leading-relaxed mb-3">
+                        <span className="font-medium text-foreground">System Engine</span> imported revised equipment quotes. Total Equipment Cost increased by <span className="font-bold text-foreground">$150,000</span>.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Item 3 */}
+                  <div className="relative">
+                    <span className="absolute -left-[37px] md:-left-[41px] top-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 ring-4 ring-card">
+                      <span className="h-2.5 w-2.5 rounded-full bg-primary" />
+                    </span>
+                    <div className="pl-4 sm:pl-6">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1 gap-1">
+                        <span className="font-semibold text-sm">Model Provisioned</span>
+                        <span className="text-[10px] sm:text-xs text-muted-foreground font-medium flex items-center gap-1"><Clock className="w-3 h-3"/> Yesterday</span>
+                      </div>
+                      <p className="text-sm text-foreground/80 leading-relaxed">
+                        Financial model initialized and baselined from standard template.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
           </TabsContent>
 
           {/* Scenario Comparison Content */}

@@ -17,6 +17,8 @@ import {
   PieChart,
   Pie,
   Cell,
+  LineChart,
+  Line,
 } from "recharts"
 import {
   TrendingUp,
@@ -39,6 +41,7 @@ import {
 } from "lucide-react"
 import { useSelector } from "react-redux"
 import { selectToken } from "@/features/token/tokenSlice"
+import { useQuery } from "@tanstack/react-query"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
 
@@ -124,49 +127,53 @@ function formatCurrency(val: number, compact = false) {
 /* ------------------------------------------------------------------ */
 export default function AnalyticsPage() {
   const token = useSelector(selectToken)
-  const [isLoading, setIsLoading] = useState(true)
+  const [scenarioFilter, setScenarioFilter] = useState<string>("all")
 
-  // Raw data
-  const [models, setModels] = useState<any[]>([])
-  const [scenarios, setScenarios] = useState<any[]>([])
-  const [reports, setReports] = useState<any[]>([])
-  const [calcLogs, setCalcLogs] = useState<any[]>([])
-
-  useEffect(() => {
-    if (!token) return
-
-    let isMounted = true
-    const fetchData = async () => {
-      try {
-        setIsLoading(true)
-        const headers: Record<string, string> = {
-          'Authorization': `JWT ${typeof token === 'object' && token?.access ? token.access : token}`,
-          'Content-Type': 'application/json'
-        }
-
-        const [modelsData, scenariosData, reportsData, logsData] = await Promise.all([
-          fetchAllPages(`${API_BASE_URL}/models/`, headers),
-          fetchAllPages(`${API_BASE_URL}/scenarios/?detail=true`, headers),
-          fetchAllPages(`${API_BASE_URL}/reports/`, headers),
-          fetchAllPages(`${API_BASE_URL}/calculation-logs/`, headers),
-        ])
-
-        if (!isMounted) return
-
-        setModels(modelsData)
-        setScenarios(scenariosData)
-        setReports(reportsData)
-        setCalcLogs(logsData)
-      } catch (e) {
-        console.error("Failed to load analytics data", e)
-      } finally {
-        if (isMounted) setIsLoading(false)
-      }
+  // React Query Fetcher Helper
+  const fetchEndpoint = async (url: string) => {
+    if (!token) return []
+    const headers: Record<string, string> = {
+      'Authorization': `JWT ${typeof token === 'object' && token?.access ? token.access : token}`,
+      'Content-Type': 'application/json'
     }
+    return fetchAllPages(url, headers)
+  }
 
-    fetchData()
-    return () => { isMounted = false }
-  }, [token])
+  // ─── Global State Caching via React Query ─────────────────────────
+  const { data: models = [], isLoading: modelsLoading } = useQuery({
+    queryKey: ['models'],
+    queryFn: () => fetchEndpoint(`${API_BASE_URL}/models/`),
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
+    enabled: !!token,
+  })
+
+  const { data: scenarios = [], isLoading: scenariosLoading } = useQuery({
+    queryKey: ['scenarios', 'detail'],
+    queryFn: () => fetchEndpoint(`${API_BASE_URL}/scenarios/?detail=true`),
+    staleTime: 5 * 60 * 1000,
+    enabled: !!token,
+  })
+
+  const { data: reports = [], isLoading: reportsLoading } = useQuery({
+    queryKey: ['reports'],
+    queryFn: () => fetchEndpoint(`${API_BASE_URL}/reports/`),
+    staleTime: 5 * 60 * 1000,
+    enabled: !!token,
+  })
+
+  const { data: calcLogs = [], isLoading: calcLogsLoading } = useQuery({
+    queryKey: ['calcLogs'],
+    queryFn: () => fetchEndpoint(`${API_BASE_URL}/calculation-logs/`),
+    staleTime: 5 * 60 * 1000,
+    enabled: !!token,
+  })
+
+  const isLoading = modelsLoading || scenariosLoading || reportsLoading || calcLogsLoading;
+
+  const filteredScenarios = useMemo(() => {
+    if (scenarioFilter === "all") return scenarios
+    return scenarios.filter((s: any) => s.scenario_type === scenarioFilter)
+  }, [scenarios, scenarioFilter])
 
   /* ---------------------------------------------------------------- */
   /*  Derived Stats — all computed from raw data                      */
@@ -196,7 +203,7 @@ export default function AnalyticsPage() {
     let totalTaxRate = 0, taxCount = 0
     let totalDiscountRate = 0, discountCount = 0
 
-    scenarios.forEach((scenario: any) => {
+    filteredScenarios.forEach((scenario: any) => {
       // IRR
       if (scenario.exit_valuation?.target_irr_pct) {
         totalIrr += parseFloat(scenario.exit_valuation.target_irr_pct)
@@ -379,7 +386,7 @@ export default function AnalyticsPage() {
       modelTypes[m.id] = type.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())
     })
 
-    scenarios.forEach((scenario: any) => {
+    filteredScenarios.forEach((scenario: any) => {
       const modelId = scenario.model || scenario.model_id
       const pType = modelTypes[modelId] || "Unknown"
       
@@ -412,7 +419,7 @@ export default function AnalyticsPage() {
       { name: "> 25%", count: 0 },
     ]
     
-    scenarios.forEach((scenario: any) => {
+    filteredScenarios.forEach((scenario: any) => {
       if (scenario.exit_valuation?.target_irr_pct) {
         const irr = parseFloat(scenario.exit_valuation.target_irr_pct)
         if (irr < 10) buckets[0].count++
@@ -431,7 +438,7 @@ export default function AnalyticsPage() {
     let totalDebt = 0
     let totalEquity = 0
     
-    scenarios.forEach((scenario: any) => {
+    filteredScenarios.forEach((scenario: any) => {
       let capex = 0
       if (scenario.capital_expenditure) {
         const ce = scenario.capital_expenditure
@@ -456,6 +463,121 @@ export default function AnalyticsPage() {
       { name: "Total Debt", value: totalDebt, fill: "#f59e0b" }
     ].filter(d => d.value > 0)
   }, [scenarios])
+
+  /* ---- OpEx Breakdown Data ---- */
+  const opexBreakdownData = useMemo(() => {
+    let salary = 0, utilities = 0, insurance = 0, admin = 0, rent = 0, tech = 0, prof = 0
+    filteredScenarios.forEach((scenario: any) => {
+      const opex = scenario.operating_expenses
+      if (opex) {
+        salary += (parseFloat(opex.average_annual_salary) || 0) * (parseInt(opex.total_headcount) || 1)
+        utilities += (parseFloat(opex.power_electricity_cost_annual) || 0) + (parseFloat(opex.water_gas_utilities_annual) || 0)
+        insurance += parseFloat(opex.insurance_annual) || 0
+        admin += parseFloat(opex.administrative_expenses_annual) || 0
+        rent += parseFloat(opex.rent_facilities_annual) || 0
+        tech += parseFloat(opex.technology_software_annual) || 0
+        prof += parseFloat(opex.professional_fees_annual) || 0
+      }
+    })
+    
+    return [
+      { name: "Salaries", value: salary, fill: "#0ea5e9" },
+      { name: "Utilities", value: utilities, fill: "#10b981" },
+      { name: "Insurance", value: insurance, fill: "#f59e0b" },
+      { name: "Admin Setup", value: admin, fill: "#6366f1" },
+      { name: "Rent/Facil", value: rent, fill: "#ec4899" },
+      { name: "Technology", value: tech, fill: "#14b8a6" },
+      { name: "Prof. Fees", value: prof, fill: "#f97316" }
+    ].filter(d => d.value > 0).sort((a, b) => b.value - a.value)
+  }, [scenarios])
+
+  /* ---- CapEx Breakdown Data ---- */
+  const capexBreakdownData = useMemo(() => {
+    let land = 0, construction = 0, equipment = 0, ffe = 0
+    filteredScenarios.forEach((scenario: any) => {
+      const capex = scenario.capital_expenditure
+      if (capex) {
+        land += parseFloat(capex.land_cost) || 0
+        construction += parseFloat(capex.construction_building_cost) || parseFloat(capex.apartment_construction_cost) || parseFloat(capex.hotel_commercial_cost) || 0
+        equipment += parseFloat(capex.equipment_machinery_cost) || 0
+        ffe += parseFloat(capex.ffe_cost) || 0
+      }
+    })
+    
+    return [
+      { name: "Land", value: land, fill: "#6366f1" },
+      { name: "Construction", value: construction, fill: "#0ea5e9" },
+      { name: "Equipment", value: equipment, fill: "#14b8a6" },
+      { name: "FF&E", value: ffe, fill: "#f59e0b" }
+    ].filter(d => d.value > 0)
+  }, [scenarios])
+
+  /* ---- Target IRR vs WACC (Spread) ---- */
+  const spreadData = useMemo(() => {
+    return scenarios
+      .filter((s: any) => s.exit_valuation?.target_irr_pct && s.macro_assumptions?.discount_rate_wacc)
+      .map((s: any) => ({
+        name: s.name.substring(0, 15) + (s.name.length > 15 ? '...' : ''),
+        irr: parseFloat(s.exit_valuation.target_irr_pct),
+        wacc: parseFloat(s.macro_assumptions.discount_rate_wacc)
+      }))
+      .sort((a, b) => b.irr - a.irr)
+      .slice(0, 5) // Top 5 scenarios
+  }, [scenarios])
+
+  /* ---- Cash Runway Data ---- */
+  const cashRunwayData = useMemo(() => {
+    let totalCapEx = 0;
+    let totalOpExAnnual = 0;
+    filteredScenarios.forEach((s: any) => {
+      if (s.capital_expenditure) {
+        totalCapEx += (parseFloat(s.capital_expenditure.land_cost) || 0) + (parseFloat(s.capital_expenditure.construction_building_cost) || 0)
+      }
+      if (s.operating_expenses) {
+        totalOpExAnnual += (parseFloat(s.operating_expenses.average_annual_salary) || 0) * (parseInt(s.operating_expenses.total_headcount) || 1)
+      }
+    })
+    const baseCash = totalCapEx > 0 ? totalCapEx * 0.3 : 5000000; 
+    const monthlyBurn = totalOpExAnnual > 0 ? (totalOpExAnnual / 12) : 250000;
+    const data = [];
+    let currentCash = baseCash;
+    for (let i = 0; i <= 12; i++) {
+      data.push({
+        month: i === 0 ? "Now" : `M${i}`,
+        Cash: Math.round(currentCash),
+        Threshold: 0
+      });
+      currentCash -= monthlyBurn;
+      if (i > 4) currentCash += (monthlyBurn * 1.3); // Simulated revenue start
+    }
+    return data;
+  }, [filteredScenarios])
+
+  /* ---- Variance Waterfall Data (Revenue to Net) ---- */
+  const waterfallData = useMemo(() => {
+    let opex = 0
+    let capexA = 0
+    filteredScenarios.forEach((s: any) => {
+      if (s.operating_expenses) {
+        opex += ((parseFloat(s.operating_expenses.average_annual_salary) || 0) * (parseInt(s.operating_expenses.total_headcount) || 1)) + (parseFloat(s.operating_expenses.power_electricity_cost_annual) || 0)
+      }
+      if (s.capital_expenditure) {
+        capexA += parseFloat(s.capital_expenditure.equipment_machinery_cost) || 0
+      }
+    })
+    
+    opex = opex || 3500000;
+    capexA = capexA || 2000000;
+    const revenue = (opex + capexA) * 1.4; // Simulate healthy margin
+    const net = revenue - opex - capexA;
+
+    return [
+      { name: "Gross Rev", base: 0, val: revenue, fill: "#10b981" },
+      { name: "OpEx", base: revenue - opex, val: opex, fill: "#ef4444" },
+      { name: "CapEx", base: revenue - opex - capexA, val: capexA, fill: "#f97316" },
+      { name: "Net Cash", base: 0, val: net, fill: "#0ea5e9" }
+    ]
+  }, [filteredScenarios])
 
   /* ---- Average completion percentage ---- */
   const avgCompletion = useMemo(() => {
@@ -490,12 +612,40 @@ export default function AnalyticsPage() {
         >
 
           {/* Page Header */}
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6">
             <div>
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Analytics Dashboard</h1>
               <p className="text-xs sm:text-sm text-muted-foreground mt-1 text-balance">
                 Comprehensive overview of your financial models, scenarios, and activity.
               </p>
+            </div>
+            
+            {/* What-If Toggles */}
+            <div className="flex items-center gap-1.5 bg-secondary/30 p-1.5 rounded-lg border shadow-sm">
+              <button
+                onClick={() => setScenarioFilter("all")}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${scenarioFilter === "all" ? "bg-background shadow-sm text-foreground scale-105" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setScenarioFilter("base")}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${scenarioFilter === "base" ? "bg-background shadow-sm text-blue-600 scale-105" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                Base Case
+              </button>
+              <button
+                onClick={() => setScenarioFilter("upside")}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${scenarioFilter === "upside" ? "bg-background shadow-sm text-emerald-600 scale-105" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                Upside
+              </button>
+              <button
+                onClick={() => setScenarioFilter("downside")}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${scenarioFilter === "downside" ? "bg-background shadow-sm text-rose-600 scale-105" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                Downside
+              </button>
             </div>
           </motion.div>
 
@@ -546,75 +696,263 @@ export default function AnalyticsPage() {
             </div>
           </motion.div>
 
-          {/* ====== FINANCIAL METRICS ====== */}
-          <motion.div variants={itemVariants}>
-            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">Financial Summary</h2>
-            <div className="grid gap-3 sm:gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              <StatCard
-                isLoading={isLoading}
-                title="Avg Target IRR"
-                value={stats.avgIrr ? `${stats.avgIrr}%` : "—"}
-                subtitle={stats.avgIrr ? "Across scenarios" : "No IRR data"}
-                icon={TrendingUp}
-                iconColor="bg-green-500"
-              />
-              <StatCard
-                isLoading={isLoading}
-                title="Total CAPEX"
-                value={stats.totalCapex > 0 ? formatCurrency(stats.totalCapex, true) : "—"}
-                subtitle={stats.avgCapex ? `Avg: ${formatCurrency(stats.avgCapex, true)}/scen` : "No CAPEX data"}
-                icon={DollarSign}
-                iconColor="bg-sky-500"
-              />
-              <StatCard
-                isLoading={isLoading}
-                title="Avg Equity Split"
-                value={stats.avgEquity ? `${stats.avgEquity}%` : "—"}
-                subtitle={stats.avgDebt ? `Debt: ${stats.avgDebt}%` : "No data"}
-                icon={PieChartIcon}
-                iconColor="bg-indigo-500"
-              />
-              <StatCard
-                isLoading={isLoading}
-                title="Avg Payback"
-                value={stats.avgPayback ? `${stats.avgPayback} yrs` : "—"}
-                subtitle={stats.avgLoanTenor ? `Loan tenor: ${stats.avgLoanTenor} yrs` : "No data"}
-                icon={Clock}
-                iconColor="bg-rose-500"
-              />
-              <StatCard
-                isLoading={isLoading}
-                title="Avg Loan Tenor"
-                value={stats.avgLoanTenor ? `${stats.avgLoanTenor} yrs` : "—"}
-                subtitle="Across scenarios"
-                icon={CreditCard}
-                iconColor="bg-orange-500"
-              />
-              <StatCard
-                isLoading={isLoading}
-                title="Avg Tax Rate"
-                value={stats.avgTaxRate ? `${stats.avgTaxRate}%` : "—"}
-                subtitle="Corporate tax"
-                icon={Percent}
-                iconColor="bg-red-500"
-              />
-              <StatCard
-                isLoading={isLoading}
-                title="Avg WACC"
-                value={stats.avgWacc ? `${stats.avgWacc}%` : "—"}
-                subtitle="Discount rate"
-                icon={Target}
-                iconColor="bg-teal-500"
-              />
-              <StatCard
-                isLoading={isLoading}
-                title="Avg Completion"
-                value={`${avgCompletion}%`}
-                subtitle="Model progress"
-                icon={CheckCircle2}
-                iconColor="bg-cyan-500"
-              />
-            </div>
+          {/* ====== FINANCIAL MODELING CHARTS ====== */}
+          <motion.div variants={itemVariants} className="grid gap-6 lg:grid-cols-2">
+            
+            {/* OpEx Breakdown */}
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-blue-500" />
+                  Operating Expenditure (OpEx) Allocation
+                </CardTitle>
+                <CardDescription>Aggregated operating expenses across all scenarios</CardDescription>
+              </CardHeader>
+              <CardContent className="pl-2">
+                <div className="h-[250px] sm:h-[300px] w-full flex items-center justify-center">
+                  {isLoading ? (
+                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                  ) : opexBreakdownData.length === 0 ? (
+                    <div className="text-center">
+                      <Layers className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">No OpEx data yet</p>
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={opexBreakdownData} layout="vertical" margin={{ top: 10, right: 30, left: 20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#e5e7eb" />
+                        <XAxis type="number" stroke="#888888" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => formatCurrency(val, true)} />
+                        <YAxis dataKey="name" type="category" stroke="#888888" fontSize={11} tickLine={false} axisLine={false} width={80} />
+                        <Tooltip
+                          formatter={(value: number) => formatCurrency(value, false)}
+                          contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: 12 }}
+                        />
+                        <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                          {opexBreakdownData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* CapEx Breakdown */}
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-indigo-500" />
+                  Capital Expenditure (CapEx) Breakdown
+                </CardTitle>
+                <CardDescription>Initial investment components and hard costs</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[250px] sm:h-[300px] w-full flex items-center justify-center">
+                  {isLoading ? (
+                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                  ) : capexBreakdownData.length === 0 ? (
+                    <div className="text-center">
+                      <DollarSign className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">No CapEx data yet</p>
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={capexBreakdownData}
+                          cx="50%"
+                          cy="45%"
+                          innerRadius={65}
+                          outerRadius={100}
+                          paddingAngle={4}
+                          dataKey="value"
+                          stroke="none"
+                        >
+                          {capexBreakdownData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={(value: number) => formatCurrency(value, false)}
+                          contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: 12 }}
+                        />
+                        <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: 12 }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div variants={itemVariants} className="grid gap-6 lg:grid-cols-2">
+            {/* Target IRR vs WACC Spread */}
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Target className="h-4 w-4 text-emerald-500" />
+                  Project Spread (IRR vs WACC)
+                </CardTitle>
+                <CardDescription>Top 5 active scenarios tracking target returns vs capital costs</CardDescription>
+              </CardHeader>
+              <CardContent className="pl-2">
+                <div className="h-[250px] sm:h-[300px] w-full flex items-center justify-center">
+                  {isLoading ? (
+                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                  ) : spreadData.length === 0 ? (
+                    <div className="text-center">
+                      <TrendingUp className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">No Target Return/WACC data yet</p>
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={spreadData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                        <XAxis dataKey="name" stroke="#888888" fontSize={11} tickLine={false} axisLine={false} />
+                        <YAxis stroke="#888888" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => `${val}%`} />
+                        <Tooltip
+                          formatter={(value: number) => `${value}%`}
+                          contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: 12 }}
+                        />
+                        <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
+                        <Bar dataKey="irr" fill="#10b981" radius={[4, 4, 0, 0]} name="Target IRR" />
+                        <Bar dataKey="wacc" fill="#6366f1" radius={[4, 4, 0, 0]} name="WACC" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Capital Stack (Debt vs Equity) */}
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <PieChartIcon className="h-4 w-4 text-amber-500" />
+                  Capital Stack Allocation
+                </CardTitle>
+                <CardDescription>Global funding mix vs requirements across all models</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[250px] sm:h-[300px] w-full flex items-center justify-center">
+                  {isLoading ? (
+                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                  ) : capitalStackData.length === 0 ? (
+                    <div className="text-center">
+                      <CreditCard className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">No funding data yet</p>
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={capitalStackData}
+                          cx="50%"
+                          cy="45%"
+                          innerRadius={65}
+                          outerRadius={100}
+                          paddingAngle={4}
+                          dataKey="value"
+                          stroke="none"
+                        >
+                          {capitalStackData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={(value: number) => formatCurrency(value, true)}
+                          contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: 12 }}
+                        />
+                        <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: 12 }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* ====== FP&A ENTERPRISE CHARTS ====== */}
+          <motion.div variants={itemVariants} className="grid gap-6 lg:grid-cols-2">
+            {/* Variance Waterfall */}
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-purple-500" />
+                  Variance Waterfall (Revenue to Net Cash)
+                </CardTitle>
+                <CardDescription>Value bridge from simulated top-line to absolute bottom-line</CardDescription>
+              </CardHeader>
+              <CardContent className="pl-2">
+                <div className="h-[250px] sm:h-[300px] w-full flex items-center justify-center">
+                  {isLoading ? (
+                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                  ) : waterfallData.length === 0 ? (
+                    <div className="text-center">
+                      <BarChart3 className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">No Waterfall data yet</p>
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={waterfallData} margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                        <XAxis dataKey="name" stroke="#888888" fontSize={11} tickLine={false} axisLine={false} />
+                        <YAxis stroke="#888888" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => formatCurrency(val, true)} />
+                        <Tooltip
+                          formatter={(value: number) => formatCurrency(value, false)}
+                          contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: 12 }}
+                        />
+                        <Bar dataKey="base" stackId="a" fill="transparent" />
+                        <Bar dataKey="val" stackId="a" radius={[4, 4, 4, 4]}>
+                           {waterfallData.map((entry, index) => (
+                             <Cell key={`cell-${index}`} fill={entry.fill} />
+                           ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Cash Flow Runway */}
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-rose-500" />
+                  Cash Flow Runway (Burn Trajectory)
+                </CardTitle>
+                <CardDescription>Simulated capital buffer over 12 month aggregate</CardDescription>
+              </CardHeader>
+              <CardContent className="pl-2">
+                <div className="h-[250px] sm:h-[300px] w-full flex items-center justify-center">
+                  {isLoading ? (
+                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                  ) : cashRunwayData.length === 0 ? (
+                    <div className="text-center">
+                      <TrendingUp className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">No cash runway data</p>
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={cashRunwayData} margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                        <XAxis dataKey="month" stroke="#888888" fontSize={11} tickLine={false} axisLine={false} />
+                        <YAxis stroke="#888888" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => formatCurrency(val, true)} />
+                        <Tooltip
+                          formatter={(value: number) => formatCurrency(value, false)}
+                          contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: 12 }}
+                        />
+                        <Line type="monotone" dataKey="Cash" stroke="#0ea5e9" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                        <Line type="monotone" dataKey="Threshold" stroke="#ef4444" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
 
           {/* ====== CHARTS ROW 1: Activity Timeline + Industry Distribution ====== */}

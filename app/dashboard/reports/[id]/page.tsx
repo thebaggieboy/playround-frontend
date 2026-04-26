@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import {
   ArrowLeft, MoreVertical, Share2, Download, Settings,
   TrendingUp, BarChart3, Loader2, AlertCircle, FileText,
-  DollarSign, TrendingDown, Activity, PlayCircle
+  DollarSign, TrendingDown, Activity, PlayCircle, CheckCircle2, ShieldAlert
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -245,6 +245,55 @@ export default function ReportDetailPage() {
     }
   }
 
+  // ── Safely Extract Data & Run Hooks First ────────────────────────────────
+  const cd: Record<string, any> = report?.calculated_data || {}
+  const hasData = Object.keys(cd).length > 0
+
+  // Validation Engine (10d)
+  const modelIntegrity = useMemo(() => {
+    if (!hasData) return null;
+    let isBalanced = true;
+    let dscrOk = true;
+    const errors: string[] = [];
+    
+    // Balance Check
+    const balanceData = cd["bs"]?.find((item: any) => item.line_item === "Balance Check (should be 0)");
+    if (balanceData && balanceData.values_by_period) {
+      Object.entries(balanceData.values_by_period).forEach(([period, val]) => {
+        if (Math.abs(Number(val)) > 1) { // Allow $1 floating point drift
+          isBalanced = false;
+          errors.push(`Balance Sheet mismatched in ${period} (Gap: $${Math.abs(Number(val)).toFixed(0)})`);
+        }
+      });
+    }
+
+    // DSCR Covenant Check
+    const dscrData = cd["ratio"]?.find((item: any) => item.line_item === "DSCR");
+    if (dscrData && dscrData.values_by_period) {
+      Object.entries(dscrData.values_by_period).forEach(([period, val]) => {
+        if (Number(val) < 1.0 && Number(val) > 0) { 
+          dscrOk = false;
+          if (!errors.some(e => e.includes("DSCR fell"))) { // Prevent overflowing array
+             errors.push(`DSCR Covenant Breach: Fell to ${Number(val).toFixed(2)}x in ${period}`);
+          }
+        }
+      });
+    }
+
+    // IRR Performance Target Check
+    let irrOk = true;
+    const valuationObj = cd["valuation"]?.find((item: any) => item.line_item === "Valuation Metrics");
+    const actualIrr = valuationObj?.values_by_period?.["IRR (%)"];
+    if (actualIrr !== undefined && Number(actualIrr) <= 0) {
+      irrOk = false;
+      errors.push(`Financial Warning: Project yields a negative IRR of ${Number(actualIrr).toFixed(2)}%`);
+    }
+
+    const passed = isBalanced && dscrOk && irrOk;
+
+    return { passed, isBalanced, dscrOk, irrOk, errors };
+  }, [cd, hasData]);
+
   // ── Loading ──────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
@@ -269,9 +318,6 @@ export default function ReportDetailPage() {
   }
 
   // ── Derived data ──────────────────────────────────────────────────────────
-  const cd: Record<string, any> = report.calculated_data || {}
-  const hasData = Object.keys(cd).length > 0
-
   // Key metrics
   const peakRevenue = peakValue(cd, "is", "Total Revenue")
   const lastEbitda = lastValue(cd, "is", "EBITDA")
@@ -391,6 +437,71 @@ export default function ReportDetailPage() {
         </Card>
       )}
 
+      {/* ── Automatic Validation Integrity Bar (10d) ────────────────────── */}
+      {hasData && modelIntegrity && (
+        <Card className={`p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-l-4 shadow-sm relative overflow-hidden mb-2 ${
+          modelIntegrity.passed ? "border-l-green-500 bg-green-50/50 dark:bg-green-950/20" : "border-l-destructive bg-red-50/50 dark:bg-red-950/20"
+        }`}>
+          <div className="flex items-start gap-3">
+            {modelIntegrity.passed ? (
+              <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-500 mt-0.5" />
+            ) : (
+              <ShieldAlert className="w-6 h-6 text-destructive mt-0.5" />
+            )}
+            <div>
+              <h3 className={`font-semibold ${modelIntegrity.passed ? "text-green-800 dark:text-green-400" : "text-destructive"}`}>
+                {modelIntegrity.passed ? "Model Integrity: Verified" : "Model Integrity: Action Required"}
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                {modelIntegrity.passed 
+                  ? "Balance sheet symmetry maintained. Debt service coverage covenants met. Minimum IRR hurdles cleared."
+                  : "The automated auditor detected structural breaks or broken covenants in this scenario."}
+              </p>
+            </div>
+          </div>
+          
+          {!modelIntegrity.passed && modelIntegrity.errors.length > 0 && (
+            <div className="md:max-w-md w-full bg-background/60 p-3 rounded-md text-xs sm:text-sm text-destructive font-medium border border-destructive/20 shadow-inner">
+              <ul className="list-disc list-inside space-y-1">
+                {modelIntegrity.errors.slice(0, 3).map((err, idx) => (
+                  <li key={idx}>{err}</li>
+                ))}
+                {modelIntegrity.errors.length > 3 && (
+                  <li className="text-muted-foreground italic">+ {modelIntegrity.errors.length - 3} more errors</li>
+                )}
+              </ul>
+            </div>
+          )}
+        </Card>
+      )}
+
+      {/* ── AI Executive Narrative ─────────────────────────────────────────────── */}
+      {hasData && (
+        <Card className="p-5 sm:p-6 bg-secondary/20 shadow-sm relative overflow-hidden mb-6">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+          <h3 className="text-sm sm:text-base font-semibold text-foreground mb-3 flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
+            </span>
+            Automated Executive Narrative
+          </h3>
+          <div className="space-y-3 print:space-y-2">
+            <p className="text-sm text-foreground/90 leading-relaxed font-medium">
+              The financial synthesis indicates peak topline revenue scaling up to <strong className="text-primary">{fmt(peakRevenue)}</strong>. 
+              Operating expenditure bridging leaves a terminal EBITDA profile of <strong className="text-primary">{fmt(lastEbitda)}</strong> 
+              {peakRevenue > 0 ? ` (representing a margin capacity nearing ${((lastEbitda / peakRevenue) * 100).toFixed(1)}%)` : ""}. 
+              The capital formation yields a net present value (NPV) estimation around <strong className="text-primary">{fmt(npv)}</strong>.
+            </p>
+            <p className="text-sm text-foreground/80 leading-relaxed">
+              Net cash flow indicates {lastNetIncome > 0 ? "positive structural liquidity" : "a highly constrained liquidity runway"}, 
+              with peak operating cash reaching <strong className="text-primary">{fmt(peakCfo)}</strong>. 
+              Capital stack positioning should be actively monitored against macroeconomic discount rate shifts to protect the baseline structural returns.
+            </p>
+          </div>
+        </Card>
+      )}
+
       {/* ── Key Metrics ─────────────────────────────────────────────── */}
       {hasData && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -409,7 +520,12 @@ export default function ReportDetailPage() {
               <TabsTrigger className="text-[11px] sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4" value="income">Income Statement</TabsTrigger>
               <TabsTrigger className="text-[11px] sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4" value="profitability">Profitability</TabsTrigger>
               <TabsTrigger className="text-[11px] sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4" value="cashflow">Cash Flow</TabsTrigger>
-              {debtData.length > 0 && <TabsTrigger className="text-[11px] sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4" value="debt">Debt Schedule</TabsTrigger>}
+              {debtData.length > 0 && <TabsTrigger className="text-[11px] sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4" value="debt">Debt</TabsTrigger>}
+              <TabsTrigger className="text-[11px] sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4" value="revenue">Revenue</TabsTrigger>
+              <TabsTrigger className="text-[11px] sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4" value="opex">OpEx</TabsTrigger>
+              <TabsTrigger className="text-[11px] sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4" value="fixed_assets">Fixed Assets</TabsTrigger>
+              <TabsTrigger className="text-[11px] sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4" value="tax">Tax</TabsTrigger>
+              <TabsTrigger className="text-[11px] sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4" value="dividend">Dividends</TabsTrigger>
               <TabsTrigger className="text-[11px] sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4" value="summary">Summary</TabsTrigger>
             </TabsList>
           </div>
@@ -599,6 +715,52 @@ export default function ReportDetailPage() {
               </Card>
             )}
           </TabsContent>
+
+          {/* ── Additional Schedules ──────────────────────── */}
+          {(cd["revenue"] ?? []).length > 0 && (
+            <TabsContent value="revenue" className="mt-4 sm:mt-6 space-y-4">
+              <Card className="p-4 sm:p-6 overflow-hidden">
+                <h3 className="text-sm sm:text-base font-semibold text-foreground mb-4">Revenue & Receivables Schedule</h3>
+                <FinancialTable rows={cd["revenue"]} />
+              </Card>
+            </TabsContent>
+          )}
+
+          {(cd["opex"] ?? []).length > 0 && (
+            <TabsContent value="opex" className="mt-4 sm:mt-6 space-y-4">
+              <Card className="p-4 sm:p-6 overflow-hidden">
+                <h3 className="text-sm sm:text-base font-semibold text-foreground mb-4">Operating Expenses & Payables Schedule</h3>
+                <FinancialTable rows={cd["opex"]} />
+              </Card>
+            </TabsContent>
+          )}
+
+          {(cd["fixed_assets"] ?? []).length > 0 && (
+            <TabsContent value="fixed_assets" className="mt-4 sm:mt-6 space-y-4">
+              <Card className="p-4 sm:p-6 overflow-hidden">
+                <h3 className="text-sm sm:text-base font-semibold text-foreground mb-4">Fixed Assets & Depreciation</h3>
+                <FinancialTable rows={cd["fixed_assets"]} />
+              </Card>
+            </TabsContent>
+          )}
+
+          {(cd["tax"] ?? []).length > 0 && (
+            <TabsContent value="tax" className="mt-4 sm:mt-6 space-y-4">
+              <Card className="p-4 sm:p-6 overflow-hidden">
+                <h3 className="text-sm sm:text-base font-semibold text-foreground mb-4">Tax & Allowances Schedule</h3>
+                <FinancialTable rows={cd["tax"]} />
+              </Card>
+            </TabsContent>
+          )}
+
+          {(cd["dividend"] ?? []).length > 0 && (
+            <TabsContent value="dividend" className="mt-4 sm:mt-6 space-y-4">
+              <Card className="p-4 sm:p-6 overflow-hidden">
+                <h3 className="text-sm sm:text-base font-semibold text-foreground mb-4">Reserve Accounts & Dividends</h3>
+                <FinancialTable rows={cd["dividend"]} />
+              </Card>
+            </TabsContent>
+          )}
         </Tabs>
       )}
     </div>
