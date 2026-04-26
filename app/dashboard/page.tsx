@@ -90,7 +90,7 @@ function SortableStatCard({ stat, isLoading, statsData }: any) {
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-xs text-muted-foreground font-medium truncate mb-1">{stat.label}</p>
-          <p className="text-3xl font-extrabold text-foreground tracking-tighter leading-none">{isLoading ? <div className="h-8 w-16 bg-muted/60 rounded animate-pulse mt-1"></div> : statsData[stat.valueKey]}</p>
+          <div className="text-3xl font-extrabold text-foreground tracking-tighter leading-none">{isLoading ? <div className="h-8 w-16 bg-muted/60 rounded animate-pulse mt-1"></div> : statsData[stat.valueKey]}</div>
         </div>
       </div>
     </motion.div>

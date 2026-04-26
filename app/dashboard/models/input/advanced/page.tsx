@@ -1979,10 +1979,10 @@ function RevenueForm({
               </>
             ) : (
               <>
-                <InputField label="Year 1 Sales Volume" type="number" tooltip="The total number of units expected to be sold in the first operational year." onChange={(value) => updateRevenueProduct(idx, 'year1SalesVolume', Number(value))} defaultValue="500000" value={item.year1SalesVolume} />
-                <InputField label="Unit Price (Year 1)" type="number" tooltip="The selling price per unit in the first year of operations." onChange={(value) => updateRevenueProduct(idx, 'unitPriceYear1', Number(value))} prefix="$" defaultValue="120" value={item.unitPriceYear1} />
-                <InputField label="Volume Growth Rate" type="number" tooltip="The annual percentage increase in the quantity of units sold." onChange={(value) => updateRevenueProduct(idx, 'volumeGrowthRate', Number(value))} suffix="%" defaultValue="5.0" value={item.volumeGrowthRate} />
-                <InputField label="Price Escalation Rate" type="number" tooltip="The annual percentage increase in the unit selling price (usually inflation-linked)." onChange={(value) => updateRevenueProduct(idx, 'priceEscalationRate', Number(value))} suffix="%" defaultValue="2.5" value={item.priceEscalationRate} />
+                <InputField label="Year 1 Sales Volume" type="number" tooltip="The total number of units expected to be sold in the first operational year." onChange={(value) => updateRevenueProduct(idx, 'year1SalesVolume', Number(value))} defaultValue="500000" value={formData.revenueProducts[idx]?.year1SalesVolume} />
+                <InputField label="Unit Price (Year 1)" type="number" tooltip="The selling price per unit in the first year of operations." onChange={(value) => updateRevenueProduct(idx, 'unitPriceYear1', Number(value))} prefix="$" defaultValue="120" value={formData.revenueProducts[idx]?.unitPriceYear1} />
+                <InputField label="Volume Growth Rate" type="number" tooltip="The annual percentage increase in the quantity of units sold." onChange={(value) => updateRevenueProduct(idx, 'volumeGrowthRate', Number(value))} suffix="%" defaultValue="5.0" value={formData.revenueProducts[idx]?.volumeGrowthRate} />
+                <InputField label="Price Escalation Rate" type="number" tooltip="The annual percentage increase in the unit selling price (usually inflation-linked)." onChange={(value) => updateRevenueProduct(idx, 'priceEscalationRate', Number(value))} suffix="%" defaultValue="2.5" value={formData.revenueProducts[idx]?.priceEscalationRate} />
               </>
             )}
           </div>
