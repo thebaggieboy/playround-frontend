@@ -49,12 +49,12 @@ export function UseCases() {
   return (
     <section
       ref={ref}
-      className="py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-transparent relative overflow-hidden"
+      className="py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-slate-50 relative overflow-hidden"
     >
       {/* Subtle decorative pigments */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-white/10" />
-      <div className="absolute top-20 right-0 w-72 h-72 rounded-full bg-white/[0.02] blur-3xl pointer-events-none" />
-      <div className="absolute bottom-20 left-0 w-56 h-56 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-slate-200" />
+      <div className="absolute top-20 right-0 w-72 h-72 rounded-full bg-slate-200/50 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-20 left-0 w-56 h-56 rounded-full bg-blue-100/50 blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
@@ -64,16 +64,16 @@ export function UseCases() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <div className="inline-flex items-center gap-2 mb-5 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 backdrop-blur-md shadow-[0_0_16px_rgba(59,130,246,0.15)]">
-            <Sparkles className="w-4 h-4 text-blue-400" />
-            <span className="text-sm font-medium text-blue-400">
+          <div className="inline-flex items-center gap-2 mb-5 px-4 py-2 rounded-full bg-blue-50 border border-blue-100 shadow-sm">
+            <Sparkles className="w-4 h-4 text-blue-600" />
+            <span className="text-sm font-medium text-blue-600">
               Multiple Solutions
             </span>
           </div>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 text-balance">
-            Use Cases for <span className="text-blue-400 block sm:inline mt-1 sm:mt-0" style={{ fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400, fontSize: "1.15em" }}>Every Role</span>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 text-balance">
+            Use Cases for <span className="text-blue-600 block sm:inline mt-1 sm:mt-0" style={{ fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400, fontSize: "1.15em" }}>Every Role</span>
           </h2>
-          <p className="text-base md:text-lg text-white/60 max-w-xl mx-auto leading-relaxed font-light">
+          <p className="text-base md:text-lg text-slate-500 max-w-xl mx-auto leading-relaxed font-light">
             Whether you're a CFO, analyst, or finance novice, our platform
             adapts to your needs and expertise level
           </p>
@@ -97,42 +97,42 @@ export function UseCases() {
               >
                 <div
                   className={`relative h-full rounded-2xl p-7 border transition-all duration-300 ${hoveredIndex === index
-                      ? "border-blue-400/30 bg-white/[0.05] backdrop-blur-xl shadow-[0_8px_32px_rgba(59,130,246,0.15)] -translate-y-1"
-                      : "border-white/[0.08] bg-white/[0.02] backdrop-blur-md shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5)]"
+                    ? "border-slate-300 bg-white shadow-md -translate-y-1"
+                    : "border-slate-200 bg-white shadow-sm"
                     }`}
                 >
                   {/* Top accent bar */}
                   <div
-                    className={`absolute top-0 left-6 right-6 h-0.5 rounded-full transition-all duration-300 ${hoveredIndex === index ? "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" : "bg-white/10"
+                    className={`absolute top-0 left-6 right-6 h-0.5 rounded-full transition-all duration-300 ${hoveredIndex === index ? "bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.5)]" : "bg-slate-100"
                       }`}
                   />
 
                   {/* Icon */}
                   <div
                     className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 transition-all duration-300 ${hoveredIndex === index
-                        ? "bg-blue-500 text-white scale-110 shadow-[0_0_16px_rgba(59,130,246,0.5)]"
-                        : "bg-white/10 text-blue-400 border border-white/[0.05]"
+                      ? "bg-blue-600 text-white scale-110 shadow-sm"
+                      : "bg-blue-50 text-blue-600 border border-blue-100"
                       }`}
                   >
                     <Icon className="w-6 h-6" />
                   </div>
 
                   {/* Title */}
-                  <h3 className="text-lg font-semibold text-white mb-3">
+                  <h3 className="text-lg font-semibold text-slate-900 mb-3">
                     {useCase.title}
                   </h3>
 
                   {/* Description */}
-                  <p className="text-sm text-white/50 leading-relaxed mb-5 font-light">
+                  <p className="text-sm text-slate-500 leading-relaxed mb-5 font-light">
                     {useCase.description}
                   </p>
 
                   {/* Detail tags */}
-                  <div className="flex flex-wrap gap-2 mb-5 pb-5 border-b border-white/[0.08]">
+                  <div className="flex flex-wrap gap-2 mb-5 pb-5 border-b border-slate-100">
                     {useCase.details.map((detail, idx) => (
                       <span
                         key={idx}
-                        className="text-xs font-medium px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/20"
+                        className="text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100"
                       >
                         {detail}
                       </span>
@@ -142,7 +142,7 @@ export function UseCases() {
                   {/* CTA */}
                   <a
                     href={useCase.link}
-                    className={`inline-flex items-center gap-2 text-sm font-semibold text-blue-400 transition-all duration-300 ${hoveredIndex === index ? "translate-x-1" : ""
+                    className={`inline-flex items-center gap-2 text-sm font-semibold text-blue-600 transition-all duration-300 hover:text-blue-700 ${hoveredIndex === index ? "translate-x-1" : ""
                       }`}
                   >
                     Explore
@@ -170,12 +170,12 @@ export function UseCases() {
             <motion.div
               key={idx}
               whileHover={{ scale: 1.05 }}
-              className="rounded-2xl p-6 text-center bg-white/[0.02] backdrop-blur-md border border-white/[0.08] shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] hover:border-blue-500/30 hover:bg-white/[0.04] transition-all duration-300"
+              className="rounded-2xl p-6 text-center bg-white border border-slate-200 shadow-sm hover:border-slate-300 hover:shadow-md hover:bg-slate-50 transition-all duration-300"
             >
-              <div className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400 mb-1 drop-shadow-[0_0_8px_rgba(96,165,250,0.3)]">
+              <div className="text-2xl md:text-3xl font-bold text-blue-600 mb-1">
                 {item.stat}
               </div>
-              <div className="text-sm text-white/50">{item.label}</div>
+              <div className="text-sm text-slate-500">{item.label}</div>
             </motion.div>
           ))}
         </motion.div>

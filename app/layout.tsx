@@ -17,8 +17,11 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body className="font-sans antialiased">
+    <html lang="en" className="scroll-smooth">
+      <body 
+        className="antialiased selection:bg-blue-500/30"
+        style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', Inter, sans-serif" }}
+      >
         <Providers>
           <Header />
           {children}

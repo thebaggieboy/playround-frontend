@@ -59,7 +59,7 @@ export function HeroWorkflow() {
           className="max-w-2xl mx-auto text-center mb-16 md:mb-20"
         >
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900 mb-4 text-balance">
-            Your Financial Analysis <span className="text-blue-600 block sm:inline mt-1 sm:mt-0" style={{ fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400, fontSize: "1.25em" }}>Workflow</span>
+            Your Financial Analysis Workflow
           </h2>
           <p className="text-lg text-slate-500 leading-relaxed">
             Four simple steps from data to insights, all within Playground's

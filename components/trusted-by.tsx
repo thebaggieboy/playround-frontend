@@ -46,9 +46,9 @@ export function TrustedBy() {
   return (
     <section
       ref={ref}
-      className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-transparent relative overflow-hidden"
+      className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-white relative overflow-hidden"
     >
-      <div className="absolute top-0 left-0 right-0 h-px bg-white/10" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-slate-200" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Logo marquee */}
@@ -58,24 +58,24 @@ export function TrustedBy() {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <p className="text-sm font-medium text-white/50 uppercase tracking-wider mb-8">
+          <p className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-8">
             Trusted by finance teams at leading institutions
           </p>
           <div className="relative overflow-hidden">
-            <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-[#030712] to-transparent z-10" />
-            <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-[#030712] to-transparent z-10" />
+            <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-white to-transparent z-10" />
+            <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-white to-transparent z-10" />
             <div className="flex animate-[scroll_25s_linear_infinite]">
               {[...logoNames, ...logoNames].map((name, i) => (
                 <div
                   key={i}
-                  className="flex-shrink-0 mx-8 flex items-center gap-2 px-6 py-3 rounded-xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-md shadow-[0_4px_24px_-8px_rgba(0,0,0,0.5)]"
+                  className="flex-shrink-0 mx-8 flex items-center gap-2 px-6 py-3 rounded-xl border border-slate-200 bg-slate-50/50 shadow-sm"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center border border-white/[0.05]">
-                    <span className="text-xs font-bold text-white/80">
+                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center border border-slate-200 shadow-sm">
+                    <span className="text-xs font-bold text-slate-800">
                       {name[0]}
                     </span>
                   </div>
-                  <span className="text-sm font-semibold text-white/80 whitespace-nowrap">
+                  <span className="text-sm font-semibold text-slate-800 whitespace-nowrap">
                     {name}
                   </span>
                 </div>
@@ -103,16 +103,16 @@ export function TrustedBy() {
                     : { opacity: 0, y: 10 }
                 }
                 transition={{ duration: 0.4, delay: 0.3 + index * 0.08 }}
-                className="flex items-center gap-3 p-4 rounded-2xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-md hover:border-white/20 hover:bg-white/[0.05] transition-all duration-300 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)]"
+                className="flex items-center gap-3 p-4 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-md transition-all duration-300 shadow-sm"
               >
-                <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0">
-                  <Icon className="w-5 h-5 text-blue-400" />
+                <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0">
+                  <Icon className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-white">
+                  <p className="text-sm font-semibold text-slate-900">
                     {badge.label}
                   </p>
-                  <p className="text-xs text-white/50">
+                  <p className="text-xs text-slate-500">
                     {badge.description}
                   </p>
                 </div>

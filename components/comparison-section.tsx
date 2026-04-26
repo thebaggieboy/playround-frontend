@@ -117,64 +117,63 @@ export function ComparisonSection() {
           className="rounded-xl border border-[#e8e4df] bg-white overflow-x-auto shadow-sm"
         >
           <div className="min-w-[520px]">
-          {/* Table Header */}
-          <div className="grid grid-cols-4 border-b border-[#e8e4df]">
-            <div className="p-5">
-              <span className="text-sm font-medium text-slate-500">
-                Feature
-              </span>
-            </div>
-            <div className="p-5 bg-blue-600 text-center relative">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-blue-700 text-[10px] font-bold text-white uppercase tracking-wider">
-                Best Value
-              </div>
-              <span className="text-sm font-bold text-white">
-                Playground
-              </span>
-            </div>
-            <div className="p-5 text-center">
-              <span className="text-sm font-medium text-slate-500">
-                Spreadsheets
-              </span>
-            </div>
-            <div className="p-5 text-center">
-              <span className="text-sm font-medium text-slate-500">
-                Enterprise CPM
-              </span>
-            </div>
-          </div>
-
-          {/* Table Rows */}
-          {comparisonData.map((row, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, x: -10 }}
-              animate={
-                isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }
-              }
-              transition={{ duration: 0.4, delay: 0.3 + index * 0.05 }}
-              onMouseEnter={() => setHoveredRow(index)}
-              onMouseLeave={() => setHoveredRow(null)}
-              className={`grid grid-cols-4 border-b border-[#e8e4df] last:border-b-0 transition-colors duration-200 ${
-                hoveredRow === index ? "bg-blue-50/50" : ""
-              }`}
-            >
-              <div className="p-4 flex items-center">
-                <span className="text-sm text-slate-700 font-medium">
-                  {row.feature}
+            {/* Table Header */}
+            <div className="grid grid-cols-4 border-b border-[#e8e4df]">
+              <div className="p-5">
+                <span className="text-sm font-medium text-slate-500">
+                  Feature
                 </span>
               </div>
-              <div className="p-4 flex items-center justify-center bg-blue-50/30">
-                <CellValue value={row.playground} />
+              <div className="p-5 bg-blue-600 text-center relative">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-blue-700 text-[10px] font-bold text-white uppercase tracking-wider">
+                  Best Value
+                </div>
+                <span className="text-sm font-bold text-white">
+                  Playground
+                </span>
               </div>
-              <div className="p-4 flex items-center justify-center">
-                <CellValue value={row.traditional} />
+              <div className="p-5 text-center">
+                <span className="text-sm font-medium text-slate-500">
+                  Spreadsheets
+                </span>
               </div>
-              <div className="p-4 flex items-center justify-center">
-                <CellValue value={row.enterprise} />
+              <div className="p-5 text-center">
+                <span className="text-sm font-medium text-slate-500">
+                  Enterprise CPM
+                </span>
               </div>
-            </motion.div>
-          ))}
+            </div>
+
+            {/* Table Rows */}
+            {comparisonData.map((row, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, x: -10 }}
+                animate={
+                  isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }
+                }
+                transition={{ duration: 0.4, delay: 0.3 + index * 0.05 }}
+                onMouseEnter={() => setHoveredRow(index)}
+                onMouseLeave={() => setHoveredRow(null)}
+                className={`grid grid-cols-4 border-b border-[#e8e4df] last:border-b-0 transition-colors duration-200 ${hoveredRow === index ? "bg-blue-50/50" : ""
+                  }`}
+              >
+                <div className="p-4 flex items-center">
+                  <span className="text-sm text-slate-700 font-medium">
+                    {row.feature}
+                  </span>
+                </div>
+                <div className="p-4 flex items-center justify-center bg-blue-50/30">
+                  <CellValue value={row.playground} />
+                </div>
+                <div className="p-4 flex items-center justify-center">
+                  <CellValue value={row.traditional} />
+                </div>
+                <div className="p-4 flex items-center justify-center">
+                  <CellValue value={row.enterprise} />
+                </div>
+              </motion.div>
+            ))}
           </div>
         </motion.div>
 

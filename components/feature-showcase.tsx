@@ -61,7 +61,7 @@ export function FeatureShowcase() {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center max-w-3xl mx-auto mb-20">
                     <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight mb-4">
-                        Everything you need for <span className="text-blue-400 block sm:inline mt-2 sm:mt-0" style={{ fontFamily: "'Instrument Serif', serif", fontStyle: "italic", fontWeight: 400, fontSize: "1.15em" }}>financial clarity</span>
+                        Everything you need for <span className="text-blue-400">financial clarity</span>
                     </h2>
                     <p className="text-lg text-slate-400">
                         A complete suite of tools designed to transform complex financial data into beautiful, actionable insights.
@@ -109,31 +109,39 @@ export function FeatureShowcase() {
                             </div>
 
                             {/* Image Side */}
-                            <div className="flex-1 w-full max-w-2xl lg:max-w-none">
+                            <div className="flex-1 w-full max-w-2xl lg:max-w-none relative group">
+                                {/* Ambient back-glow to make it pop like a high-end monitor */}
+                                <div className="absolute -inset-4 bg-gradient-to-r from-blue-500/20 via-indigo-500/20 to-purple-500/20 rounded-[2rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
+                                
                                 <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.5 }}
-                                    className="relative rounded-2xl overflow-hidden border border-[#264a82] bg-[#0c162d] shadow-2xl group"
+                                    initial={{ opacity: 0, y: 60, rotateX: 15, scale: 0.95 }}
+                                    whileInView={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
+                                    viewport={{ once: true, margin: "-100px" }}
+                                    transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+                                    style={{ transformPerspective: "1200px" }}
+                                    className="relative rounded-[1.25rem] overflow-hidden border border-white/[0.1] bg-[#030712] shadow-[0_30px_100px_-20px_rgba(0,0,0,0.9)] ring-1 ring-white/5"
                                 >
-                                    <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                                    {/* Aspect ratio container for the screenshot */}
-                                    <div className="relative aspect-[16/10] sm:aspect-video w-full bg-[#0a1128]">
-                                        {/* Fallback styling in case image hasn't been uploaded yet by user */}
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500 text-sm">
-                                            <feature.icon className="w-12 h-12 mb-4 opacity-50" />
-                                            Uploading screenshot...
+                                    {/* Safari/macOS Window Header */}
+                                    <div className="bg-white/[0.03] backdrop-blur-xl border-b border-white/[0.05] flex items-center px-4 h-10 w-full relative z-20">
+                                        <div className="flex items-center gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity duration-300">
+                                            <div className="w-2.5 h-2.5 rounded-full bg-[#333] group-hover:bg-[#FF5F56] transition-colors duration-300" />
+                                            <div className="w-2.5 h-2.5 rounded-full bg-[#333] group-hover:bg-[#FFBD2E] transition-colors duration-300 delay-75" />
+                                            <div className="w-2.5 h-2.5 rounded-full bg-[#333] group-hover:bg-[#27C93F] transition-colors duration-300 delay-150" />
                                         </div>
+                                    </div>
+
+                                    {/* Responsive container for the screenshot (no exact aspect forced) */}
+                                    <div className="relative w-full h-full transform-gpu transition-all duration-700 ease-out group-hover:scale-[1.03]">
+                                        {/* Inner subtle glass glare */}
+                                        <div className="absolute inset-0 bg-gradient-to-tr from-white/[0.04] to-transparent z-20 pointer-events-none" />
 
                                         <Image
                                             src={feature.imageSrc}
                                             alt={feature.imageAlt}
-                                            fill
-                                            className="object-contain object-center relative z-10"
+                                            width={1800}
+                                            height={1200}
+                                            className="w-full h-auto object-contain relative z-10"
                                             onError={(e) => {
-                                                // Hide broken image icon if image doesn't exist yet
                                                 e.currentTarget.style.display = 'none'
                                             }}
                                         />
