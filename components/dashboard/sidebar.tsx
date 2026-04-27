@@ -6,7 +6,7 @@ import {
   LayoutDashboard, FileText, BarChart3, Layout, Settings,
   LogOut, Menu, X, PenSquare, MessageSquare, PieChart,
   Layers, ChevronLeft, ChevronRight, GitCompareArrows,
-  Upload, Sun, Moon
+  Upload, Sun, Moon, HelpCircle
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
@@ -24,6 +24,7 @@ const menuItems = [
   { icon: Layers, label: "Scenarios", href: "/dashboard/scenarios" },
   { icon: Layout, label: "Templates", href: "/dashboard/templates" },
   { icon: FileText, label: "Reports", href: "/dashboard/reports" },
+  { icon: HelpCircle, label: "Help Center", href: "/dashboard/help" },
   { icon: Settings, label: "Settings", href: "/dashboard/settings" },
 ]
 

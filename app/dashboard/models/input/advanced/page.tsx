@@ -736,7 +736,10 @@ export default function InputModelPage() {
           })
         })
 
-        if (!createModelResponse.ok) throw new Error('Failed to create model')
+        if (!createModelResponse.ok) {
+          const errorData = await createModelResponse.json().catch(() => ({}));
+          throw new Error(errorData.detail || errorData.error || JSON.stringify(errorData) || 'Failed to create model');
+        }
 
         const modelData = await createModelResponse.json()
         currentModelId = modelData.id
@@ -889,7 +892,8 @@ export default function InputModelPage() {
       )
 
       if (!response.ok) {
-        throw new Error('Failed to save template')
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || errorData.error || JSON.stringify(errorData) || 'Failed to create template');
       }
 
       toast({
@@ -904,11 +908,11 @@ export default function InputModelPage() {
         duration: 4000,
       })
 
-    } catch (error) {
-      console.error('Save template error:', error)
+    } catch (error: any) {
+      console.error('Template save error:', error)
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to save template",
+        title: "Template Error",
+        description: error.message || "Failed to save template.",
         variant: "destructive"
       })
     } finally {
@@ -1061,7 +1065,10 @@ export default function InputModelPage() {
           })
         })
 
-        if (!createResponse.ok) throw new Error('Failed to create model')
+        if (!createResponse.ok) {
+          const errorData = await createResponse.json().catch(() => ({}));
+          throw new Error(errorData.detail || errorData.error || JSON.stringify(errorData) || 'Failed to create model');
+        }
 
         const modelData = await createResponse.json()
         setModelId(modelData.id)
@@ -1118,11 +1125,11 @@ export default function InputModelPage() {
         duration: 3000,
       })
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Save draft error:', error)
       toast({
         title: "Error",
-        description: "Failed to save draft",
+        description: error.message || "Failed to save draft. Please check your data.",
         variant: "destructive"
       })
     } finally {
@@ -1657,7 +1664,10 @@ function ProjectForm({
                 value={formData?.phaseIiCapacity}
                 onChange={(val) => updateFormData('phaseIiCapacity', Number(val))}
               />
-              <InputField label="Total Capacity (All Phases)" type="number" tooltip="The cumulative capacity once all phases are complete." defaultValue="100000" calculated />
+              <InputField label="Total Capacity (All Phases)" type="number" tooltip="The cumulative capacity once all phases are complete." defaultValue="100000" calculated
+                value={formData?.totalCapacityAllPhases}
+                onChange={(val) => updateFormData('totalCapacityAllPhases', Number(val))}
+              />
             </div>
           </div>
 
@@ -1674,7 +1684,10 @@ function ProjectForm({
                 value={formData?.hoursInDay}
                 onChange={(val) => updateFormData('hoursInDay', Number(val))}
               />
-              <InputField label="Hours in Year" tooltip="Total hours operating in a standard calendar year." type="number" defaultValue="8760" calculated size="sm" />
+              <InputField label="Hours in Year" tooltip="Total hours operating in a standard calendar year." type="number" defaultValue="8760" calculated size="sm"
+                value={formData?.hoursInYear}
+                onChange={(val) => updateFormData('hoursInYear', Number(val))}
+              />
             </div>
           </div>
         </motion.div>
@@ -1970,7 +1983,10 @@ function RevenueForm({
                   value={formData?.gbaGrossBuildingArea}
                   onChange={(val) => updateFormData('gbaGrossBuildingArea', Number(val))}
                 />
-                <InputField label="Lettable Area" type="number" suffix="sq.m" defaultValue="387.6" tooltip="The total area that can be rented out to tenants (usually GBA minus common areas)." calculated />
+                <InputField label="Lettable Area" type="number" suffix="sq.m" defaultValue="387.6" tooltip="The total area that can be rented out to tenants (usually GBA minus common areas)." calculated
+                  value={formData?.lettableArea}
+                  onChange={(val) => updateFormData('lettableArea', Number(val))}
+                />
                 <InputField label="Sale Price per Unit" type="number" prefix="$" defaultValue="250000"
                   tooltip="The expected average market price for selling one unit of this type."
                   value={formData?.salePricePerUnit}
@@ -2187,6 +2203,8 @@ function OpexForm({
             defaultValue="14062500"
             calculated
             tooltip="The calculated total yearly labor expense: Headcount × Avg Salary × (1 + Benefits%)."
+            value={formData?.totalAnnualStaffCost}
+            onChange={(val) => updateFormData('totalAnnualStaffCost', Number(val))}
           />
         </div>
       </div>
@@ -2523,6 +2541,8 @@ function CapexForm({
             defaultValue="150744180"
             tooltip="The sum of direct physical construction and land costs (excludes financing and soft fees)."
             calculated
+            value={formData?.totalHardCosts}
+            onChange={(val) => updateFormData('totalHardCosts', Number(val))}
           />
           <InputField
             label="Total CAPEX (incl. soft costs)"
@@ -2531,6 +2551,8 @@ function CapexForm({
             defaultValue="173012634"
             tooltip="The comprehensive initial investment before accounting for capitalized interest."
             calculated
+            value={formData?.totalCapex}
+            onChange={(val) => updateFormData('totalCapex', Number(val))}
           />
         </div>
       </div>
@@ -2570,6 +2592,8 @@ function CapexForm({
               defaultValue="11202824"
               tooltip="The total dollar amount of interest accrued before the project becomes operational."
               calculated
+              value={formData?.interestDuringConstruction}
+              onChange={(val) => updateFormData('interestDuringConstruction', Number(val))}
             />
             <InputField
               label="Total Development Cost"
@@ -2578,6 +2602,8 @@ function CapexForm({
               defaultValue="184215458"
               tooltip="The grand total of all CAPEX, fees, and capitalized interest (Final Project Cost)."
               calculated
+              value={formData?.totalDevelopmentCost}
+              onChange={(val) => updateFormData('totalDevelopmentCost', Number(val))}
             />
           </div>
 
@@ -2599,7 +2625,10 @@ function CapexForm({
                 value={formData?.year3}
                 onChange={(val) => updateFormData('year3', Number(val))}
               />
-              <InputField label="Total" tooltip="Sum of annual drawdowns (must equal 100%)." type="number" suffix="%" defaultValue="100" calculated size="sm" />
+              <InputField label="Total" tooltip="Sum of annual drawdowns (must equal 100%)." type="number" suffix="%" defaultValue="100" calculated size="sm"
+                value={formData?.totalDrawdown}
+                onChange={(val) => updateFormData('totalDrawdown', Number(val))}
+              />
             </div>
           </div>
 
@@ -2676,6 +2705,8 @@ function DebtForm({
             defaultValue="184215458"
             calculated
             tooltip="The comprehensive project cost that requires funding (Final Development Cost)."
+            value={formData?.totalProjectCost}
+            onChange={(val) => updateFormData('totalProjectCost', Number(val))}
           />
           <InputField
             label="Equity Percentage"
@@ -2694,6 +2725,8 @@ function DebtForm({
             defaultValue="43983691"
             tooltip="Calculated dollar amount of equity needed based on the percentage."
             calculated
+            value={formData?.equityAmount}
+            onChange={(val) => updateFormData('equityAmount', Number(val))}
           />
           <InputField
             label="Debt Percentage"
@@ -2712,6 +2745,8 @@ function DebtForm({
             defaultValue="79155515"
             tooltip="Calculated dollar amount of debt needed based on the percentage."
             calculated
+            value={formData?.debtAmount}
+            onChange={(val) => updateFormData('debtAmount', Number(val))}
           />
           <InputField
             label="Off-Plan Sales / Pre-sales %"
@@ -2776,6 +2811,8 @@ function DebtForm({
             defaultValue="8.5"
             calculated
             tooltip="The total effective interest rate (Base Rate + Margin)."
+            value={formData?.allInInterestRate}
+            onChange={(val) => updateFormData('allInInterestRate', Number(val))}
           />
           <InputField
             label="Loan Tenor"
@@ -3139,6 +3176,8 @@ function WorkingCapitalForm({
           defaultValue="75"
           calculated
           tooltip="The net duration of the cash conversion cycle: DSO + DIO - DPO."
+          value={formData?.cashCycleDays}
+          onChange={(val) => updateFormData('cashCycleDays', Number(val))}
         />
       </div>
 
@@ -3266,7 +3305,10 @@ function DepreciationForm({
                   value={formData?.usefulLife}
                   onChange={(val) => updateFormData('usefulLife', Number(val))}
                 />
-                <InputField label="Residual Value" tooltip="Scrap or salvage expected value of an asset at end of life." type="number" suffix="%" defaultValue="100" size="sm" calculated />
+                <InputField label="Residual Value" tooltip="Scrap or salvage expected value of an asset at end of life." type="number" suffix="%" defaultValue="100" size="sm" calculated
+                  value={formData?.residualValue}
+                  onChange={(val) => updateFormData('residualValue', Number(val))}
+                />
               </div>
             </div>
 
@@ -3742,11 +3784,10 @@ function InputField({
         {type === "select" ? (
           <select
             className={`w-full px-3 ${inputClasses} border rounded-lg ${calculated
-              ? "bg-gray-100 text-gray-600 cursor-not-allowed border-gray-300"
+              ? "bg-blue-50/50 border-blue-200/70 text-foreground focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
               : "bg-blue-50 border-blue-200 text-foreground focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
               }`}
             value={value !== undefined ? value : (defaultValue || '')}
-            disabled={calculated}
             onChange={(e) => onChange?.(e.target.value)}
           >
             {options?.map((opt) => (
@@ -3760,12 +3801,10 @@ function InputField({
             type={type}
             placeholder={placeholder}
             className={`w-full ${prefix ? "pl-8" : "pl-3"} ${suffix ? "pr-20" : "pr-3"} ${inputClasses} border rounded-lg ${calculated
-              ? "bg-gray-100 text-gray-600 cursor-not-allowed border-gray-300"
+              ? "bg-blue-50/50 border-blue-200/70 text-foreground focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
               : "bg-blue-50 border-blue-200 text-foreground focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
               }`}
             value={value !== undefined ? value : (defaultValue || '')}
-            disabled={calculated}
-            readOnly={calculated}
             onChange={(e) => onChange?.(e.target.value)}
           />
         )}

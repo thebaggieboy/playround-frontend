@@ -279,9 +279,16 @@ export default function ReportsPage() {
                     <Select value={selectedScenarioId} onValueChange={setSelectedScenarioId}>
                       <SelectTrigger><SelectValue placeholder="Select a scenario" /></SelectTrigger>
                       <SelectContent>
-                        {scenarios.map(s => (
-                          <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>
-                        ))}
+                        {scenarios
+                          .filter(s => selectedModelId ? s.model === selectedModelId || s.financial_model === selectedModelId : true)
+                          .map(s => {
+                            const parentModel = models.find(m => m.id === s.model || m.id === s.financial_model);
+                            const modelLabel = parentModel ? `[${parentModel.name}] ` : "";
+                            return (
+                              <SelectItem key={s.id} value={s.id.toString()}>{modelLabel}{s.name}</SelectItem>
+                            )
+                          })
+                        }
                       </SelectContent>
                     </Select>
                   </div>

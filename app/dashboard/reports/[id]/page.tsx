@@ -525,7 +525,8 @@ export default function ReportDetailPage() {
               <TabsTrigger className="text-[11px] sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4" value="opex">OpEx</TabsTrigger>
               <TabsTrigger className="text-[11px] sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4" value="fixed_assets">Fixed Assets</TabsTrigger>
               <TabsTrigger className="text-[11px] sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4" value="tax">Tax</TabsTrigger>
-              <TabsTrigger className="text-[11px] sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4" value="dividend">Dividends</TabsTrigger>
+              <TabsTrigger className="text-[11px] sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4" value="dividend">Reserve & Dividends</TabsTrigger>
+              <TabsTrigger className="text-[11px] sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4" value="exit">Exit</TabsTrigger>
               <TabsTrigger className="text-[11px] sm:text-sm py-1.5 sm:py-2 px-3 sm:px-4" value="summary">Summary</TabsTrigger>
             </TabsList>
           </div>
@@ -758,6 +759,16 @@ export default function ReportDetailPage() {
               <Card className="p-4 sm:p-6 overflow-hidden">
                 <h3 className="text-sm sm:text-base font-semibold text-foreground mb-4">Reserve Accounts & Dividends</h3>
                 <FinancialTable rows={cd["dividend"]} />
+              </Card>
+            </TabsContent>
+          )}
+
+          {/* ── Exit & Terminal Value ─────────── */}
+          {(cd["exit"] ?? []).length > 0 && (
+            <TabsContent value="exit" className="mt-4 sm:mt-6">
+              <Card className="p-4 sm:p-6">
+                <h3 className="text-sm sm:text-base font-semibold text-foreground mb-4">Exit & Terminal Value Schedule</h3>
+                <FinancialTable rows={cd["exit"]} />
               </Card>
             </TabsContent>
           )}
