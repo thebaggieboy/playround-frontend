@@ -1576,10 +1576,10 @@ function ProjectForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputField label="Project Commencement Date" type="date" value={formData?.projectCommencementDate} tooltip="The date project planning and administrative activities begin." onChange={(value) => updateFormData('projectCommencementDate', value)} defaultValue="2026-07-01" />
           <InputField label="Construction Start Date" type="date" value={formData?.constructionStartDate} tooltip="The date physical construction on-site is expected to start." onChange={(value) => updateFormData('constructionStartDate', value)} defaultValue="2026-07-01" />
-          <InputField label="Construction Duration" type="number" value={formData?.constructionDurationMonths} onChange={(value) => updateFormData('constructionDuration', value)} suffix="months" defaultValue="36" tooltip="Total time allocated for the construction phase in months." />
+          <InputField label="Construction Duration" type="number" value={formData?.constructionDuration} onChange={(value) => updateFormData('constructionDuration', value)} suffix="months" defaultValue="36" tooltip="Total time allocated for the construction phase in months." />
           <InputField label="Construction End Date" type="date" value={formData?.constructionEndDate} tooltip="The calculated date when construction completes." onChange={(value) => updateFormData('constructionEndDate', value)} defaultValue="2029-07-01" calculated />
           <InputField label="Operations Start Date" type="date" value={formData?.operationsStartDate} tooltip="The date commercial operations and revenue generation begin." onChange={(value) => updateFormData('operationsStartDate', value)} defaultValue="2029-07-01" />
-          <InputField label="Operations Duration" type="number" value={formData?.operationsDurationYears} suffix="years" onChange={(value) => updateFormData('operationsDurationDate', value)} defaultValue="25" tooltip="The total operational life span of the project used for the model." />
+          <InputField label="Operations Duration" type="number" value={formData?.operationsDuration} suffix="years" onChange={(value) => updateFormData('operationsDuration', value)} defaultValue="25" tooltip="The total operational life span of the project used for the model." />
         </div>
       </div>
 

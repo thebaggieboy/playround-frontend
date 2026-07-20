@@ -280,10 +280,9 @@ export default function ReportsPage() {
                       <SelectTrigger><SelectValue placeholder="Select a scenario" /></SelectTrigger>
                       <SelectContent>
                         {scenarios
-                          .filter(s => selectedModelId ? s.model === selectedModelId || s.financial_model === selectedModelId : true)
+                          .filter(s => selectedModelId ? String(s.model_id) === selectedModelId : true)
                           .map(s => {
-                            const parentModel = models.find(m => m.id === s.model || m.id === s.financial_model);
-                            const modelLabel = parentModel ? `[${parentModel.name}] ` : "";
+                            const modelLabel = s.model_name ? `[${s.model_name}] ` : "";
                             return (
                               <SelectItem key={s.id} value={s.id.toString()}>{modelLabel}{s.name}</SelectItem>
                             )
