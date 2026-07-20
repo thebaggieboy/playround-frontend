@@ -40,6 +40,11 @@ import { selectToken } from "@/features/token/tokenSlice"
 import { useSelector } from "react-redux"
 import { useToast } from "@/hooks/use-toast"
 import Link from 'next/link'
+import { InputField } from "../../../../../components/forms/advanced/InputField"
+import { RevenueForm } from "../../../../../components/forms/advanced/RevenueForm"
+import { OpexForm } from "../../../../../components/forms/advanced/OpexForm"
+import { CapexForm } from "../../../../../components/forms/advanced/CapexForm"
+import { INDUSTRY_SUB_TYPES } from "../../../../../components/forms/advanced/IndustryConfig"
 // API Configuration
 const API_BASE_URL = process.env.NODE_ENV === 'production'
   ? 'https://playground-backend-1t0f.onrender.com/api'
@@ -66,6 +71,7 @@ interface FormData {
   projectName: string
   projectLocation: string
   industrySector: string
+  industrySubType: string
   projectType: string
   projectCommencementDate: string
   constructionStartDate: string
@@ -275,7 +281,7 @@ export default function InputModelPage() {
   const token = useSelector(selectToken)
   const [activeTab, setActiveTab] = useState<TabType>("project")
   const [activeScenario, setActiveScenario] = useState<ScenarioType>("base")
-  const [detailMode, setDetailMode] = useState(false)
+  const [inputMode, setInputMode] = useState<"essential" | "standard" | "expert">("standard")
   const [projectType, setProjectType] = useState<"manufacturing" | "real_estate" | "energy" | "oil_gas" | "healthcare" | "technology" | "agriculture" | "infrastructure" | "general">("general")
 
   // Loading states
@@ -487,12 +493,13 @@ export default function InputModelPage() {
   }
 
   // Transform form data to API format
-  const transformToAPIFormat = () => {
+    const transformToAPIFormat = () => {
     return {
       project_info: {
         project_name: formData.projectName,
         project_location: formData.projectLocation,
         industry_sector: formData.industrySector,
+        industry_sub_type: formData.industrySubType,
         project_type: formData.projectType,
         project_commencement_date: formData.projectCommencementDate,
         construction_start_date: formData.constructionStartDate,
@@ -513,7 +520,7 @@ export default function InputModelPage() {
         hours_in_day: formData.hoursInDay || 24,
       },
       macro_assumptions: {
-        reporting_currency: formData.reportingCurrency.split(' ')[0],
+        reporting_currency: (formData.reportingCurrency || 'USD').split(' ')[0],
         exchange_rate_local_per_usd: formData.exchangeRate,
         base_year: formData.baseYear,
         periodicity: formData.periodicity,
@@ -533,26 +540,42 @@ export default function InputModelPage() {
       revenue_products: formData.revenueProducts.map(product => ({
         product_order: product.productOrder,
         product_name: product.productName,
+        revenue_model_type: product.revenueModelType || 'Volume × Price',
         unit_of_measure: product.unitOfMeasure,
+        currency: product.currency || 'USD ($)',
         year_1_sales_volume: product.year1SalesVolume,
         unit_price_year_1: product.unitPriceYear1,
         volume_growth_rate: product.volumeGrowthRate,
         price_escalation_rate: product.priceEscalationRate,
-        number_of_units: product.number_of_units || formData.numberOfUnits,
-        gba_gross_building_area: product.gba_gross_building_area || formData.gbaGrossBuildingArea,
-        lettable_area: product.lettable_area || formData.lettableArea,
+        capacity_factor: product.capacityFactor,
+        tariff_rate: product.tariffRate,
+        take_or_pay_pct: product.takeOrPayPct,
+        tariff_escalation: product.tariffEscalation,
+        initial_customers: product.initialCustomers,
+        arpu_monthly: product.arpuMonthly,
+        customer_growth_rate: product.customerGrowthRate,
+        churn_rate: product.churnRate,
+        number_of_units: product.numberOfUnits || product.number_of_units || formData.numberOfUnits,
+        rent_per_unit: product.rentPerUnit,
+        occupancy_rate: product.occupancyRate,
+        lease_escalation: product.leaseEscalation,
+        contract_value: product.contractValue,
+        contract_duration: product.contractDuration,
+        gba_gross_building_area: product.gbaGrossBuildingArea || product.gba_gross_building_area || formData.gbaGrossBuildingArea,
+        lettable_area: product.lettableArea || product.lettable_area || formData.lettableArea,
         sale_price_per_unit: product.sale_price_per_unit || formData.salePricePerUnit,
         receivables_days_dso: product.receivables_days_dso || formData.receivablesDaysDso,
         revenue_rampup_months: product.revenue_rampup_months || formData.revenueRampUpPeriod,
         seasonal_adjustment_factor: product.seasonal_adjustment_factor || formData.seasonalAdjustmentFactor || 1.0,
         sales_absorption_period_months: product.sales_absorption_period_months || formData.salesAbsorptionPeriod,
         presales_offplan_percentage: product.presales_offplan_percentage || formData.preSalesOffPlanPct || formData.offPlanSalesPreSalesPct,
+        custom_parameters: product.customParameters || []
       })),
       operating_expenses: {
         total_headcount: formData.totalHeadcount,
         average_annual_salary: formData.averageAnnualSalary,
         salary_escalation_rate: formData.salaryEscalationRate,
-        benefits_payroll_tax_pct: formData.benefitsPayrollTaxPct,
+        benefits_payroll_tax_pct: formData.benefitsPayrollTaxPct || formData.benefitsPayrollTax,
         power_electricity_cost_annual: formData.powerElectricityCostAnnual || formData.powerElectricityCost,
         water_gas_utilities_annual: formData.waterGasUtilitiesAnnual || formData.waterGasUtilities || 100000,
         utilities_escalation_rate: formData.utilitiesEscalationRate,
@@ -567,12 +590,19 @@ export default function InputModelPage() {
         technology_software_annual: formData.technologySoftwareAnnual || formData.technologySoftware || 50000,
         professional_fees_annual: formData.professionalFeesAnnual || formData.professionalFees || 75000,
         payables_days_dpo: formData.payablesDaysDpo,
+        custom_opex_items: formData.customOpexItems || [],
+        custom_parameters_opex: formData.customParametersOpex || [],
+        template_opex: Object.keys(formData).filter(k => k.startsWith('templateOpex_')).reduce((acc, key) => { acc[key] = formData[key]; return acc; }, {})
       },
       capital_expenditure: {
         land_cost: formData.landCost || formData.landValue,
-        construction_building_cost: formData.constructionBuildingCost,
-        equipment_machinery_cost: formData.equipmentMachineryCost || formData.equipmentMachinery,
-        ffe_cost: formData.ffeCost || formData.furnitureFixturesEquipmentFfe,
+        construction_building_cost: formData.constructionBuildingCost || formData.buildingCivilWorks,
+        equipment_machinery_cost: formData.equipmentMachineryCost || formData.plantMachineryEquipment,
+        ffe_cost: formData.ffeCost || formData.ffeFurnitureFixtures,
+        vehicles_it_equipment: formData.vehiclesItEquipment,
+        project_contingency: formData.projectContingency,
+        pre_operating_expenses: formData.preOperatingExpenses,
+        initial_working_capital: formData.initialWorkingCapital,
         carpark_cost: formData.carpark_cost || formData.multiStoreyCarParkCost,
         amenities_cost: formData.amenities_cost || formData.amenitiesCost,
         apartment_construction_cost: formData.apartment_construction_cost || formData.apartmentConstruction,
@@ -581,13 +611,17 @@ export default function InputModelPage() {
         professional_fees_pct: formData.professionalFeesPct || formData.professionalFees,
         permits_approvals_pct: formData.permitsApprovalsPct || formData.permitsApprovals,
         vat_on_construction_pct: formData.vatOnConstructionPct || formData.vatOnConstruction,
-        capitalize_interest: true,
+        capitalize_interest: formData.capitalizeInterestDuringConstruction || true,
         construction_loan_interest_rate: formData.constructionLoanInterestRate || 8.5,
-        year_1_drawdown_pct: 30,
-        year_2_drawdown_pct: 50,
-        year_3_drawdown_pct: 20,
+        year_1_drawdown_pct: formData.drawdownYear1 || 60,
+        year_2_drawdown_pct: formData.drawdownYear2 || 30,
+        year_3_drawdown_pct: formData.drawdownYear3 || 10,
+        year_4_drawdown_pct: formData.drawdownYear4 || 0,
+        year_5_drawdown_pct: formData.drawdownYear5 || 0,
         replacement_capex_pct_revenue: formData.replacement_capex_pct_revenue || formData.replacementCapex || 3.0,
         expansion_capex: formData.expansion_capex || formData.expansionCapexIfApplicable || 0,
+        custom_capex_items: formData.customCapexItems || [],
+        custom_parameters_capex: formData.customParametersCapex || []
       },
       debt_financing: {
         equity_percentage: formData.equityPercentage,
@@ -1346,7 +1380,7 @@ export default function InputModelPage() {
                 <ProjectForm
                   formData={formData}
                   updateFormData={updateFormData}
-                  detailMode={detailMode}
+                  inputMode={inputMode}
                   onProjectTypeChange={setProjectType}
                 />
               )}
@@ -1354,7 +1388,7 @@ export default function InputModelPage() {
                 <MacroForm
                   formData={formData}
                   updateFormData={updateFormData}
-                  detailMode={detailMode}
+                  inputMode={inputMode}
                 />
               )}
               {activeTab === "revenue" && (
@@ -1364,7 +1398,7 @@ export default function InputModelPage() {
                   updateRevenueProduct={updateRevenueProduct}
                   addRevenueProduct={addRevenueProduct}
                   removeRevenueProduct={removeRevenueProduct}
-                  detailMode={detailMode}
+                  inputMode={inputMode}
                   projectType={projectType}
                 />
               )}
@@ -1372,7 +1406,7 @@ export default function InputModelPage() {
                 <OpexForm
                   formData={formData}
                   updateFormData={updateFormData}
-                  detailMode={detailMode}
+                  inputMode={inputMode}
                   projectType={projectType}
                 />
               )}
@@ -1380,7 +1414,7 @@ export default function InputModelPage() {
                 <CapexForm
                   formData={formData}
                   updateFormData={updateFormData}
-                  detailMode={detailMode}
+                  inputMode={inputMode}
                   projectType={projectType}
                 />
               )}
@@ -1388,42 +1422,42 @@ export default function InputModelPage() {
                 <DebtForm
                   formData={formData}
                   updateFormData={updateFormData}
-                  detailMode={detailMode}
+                  inputMode={inputMode}
                 />
               )}
               {activeTab === "tax" && (
                 <TaxForm
                   formData={formData}
                   updateFormData={updateFormData}
-                  detailMode={detailMode}
+                  inputMode={inputMode}
                 />
               )}
               {activeTab === "working-capital" && (
                 <WorkingCapitalForm
                   formData={formData}
                   updateFormData={updateFormData}
-                  detailMode={detailMode}
+                  inputMode={inputMode}
                 />
               )}
               {activeTab === "depreciation" && (
                 <DepreciationForm
                   formData={formData}
                   updateFormData={updateFormData}
-                  detailMode={detailMode}
+                  inputMode={inputMode}
                 />
               )}
               {activeTab === "dividend" && (
                 <DividendForm
                   formData={formData}
                   updateFormData={updateFormData}
-                  detailMode={detailMode}
+                  inputMode={inputMode}
                 />
               )}
               {activeTab === "valuation" && (
                 <ValuationForm
                   formData={formData}
                   updateFormData={updateFormData}
-                  detailMode={detailMode}
+                  inputMode={inputMode}
                 />
               )}
             </motion.div>
@@ -1517,7 +1551,7 @@ function ProjectForm({
 }: {
   formData: FormData
   updateFormData: (field: string, value: any) => void
-  detailMode: boolean
+  inputMode: "essential" | "standard" | "expert"
   onProjectTypeChange: (type: "manufacturing" | "real_estate" | "energy" | "oil_gas" | "healthcare" | "technology" | "agriculture" | "infrastructure" | "general") => void
 }) {
   return (
@@ -1558,6 +1592,17 @@ function ProjectForm({
             else onProjectTypeChange("general")
           }}
         />
+        
+        {INDUSTRY_SUB_TYPES[formData?.industrySector || "Manufacturing"] && formData?.industrySector !== "Other" && (
+          <InputField
+            label="Industry Sub-Type"
+            type="select"
+            value={formData?.industrySubType}
+            options={INDUSTRY_SUB_TYPES[formData?.industrySector || "Manufacturing"]}
+            defaultValue={INDUSTRY_SUB_TYPES[formData?.industrySector || "Manufacturing"][0]}
+            onChange={(val) => updateFormData('industrySubType', val)}
+          />
+        )}
         {formData?.industrySector === "Other" && (
           <InputField
             label="Custom Industry Name"
@@ -1583,7 +1628,7 @@ function ProjectForm({
         </div>
       </div>
 
-      {detailMode && (
+      {inputMode !== "essential" && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
@@ -1704,7 +1749,7 @@ function MacroForm({
 }: {
   formData: FormData
   updateFormData: (field: string, value: any) => void
-  detailMode: boolean
+  inputMode: "essential" | "standard" | "expert"
 }) {
   return (
     <Card className="p-6 space-y-6">
@@ -1790,7 +1835,7 @@ function MacroForm({
         </div>
       </div>
 
-      {detailMode && (
+      {inputMode !== "essential" && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
@@ -1860,810 +1905,6 @@ function MacroForm({
 }
 
 // REVENUE ASSUMPTIONS FORM (with dynamic product support)
-function RevenueForm({
-  formData,
-  updateFormData,
-  updateRevenueProduct,
-  addRevenueProduct,
-  removeRevenueProduct,
-  projectType,
-  detailMode
-}: {
-  formData: FormData
-  updateFormData: (field: string, value: any) => void
-  updateRevenueProduct: (index: number, field: string, value: any) => void
-  addRevenueProduct: () => void
-  removeRevenueProduct: (index: number) => void
-  projectType: "manufacturing" | "real_estate" | "energy" | "oil_gas" | "healthcare" | "technology" | "agriculture" | "infrastructure" | "general"
-  detailMode: boolean
-}) {
-  const [numProducts, setNumProducts] = useState(1)
-
-  return (
-    <Card className="p-6 space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold text-foreground mb-4">Revenue Assumptions</h3>
-        <p className="text-sm text-muted-foreground">Configure revenue streams and growth assumptions</p>
-      </div>
-
-      <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
-        <div className="flex items-center gap-2">
-          <DollarSign className="w-5 h-5 text-blue-600" />
-          <span className="text-sm font-medium">Number of Revenue Streams/Products</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setNumProducts(Math.max(1, numProducts - 1))}
-            disabled={numProducts <= 1}
-          >
-            <X className="w-4 h-4" />
-          </Button>
-          <span className="text-lg font-bold w-8 text-center">{numProducts}</span>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setNumProducts(Math.min(10, numProducts + 1))}
-            disabled={numProducts >= 10}
-          >
-            <Plus className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Product-specific inputs */}
-      {Array.from({ length: numProducts }).map((_, idx) => (
-        <div key={idx} className="pt-6 border-t border-border">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-sm font-semibold text-foreground">
-              {projectType === "real_estate" ? `Property Type ${idx + 1}` :
-                projectType === "manufacturing" ? `Product ${idx + 1}` :
-                  (projectType === "energy" || projectType === "oil_gas") ? `Revenue Stream ${idx + 1}` :
-                    `Revenue Stream ${idx + 1}`}
-            </h4>
-            {idx > 0 && (
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setNumProducts(numProducts - 1)}
-                className="text-red-600 hover:text-red-700"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField
-              label={projectType === "real-estate" ? "Building/Unit Type" : "Product/Service Name"}
-              type="text"
-              tooltip="The specific name or category of the revenue-generating asset or product."
-              value={formData.revenueProducts[idx]?.productName}
-              onChange={(value) => updateRevenueProduct(idx, 'productName', value)}
-              placeholder={
-                projectType === "real-estate" ? "e.g., 4-Bedroom Apartment" :
-                  projectType === "manufacturing" ? "e.g., Gasoline, Diesel, Urea" :
-                    projectType === "energy" ? "e.g., Energy Sales, Capacity Payments" :
-                      "e.g., Product A"
-              }
-            />
-            <InputField
-              label="Unit of Measure"
-              type="select"
-              tooltip="The standard unit used to quantify sales (e.g., Barrels, MWh, Units)."
-              value={formData.revenueProducts[idx]?.unitOfMeasure}
-              onChange={(value) => updateRevenueProduct(idx, 'unitOfMeasure', value)}
-              options={
-                projectType === "real_estate"
-                  ? ["sq.ft", "sq.m", "units", "acres"]
-                  : projectType === "manufacturing"
-                    ? ["barrels", "tons", "liters", "kg", "pieces", "MT"]
-                    : (projectType === "energy" || projectType === "oil_gas")
-                      ? ["MWh", "kWh", "MW", "GWh"]
-                      : ["units", "pieces", "kg", "liters"]
-              }
-              defaultValue={
-                formData?.industrySector === "Real Estate" ? "sq.ft" :
-                  formData?.industrySector === "Manufacturing" ? "barrels" :
-                    (formData?.industrySector === "Energy & Power" || formData?.industrySector === "Oil & Gas") ? "MWh" :
-                      "units"
-              }
-            />
-
-            {formData?.industrySector === "Real Estate" || projectType === "real_estate" ? (
-              <>
-                <InputField label="Number of Units" type="number" defaultValue="18"
-                  tooltip="The total count of buildings or apartments of this specific type."
-                  value={formData?.numberOfUnits}
-                  onChange={(val) => updateFormData('numberOfUnits', Number(val))}
-                />
-                <InputField label="GBA (Gross Building Area)" type="number" suffix="sq.m" defaultValue="456"
-                  tooltip="The total floor area inside the building envelope, including external walls."
-                  value={formData?.gbaGrossBuildingArea}
-                  onChange={(val) => updateFormData('gbaGrossBuildingArea', Number(val))}
-                />
-                <InputField label="Lettable Area" type="number" suffix="sq.m" defaultValue="387.6" tooltip="The total area that can be rented out to tenants (usually GBA minus common areas)." calculated
-                  value={formData?.lettableArea}
-                  onChange={(val) => updateFormData('lettableArea', Number(val))}
-                />
-                <InputField label="Sale Price per Unit" type="number" prefix="$" defaultValue="250000"
-                  tooltip="The expected average market price for selling one unit of this type."
-                  value={formData?.salePricePerUnit}
-                  onChange={(val) => updateFormData('salePricePerUnit', Number(val))}
-                />
-              </>
-            ) : (
-              <>
-                <InputField label="Year 1 Sales Volume" type="number" tooltip="The total number of units expected to be sold in the first operational year." onChange={(value) => updateRevenueProduct(idx, 'year1SalesVolume', Number(value))} defaultValue="500000" value={formData.revenueProducts[idx]?.year1SalesVolume} />
-                <InputField label="Unit Price (Year 1)" type="number" tooltip="The selling price per unit in the first year of operations." onChange={(value) => updateRevenueProduct(idx, 'unitPriceYear1', Number(value))} prefix="$" defaultValue="120" value={formData.revenueProducts[idx]?.unitPriceYear1} />
-                <InputField label="Volume Growth Rate" type="number" tooltip="The annual percentage increase in the quantity of units sold." onChange={(value) => updateRevenueProduct(idx, 'volumeGrowthRate', Number(value))} suffix="%" defaultValue="5.0" value={formData.revenueProducts[idx]?.volumeGrowthRate} />
-                <InputField label="Price Escalation Rate" type="number" tooltip="The annual percentage increase in the unit selling price (usually inflation-linked)." onChange={(value) => updateRevenueProduct(idx, 'priceEscalationRate', Number(value))} suffix="%" defaultValue="2.5" value={formData.revenueProducts[idx]?.priceEscalationRate} />
-              </>
-            )}
-          </div>
-        </div>
-      ))}
-
-      {detailMode && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          className="space-y-6 pt-6 border-t border-border"
-        >
-          <h4 className="text-sm font-semibold text-foreground mb-4">Advanced Revenue Parameters</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField
-              label="Receivables Days (DSO)"
-              type="number"
-              suffix="days"
-              defaultValue="45"
-              tooltip="Days Sales Outstanding: The average number of days it takes to collect payment after a sale."
-              value={formData?.receivablesDaysDso}
-              onChange={(val) => updateFormData('receivablesDaysDso', Number(val))}
-            />
-            {projectType !== "real_estate" && (
-              <>
-                <InputField
-                  label="Revenue Ramp-up Period"
-                  type="number"
-                  suffix="months"
-                  defaultValue="12"
-                  tooltip="The duration (in months) it takes for sales to reach steady-state capacity."
-                  value={formData?.revenueRampUpPeriod}
-                  onChange={(val) => updateFormData('revenueRampUpPeriod', Number(val))}
-                />
-                <InputField
-                  label="Seasonal Adjustment Factor"
-                  type="number"
-                  defaultValue="1.0"
-                  tooltip="A multiplier used to account for monthly fluctuations in demand (1.0 = baseline)."
-                  value={formData?.seasonalAdjustmentFactor}
-                  onChange={(val) => updateFormData('seasonalAdjustmentFactor', Number(val))}
-                />
-              </>
-            )}
-            {projectType === "real_estate" && (
-              <>
-                <InputField
-                  label="Sales/Absorption Period"
-                  type="number"
-                  suffix="months"
-                  defaultValue="24"
-                  tooltip="The total time expected to sell or lease all available inventory."
-                  value={formData?.salesAbsorptionPeriod}
-                  onChange={(val) => updateFormData('salesAbsorptionPeriod', Number(val))}
-                />
-                <InputField
-                  label="Pre-sales / Off-plan %"
-                  type="number"
-                  suffix="%"
-                  defaultValue="30"
-                  tooltip="The percentage of total inventory sold before the project construction is finished."
-                  value={formData?.preSalesOffPlanPct}
-                  onChange={(val) => updateFormData('preSalesOffPlanPct', Number(val))}
-                />
-              </>
-            )}
-            <InputField
-              label="Market Share Target"
-              type="number"
-              suffix="%"
-              defaultValue="15.0"
-              tooltip="The portion of the total addressable market the project aims to capture."
-
-              value={formData?.marketShareTarget}
-              onChange={(val) => updateFormData('marketShareTarget', Number(val))}
-            />
-          </div>
-        </motion.div>
-      )}
-    </Card>
-  )
-}
-
-// OPERATING EXPENSES FORM (project-type aware)
-function OpexForm({
-  formData,
-  updateFormData,
-  updateRevenueProduct,
-  addRevenueProduct,
-  removeRevenueProduct,
-  projectType,
-  detailMode
-}: {
-  formData: FormData
-  updateFormData: (field: string, value: any) => void
-  updateRevenueProduct: (index: number, field: string, value: any) => void
-  addRevenueProduct: () => void
-  removeRevenueProduct: (index: number) => void
-  projectType: "manufacturing" | "real_estate" | "energy" | "oil_gas" | "healthcare" | "technology" | "agriculture" | "infrastructure" | "general"
-  detailMode: boolean
-}) {
-  return (
-    <Card className="p-6 space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold text-foreground mb-4">Operating Expenses (OpEx)</h3>
-        <p className="text-sm text-muted-foreground">Define operational costs and expense assumptions</p>
-      </div>
-
-      {(projectType === "manufacturing" || projectType === "energy" || projectType === "oil_gas") && (
-        <div className="pt-0">
-          <h4 className="text-sm font-semibold text-foreground mb-4">Raw Materials & Variable Costs</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField
-              label="Raw Material Cost (per unit)"
-              type="number"
-              prefix="$"
-              defaultValue="45"
-              tooltip="The direct cost of primary raw materials required to produce one unit of output."
-
-              value={formData?.rawMaterialCostPerUnit}
-              onChange={(val) => updateFormData('rawMaterialCostPerUnit', Number(val))}
-            />
-            <InputField
-              label="Raw Material Price Escalation"
-              type="number"
-              suffix="%"
-              defaultValue="3.0"
-              tooltip="The projected annual percentage increase in raw material pricing."
-
-              value={formData?.rawMaterialPriceEscalation}
-              onChange={(val) => updateFormData('rawMaterialPriceEscalation', Number(val))}
-            />
-            <InputField
-              label="Variable Cost as % of Revenue"
-              type="number"
-              suffix="%"
-              defaultValue="35"
-              tooltip="An aggregate variable cost estimate calculated as a direct percentage of gross sales."
-
-              value={formData?.variableCostAsPctOfRevenue}
-              onChange={(val) => updateFormData('variableCostAsPctOfRevenue', Number(val))}
-            />
-            {(projectType === "energy" || projectType === "oil_gas") && (
-              <InputField
-                label="Fuel/Gas Cost"
-                type="number"
-                prefix="$"
-                suffix="/MMBTU"
-                defaultValue="3.5"
-                tooltip="The feedstock cost for energy production, denominated per Million British Thermal Units."
-
-                value={formData?.fuelGasCost}
-                onChange={(val) => updateFormData('fuelGasCost', Number(val))}
-              />
-            )}
-          </div>
-        </div>
-      )}
-
-      <div className={projectType === "manufacturing" || projectType === "energy" ? "pt-6 border-t border-border" : "pt-0"}>
-        <h4 className="text-sm font-semibold text-foreground mb-4">Labor & Personnel Costs</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <InputField label="Total Headcount" type="number" defaultValue="250"
-            tooltip="The total number of full-time equivalent (FTE) employees across all departments."
-            value={formData?.totalHeadcount}
-            onChange={(val) => updateFormData('totalHeadcount', Number(val))}
-          />
-          <InputField
-            label="Average Annual Salary"
-            type="number"
-            prefix="$"
-            defaultValue="45000"
-            tooltip="The weighted average yearly base salary per employee before benefits."
-
-            value={formData?.averageAnnualSalary}
-            onChange={(val) => updateFormData('averageAnnualSalary', Number(val))}
-          />
-          <InputField
-            label="Salary Escalation Rate"
-            type="number"
-            suffix="%"
-            defaultValue="5.0"
-            tooltip="The expected annual percentage increase in employee wages."
-
-            value={formData?.salaryEscalationRate}
-            onChange={(val) => updateFormData('salaryEscalationRate', Number(val))}
-          />
-          <InputField
-            label="Benefits & Payroll Tax"
-            type="number"
-            suffix="% of salary"
-            defaultValue="25"
-            tooltip="Combined employer costs for health insurance, pensions, and statutory payroll taxes."
-
-            value={formData?.benefitsPayrollTax}
-            onChange={(val) => updateFormData('benefitsPayrollTax', Number(val))}
-          />
-          <InputField
-            label="Total Annual Staff Cost"
-            type="number"
-            prefix="$"
-            defaultValue="14062500"
-            calculated
-            tooltip="The calculated total yearly labor expense: Headcount × Avg Salary × (1 + Benefits%)."
-            value={formData?.totalAnnualStaffCost}
-            onChange={(val) => updateFormData('totalAnnualStaffCost', Number(val))}
-          />
-        </div>
-      </div>
-
-      <div className="pt-6 border-t border-border">
-        <h4 className="text-sm font-semibold text-foreground mb-4">Utilities & Facilities</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <InputField
-            label="Power/Electricity Cost"
-            type="number"
-            prefix="$"
-            suffix="/year"
-            defaultValue="300000"
-            tooltip="Annual expenditure for electricity supply to the facilities."
-            value={formData?.powerElectricityCost}
-            onChange={(val) => updateFormData('powerElectricityCost', Number(val))}
-          />
-          <InputField
-            label="Water & Gas Utilities"
-            type="number"
-            prefix="$"
-            suffix="/year"
-            defaultValue="100000"
-            tooltip="Annual expenditure for water supply and natural gas utilities."
-            value={formData?.waterGasUtilities}
-            onChange={(val) => updateFormData('waterGasUtilities', Number(val))}
-          />
-          <InputField
-            label="Utilities Escalation Rate"
-            type="number"
-            suffix="%"
-            defaultValue="4.0"
-            tooltip="The projected annual percentage increase in utility tariff rates."
-            value={formData?.utilitiesEscalationRate}
-            onChange={(val) => updateFormData('utilitiesEscalationRate', Number(val))}
-          />
-          {(formData?.industrySector === "Energy & Power" || formData?.industrySector === "Oil & Gas") && (
-            <InputField
-              label="Fuel/Gas Cost"
-              type="number"
-              prefix="$"
-              suffix="/MMBTU"
-              defaultValue="3.50"
-              tooltip="The cost of natural gas or fuel used for power generation or industrial heating."
-              value={formData?.fuelGasCost}
-              onChange={(val) => updateFormData('fuelGasCost', Number(val))}
-            />
-          )}
-          {projectType === "real-estate" && (
-            <InputField
-              label="Property Management"
-              type="number"
-              suffix="% of revenue"
-              defaultValue="5.0"
-              tooltip="Fees paid to third-party management firms for operating the property assets."
-              value={formData?.propertyManagement}
-              onChange={(val) => updateFormData('propertyManagement', Number(val))}
-            />
-          )}
-        </div>
-      </div>
-
-      <div className="pt-6 border-t border-border">
-        <h4 className="text-sm font-semibold text-foreground mb-4">Maintenance & Insurance</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <InputField
-            label="Regular Maintenance"
-            type="number"
-            suffix="% of revenue"
-            defaultValue="2.5"
-            tooltip="Annual provision for routine preventive and corrective maintenance activities."
-
-            value={formData?.regularMaintenance}
-            onChange={(val) => updateFormData('regularMaintenance', Number(val))}
-          />
-          <InputField
-            label="Insurance (Annual)"
-            type="number"
-            prefix="$"
-            defaultValue="200000"
-            tooltip="Comprehensive annual premiums for property, casualty, and operational risk insurance."
-
-            value={formData?.insuranceAnnual}
-            onChange={(val) => updateFormData('insuranceAnnual', Number(val))}
-          />
-          {(projectType === "manufacturing" || projectType === "energy") && (
-            <>
-              <InputField
-                label="Turn Around Maintenance (TAM) Cost"
-                type="number"
-                prefix="$"
-                defaultValue="2000000"
-                tooltip="The lump-sum cost of a scheduled, large-scale plant shutdown for overhaul and inspections."
-
-                value={formData?.turnAroundMaintenanceTamCost}
-                onChange={(val) => updateFormData('turnAroundMaintenanceTamCost', Number(val))}
-              />
-              <InputField
-                label="TAM Frequency"
-                type="number"
-                suffix="years"
-                defaultValue="5"
-                tooltip="Years between major maintenance"
-
-                value={formData?.tamFrequency}
-                onChange={(val) => updateFormData('tamFrequency', Number(val))}
-              />
-            </>
-          )}
-        </div>
-      </div>
-
-      {detailMode && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          className="space-y-6 pt-6 border-t border-border"
-        >
-          <h4 className="text-sm font-semibold text-foreground mb-4">Additional Operating Expenses</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField
-              label="Marketing & Sales"
-              type="number"
-              suffix="% of revenue"
-              defaultValue="8.0"
-
-              value={formData?.marketingSales}
-              onChange={(val) => updateFormData('marketingSales', Number(val))}
-            />
-            <InputField
-              label="Administrative Expenses"
-              type="number"
-              prefix="$"
-              suffix="/year"
-              defaultValue="150000"
-
-              value={formData?.administrativeExpenses}
-              onChange={(val) => updateFormData('administrativeExpenses', Number(val))}
-            />
-            <InputField
-              label="Rent & Facilities"
-              type="number"
-              prefix="$"
-              suffix="/year"
-              defaultValue="120000"
-
-              value={formData?.rentFacilities}
-              onChange={(val) => updateFormData('rentFacilities', Number(val))}
-            />
-            <InputField
-              label="Technology & Software"
-              type="number"
-              prefix="$"
-              suffix="/year"
-              defaultValue="50000"
-
-              value={formData?.technologySoftware}
-              onChange={(val) => updateFormData('technologySoftware', Number(val))}
-            />
-            <InputField
-              label="Professional Fees"
-              type="number"
-              prefix="$"
-              suffix="/year"
-              defaultValue="75000"
-              tooltip="Legal, accounting, consulting"
-
-              value={formData?.professionalFees}
-              onChange={(val) => updateFormData('professionalFees', Number(val))}
-            />
-            <InputField
-              label="Payables Days (DPO)"
-              type="number"
-              suffix="days"
-              defaultValue="30"
-              tooltip="Days to pay suppliers"
-
-              value={formData?.payablesDaysDpo}
-              onChange={(val) => updateFormData('payablesDaysDpo', Number(val))}
-            />
-          </div>
-        </motion.div>
-      )}
-    </Card>
-  )
-}
-
-// CAPITAL EXPENDITURE FORM (project-type aware)
-function CapexForm({
-  formData,
-  updateFormData,
-  updateRevenueProduct,
-  addRevenueProduct,
-  removeRevenueProduct,
-  projectType,
-  detailMode
-}: {
-  formData: FormData
-  updateFormData: (field: string, value: any) => void
-  updateRevenueProduct: (index: number, field: string, value: any) => void
-  addRevenueProduct: () => void
-  removeRevenueProduct: (index: number) => void
-  projectType: "manufacturing" | "real_estate" | "energy" | "oil_gas" | "healthcare" | "technology" | "agriculture" | "infrastructure" | "general"
-  detailMode: boolean
-}) {
-  return (
-    <Card className="p-6 space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold text-foreground mb-4">Capital Expenditure (CAPEX)</h3>
-        <p className="text-sm text-muted-foreground">Define initial investment and capital spending</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField
-          label="Land Cost"
-          type="number"
-          prefix="$"
-          defaultValue="13711180"
-          tooltip="The total acquisition cost of the project site, including brokerage and legal fees."
-
-          value={formData?.landCost}
-          onChange={(val) => updateFormData('landCost', Number(val))}
-        />
-        <InputField
-          label={projectType === "real_estate" ? "Construction Cost" : "Building & Civil Works"}
-          type="number"
-          prefix="$"
-          defaultValue="109626400"
-          tooltip="Total direct costs for building construction, site development, and civil infrastructure."
-          value={formData?.constructionBuildingCost}
-          onChange={(val) => updateFormData('constructionBuildingCost', Number(val))}
-        />
-        <InputField
-          label="Equipment & Machinery"
-          type="number"
-          prefix="$"
-          defaultValue="20554950"
-          tooltip="Cost of purchasing and installing industrial machinery, specialized tools, and plant equipment."
-
-          value={formData?.equipmentMachinery}
-          onChange={(val) => updateFormData('equipmentMachinery', Number(val))}
-        />
-        <InputField
-          label="Furniture, Fixtures & Equipment (FFE)"
-          type="number"
-          prefix="$"
-          defaultValue="6851650"
-          tooltip="Movable furniture, specialized fixtures, and administrative equipment not permanently attached to the building."
-
-          value={formData?.furnitureFixturesEquipmentFfe}
-          onChange={(val) => updateFormData('furnitureFixturesEquipmentFfe', Number(val))}
-        />
-      </div>
-
-      {projectType === "real_estate" && detailMode && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          className="pt-6 border-t border-border"
-        >
-          <h4 className="text-sm font-semibold text-foreground mb-4">Real Estate Specific Costs</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField label="Multi-Storey Car Park Cost" type="number" prefix="$" defaultValue="27735000"
-              tooltip="Dedicated construction budget for parking facilities."
-              value={formData?.multiStoreyCarParkCost}
-              onChange={(val) => updateFormData('multiStoreyCarParkCost', Number(val))}
-            />
-            <InputField label="Amenities Cost" type="number" prefix="$" defaultValue="8638875"
-              tooltip="Costs for recreational facilities like pools, gyms, and community centers."
-              value={formData?.amenitiesCost}
-              onChange={(val) => updateFormData('amenitiesCost', Number(val))}
-            />
-            <InputField label="Apartment Construction" type="number" prefix="$" defaultValue="29661375"
-              tooltip="Direct construction costs specifically for residential units."
-              value={formData?.apartmentConstruction}
-              onChange={(val) => updateFormData('apartmentConstruction', Number(val))}
-            />
-            <InputField label="Hotel/Commercial Construction" type="number" prefix="$" defaultValue="60000000"
-              tooltip="Direct construction costs for commercial or hospitality segments."
-              value={formData?.hotelCommercialConstruction}
-              onChange={(val) => updateFormData('hotelCommercialConstruction', Number(val))}
-            />
-          </div>
-        </motion.div>
-      )}
-
-      <div className="pt-6 border-t border-border">
-        <h4 className="text-sm font-semibold text-foreground mb-4">Additional Costs & Fees</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <InputField
-            label="Contingency"
-            type="number"
-            suffix="% of total capex"
-            defaultValue="4.0"
-            tooltip="An additional budget provision to cover unforeseen costs and price fluctuations."
-
-            value={formData?.contingency}
-            onChange={(val) => updateFormData('contingency', Number(val))}
-          />
-          <InputField
-            label="Professional Fees"
-            type="number"
-            suffix="% of capex"
-            defaultValue="5.0"
-            tooltip="Fees for project stakeholders like Architects, Quantity Surveyors, and Engineers."
-
-            value={formData?.professionalFees}
-            onChange={(val) => updateFormData('professionalFees', Number(val))}
-          />
-          <InputField
-            label="Permits & Approvals"
-            type="number"
-            suffix="% of capex"
-            defaultValue="1.0"
-            tooltip="Statutory fees paid for building permits and environmental approvals."
-
-            value={formData?.permitsApprovals}
-            onChange={(val) => updateFormData('permitsApprovals', Number(val))}
-          />
-          <InputField
-            label="VAT on Construction"
-            type="number"
-            suffix="%"
-            defaultValue="7.5"
-            tooltip="Value Added Tax applied to construction contracts and materials."
-
-            value={formData?.vatOnConstruction}
-            onChange={(val) => updateFormData('vatOnConstruction', Number(val))}
-          />
-          <InputField
-            label="Total Hard Costs"
-            type="number"
-            prefix="$"
-            defaultValue="150744180"
-            tooltip="The sum of direct physical construction and land costs (excludes financing and soft fees)."
-            calculated
-            value={formData?.totalHardCosts}
-            onChange={(val) => updateFormData('totalHardCosts', Number(val))}
-          />
-          <InputField
-            label="Total CAPEX (incl. soft costs)"
-            type="number"
-            prefix="$"
-            defaultValue="173012634"
-            tooltip="The comprehensive initial investment before accounting for capitalized interest."
-            calculated
-            value={formData?.totalCapex}
-            onChange={(val) => updateFormData('totalCapex', Number(val))}
-          />
-        </div>
-      </div>
-
-      {detailMode && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          className="space-y-6 pt-6 border-t border-border"
-        >
-          <h4 className="text-sm font-semibold text-foreground mb-4">Capitalized Interest & Financing Costs</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField
-              label="Capitalize Interest During Construction"
-              type="select"
-              options={["Yes", "No"]}
-              defaultValue="Yes"
-              tooltip="If 'Yes', loan interest during construction is added to the asset cost instead of being expensed."
-
-              value={formData?.capitalizeInterestDuringConstruction}
-              onChange={(val) => updateFormData('capitalizeInterestDuringConstruction', val)}
-            />
-            <InputField
-              label="Construction Loan Interest Rate"
-              type="number"
-              suffix="%"
-              defaultValue="8.5"
-              tooltip="The specific interest rate applied to drawdowns during the construction period."
-
-              value={formData?.constructionLoanInterestRate}
-              onChange={(val) => updateFormData('constructionLoanInterestRate', Number(val))}
-            />
-            <InputField
-              label="Interest During Construction"
-              type="number"
-              prefix="$"
-              defaultValue="11202824"
-              tooltip="The total dollar amount of interest accrued before the project becomes operational."
-              calculated
-              value={formData?.interestDuringConstruction}
-              onChange={(val) => updateFormData('interestDuringConstruction', Number(val))}
-            />
-            <InputField
-              label="Total Development Cost"
-              type="number"
-              prefix="$"
-              defaultValue="184215458"
-              tooltip="The grand total of all CAPEX, fees, and capitalized interest (Final Project Cost)."
-              calculated
-              value={formData?.totalDevelopmentCost}
-              onChange={(val) => updateFormData('totalDevelopmentCost', Number(val))}
-            />
-          </div>
-
-          <div className="pt-6 border-t border-border">
-            <h4 className="text-sm font-semibold text-foreground mb-4">CAPEX Drawdown/Phasing Schedule</h4>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <InputField label="Year 1" type="number" suffix="%" defaultValue="30" size="sm"
-                tooltip="Percentage of total CAPEX spent in the first construction year."
-                value={formData?.year1}
-                onChange={(val) => updateFormData('year1', Number(val))}
-              />
-              <InputField label="Year 2" type="number" suffix="%" defaultValue="50" size="sm"
-                tooltip="Percentage of total CAPEX spent in the second construction year."
-                value={formData?.year2}
-                onChange={(val) => updateFormData('year2', Number(val))}
-              />
-              <InputField label="Year 3" type="number" suffix="%" defaultValue="20" size="sm"
-                tooltip="Percentage of total CAPEX spent in the third construction year."
-                value={formData?.year3}
-                onChange={(val) => updateFormData('year3', Number(val))}
-              />
-              <InputField label="Total" tooltip="Sum of annual drawdowns (must equal 100%)." type="number" suffix="%" defaultValue="100" calculated size="sm"
-                value={formData?.totalDrawdown}
-                onChange={(val) => updateFormData('totalDrawdown', Number(val))}
-              />
-            </div>
-          </div>
-
-          <div className="pt-6 border-t border-border">
-            <h4 className="text-sm font-semibold text-foreground mb-4">Ongoing Capital Expenditure</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <InputField
-                label="Replacement CAPEX"
-                type="number"
-                suffix="% of revenue"
-                defaultValue="3.0"
-                tooltip="Annual percentage of revenue set aside for replacing worn-out equipment or upgrades."
-
-                value={formData?.replacementCapex}
-                onChange={(val) => updateFormData('replacementCapex', Number(val))}
-              />
-              <InputField
-                label="Expansion CAPEX (if applicable)"
-                type="number"
-                prefix="$"
-                defaultValue="0"
-                tooltip="Specific capital allocated for increasing the project's capacity in future years."
-
-                value={formData?.expansionCapexIfApplicable}
-                onChange={(val) => updateFormData('expansionCapexIfApplicable', Number(val))}
-              />
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </Card>
-  )
-}
-
-// DEBT & FINANCING FORM
 function DebtForm({
   formData,
   updateFormData,
@@ -2679,7 +1920,7 @@ function DebtForm({
   addRevenueProduct: () => void
   removeRevenueProduct: (index: number) => void
   projectType: "manufacturing" | "real-estate" | "energy" | "general"
-  detailMode: boolean
+  inputMode: "essential" | "standard" | "expert"
 }) {
   return (
     <Card className="p-6 space-y-6">
@@ -2827,7 +2068,7 @@ function DebtForm({
         </div>
       </div>
 
-      {detailMode && (
+      {inputMode !== "essential" && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
@@ -2944,7 +2185,7 @@ function TaxForm({
   addRevenueProduct: () => void
   removeRevenueProduct: (index: number) => void
   projectType: "manufacturing" | "real-estate" | "energy" | "general"
-  detailMode: boolean
+  inputMode: "essential" | "standard" | "expert"
 }) {
   return (
     <Card className="p-6 space-y-6">
@@ -2996,7 +2237,7 @@ function TaxForm({
         />
       </div>
 
-      {detailMode && (
+      {inputMode !== "essential" && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
@@ -3119,7 +2360,7 @@ function WorkingCapitalForm({
   addRevenueProduct: () => void
   removeRevenueProduct: (index: number) => void
   projectType: "manufacturing" | "real-estate" | "energy" | "general"
-  detailMode: boolean
+  inputMode: "essential" | "standard" | "expert"
 }) {
   return (
     <Card className="p-6 space-y-6">
@@ -3181,7 +2422,7 @@ function WorkingCapitalForm({
         />
       </div>
 
-      {detailMode && (
+      {inputMode !== "essential" && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
@@ -3252,7 +2493,7 @@ function DepreciationForm({
   addRevenueProduct: () => void
   removeRevenueProduct: (index: number) => void
   projectType: "manufacturing" | "real-estate" | "energy" | "general"
-  detailMode: boolean
+  inputMode: "essential" | "standard" | "expert"
 }) {
   return (
     <Card className="p-6 space-y-6">
@@ -3284,7 +2525,7 @@ function DepreciationForm({
         />
       </div>
 
-      {detailMode && (
+      {inputMode !== "essential" && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
@@ -3409,7 +2650,7 @@ function DividendForm({
   addRevenueProduct: () => void
   removeRevenueProduct: (index: number) => void
   projectType: "manufacturing" | "real-estate" | "energy" | "general"
-  detailMode: boolean
+  inputMode: "essential" | "standard" | "expert"
 }) {
   return (
     <Card className="p-6 space-y-6">
@@ -3450,7 +2691,7 @@ function DividendForm({
         />
       </div>
 
-      {detailMode && (
+      {inputMode !== "essential" && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
@@ -3537,7 +2778,7 @@ function ValuationForm({
   addRevenueProduct: () => void
   removeRevenueProduct: (index: number) => void
   projectType: "manufacturing" | "real-estate" | "energy" | "general"
-  detailMode: boolean
+  inputMode: "essential" | "standard" | "expert"
 }) {
   return (
     <Card className="p-6 space-y-6">
@@ -3598,7 +2839,7 @@ function ValuationForm({
         />
       </div>
 
-      {detailMode && (
+      {inputMode !== "essential" && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
@@ -3718,102 +2959,3 @@ function ValuationForm({
   )
 }
 
-// INPUT FIELD COMPONENT
-function InputField({
-  label,
-  type = "text",
-  name,
-  value,
-  prefix,
-  suffix,
-  defaultValue,
-  calculated = false,
-  tooltip,
-  options,
-  placeholder,
-  onChange,
-  size = "default",
-}: {
-  label: string
-  type?: "text" | "number" | "select" | "date"
-  name?: string
-  value?: string | number
-  prefix?: string
-  suffix?: string
-  defaultValue?: string | number
-  calculated?: boolean
-  tooltip?: string
-  options?: string[]
-  placeholder?: string
-  onChange?: (value: string) => void
-  size?: "default" | "sm"
-}) {
-  const [showTooltip, setShowTooltip] = useState(false)
-
-  const inputClasses = size === "sm" ? "text-xs py-1.5" : "text-sm py-2"
-  const labelClasses = size === "sm" ? "text-xs" : "text-sm"
-
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <label className={`${labelClasses} font-medium text-foreground`}>{label}</label>
-        {tooltip && (
-          <div className="relative">
-            <button
-              onMouseEnter={() => setShowTooltip(true)}
-              onMouseLeave={() => setShowTooltip(false)}
-              className="text-muted-foreground hover:text-foreground"
-              type="button"
-            >
-              <Info className={size === "sm" ? "w-3 h-3" : "w-3.5 h-3.5"} />
-            </button>
-            {showTooltip && (
-              <div className="absolute left-0 top-5 z-10 w-64 bg-foreground text-background text-xs p-2 rounded shadow-lg">
-                {tooltip}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-      <div className="relative">
-        {prefix && (
-          <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground ${size === "sm" ? "text-xs" : "text-sm"}`}>
-            {prefix}
-          </span>
-        )}
-        {type === "select" ? (
-          <select
-            className={`w-full px-3 ${inputClasses} border rounded-lg ${calculated
-              ? "bg-blue-50/50 border-blue-200/70 text-foreground focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-              : "bg-blue-50 border-blue-200 text-foreground focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-              }`}
-            value={value !== undefined ? value : (defaultValue || '')}
-            onChange={(e) => onChange?.(e.target.value)}
-          >
-            {options?.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}
-              </option>
-            ))}
-          </select>
-        ) : (
-          <input
-            type={type}
-            placeholder={placeholder}
-            className={`w-full ${prefix ? "pl-8" : "pl-3"} ${suffix ? "pr-20" : "pr-3"} ${inputClasses} border rounded-lg ${calculated
-              ? "bg-blue-50/50 border-blue-200/70 text-foreground focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-              : "bg-blue-50 border-blue-200 text-foreground focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-              }`}
-            value={value !== undefined ? value : (defaultValue || '')}
-            onChange={(e) => onChange?.(e.target.value)}
-          />
-        )}
-        {suffix && (
-          <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground ${size === "sm" ? "text-xs" : "text-sm"}`}>
-            {suffix}
-          </span>
-        )}
-      </div>
-    </div>
-  )
-}
