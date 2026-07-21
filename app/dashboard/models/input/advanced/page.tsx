@@ -44,6 +44,14 @@ import { InputField } from "../../../../../components/forms/advanced/InputField"
 import { RevenueForm } from "../../../../../components/forms/advanced/RevenueForm"
 import { OpexForm } from "../../../../../components/forms/advanced/OpexForm"
 import { CapexForm } from "../../../../../components/forms/advanced/CapexForm"
+import { MacroForm } from "../../../../../components/forms/advanced/MacroForm"
+import { DebtForm } from "../../../../../components/forms/advanced/DebtForm"
+import { TaxForm } from "../../../../../components/forms/advanced/TaxForm"
+import { WorkingCapitalForm } from "../../../../../components/forms/advanced/WorkingCapitalForm"
+import { DepreciationForm } from "../../../../../components/forms/advanced/DepreciationForm"
+import { DividendForm } from "../../../../../components/forms/advanced/DividendForm"
+import { ValuationForm } from "../../../../../components/forms/advanced/ValuationForm"
+
 import { INDUSTRY_SUB_TYPES } from "../../../../../components/forms/advanced/IndustryConfig"
 // API Configuration
 const API_BASE_URL = process.env.NODE_ENV === 'production'
@@ -627,45 +635,49 @@ export default function InputModelPage() {
         equity_percentage: formData.equityPercentage,
         debt_percentage: formData.debtPercentage,
         offplan_presales_percentage: formData.preSalesOffPlanPct || formData.offPlanSalesPreSalesPct || null,
-        interest_rate_type: "Floating",
+        interest_rate_type: formData.interestRateType || "Floating",
         base_rate_type: formData.baseRateType,
         base_rate_value: formData.baseRateValue,
         interest_margin_spread: formData.interestMarginSpread,
         loan_tenor_years: formData.loanTenorYears,
-        grace_period_months: 36,
-        repayment_type: "Amortizing (Equal Installments)",
-        dsra_requirement_months: 6,
-        dsra_funding_source: "Cash",
-        upfront_fees_pct: 2.0,
-        commitment_fee_pct: 0.5,
-        drawdown_linked_to: "CAPEX Schedule",
-        drawdown_frequency: "Quarterly",
+        grace_period_months: formData.gracePeriodMonths || 36,
+        repayment_type: formData.repaymentType || "Amortizing (Equal Installments)",
+        dsra_requirement_months: formData.dsraRequirementMonths || 6,
+        dsra_funding_source: formData.dsraFundingSource || "Cash",
+        upfront_fees_pct: formData.upfrontFeesPct || 2.0,
+        commitment_fee_pct: formData.commitmentFeePct || 0.5,
+        drawdown_linked_to: formData.drawdownLinkedTo || "CAPEX Schedule",
+        drawdown_frequency: formData.drawdownFrequency || "Quarterly",
+        custom_debt_tranches: formData.customDebtTranches || [],
+        custom_parameters_debt: formData.customParametersDebt || []
       },
       tax_assumptions: {
         corporate_income_tax_rate: formData.corporateIncomeTaxRate,
-        tax_holiday_years: 0,
-        minimum_tax_rate: 0.5,
+        tax_holiday_years: formData.taxHolidayYears || 0,
+        minimum_tax_rate: formData.minimumTaxRate || 0.5,
         vat_sales_tax_rate: formData.vatSalesTaxRate,
-        wht_dividends: 10.0,
-        wht_interest: 10.0,
-        wht_services: 5.0,
-        wht_rent: 10.0,
-        education_tax_pct: 2.5,
-        tax_loss_carryforward_years: 5,
-        initial_allowance_pct: 25.0,
-        annual_allowance_pct: 20.0,
+        wht_dividends: formData.whtDividends || 10.0,
+        wht_interest: formData.whtInterest || 10.0,
+        wht_services: formData.whtServices || 5.0,
+        wht_rent: formData.whtRent || 10.0,
+        education_tax_pct: formData.educationTaxPct || 2.5,
+        tax_loss_carryforward_years: formData.taxLossCarryforwardYears || 5,
+        initial_allowance_pct: formData.initialAllowancePct || 25.0,
+        annual_allowance_pct: formData.annualAllowancePct || 20.0,
+        custom_taxes: formData.customTaxes || [],
+        custom_parameters_tax: formData.customParametersTax || []
       },
       working_capital: {
-        initial_wc_pct_year1_opex: 30.0,
+        initial_wc_pct_year1_opex: formData.initialWorkingCapital || 30.0,
         receivables_days_dso: formData.receivablesDaysDso,
         inventory_days_dio: formData.inventoryDaysDio,
         payables_days_dpo: formData.payablesDaysDpo,
-        wc_pct_revenue: 10.0,
-        minimum_cash_balance: 1000000,
-        wc_funding_source: "From Equity",
-        wc_reserve_account: false,
+        wc_pct_revenue: formData.workingCapitalAsPctOfRevenue || 10.0,
+        minimum_cash_balance: formData.minimumCashBalance || 1000000,
+        wc_funding_source: formData.workingCapitalFunding || "From Equity",
+        wc_reserve_account: formData.wcReserveAccount === "Yes",
       },
-      depreciation_schedules: [
+      depreciation_schedules: formData.assetClassDepreciation?.length > 0 ? formData.assetClassDepreciation : [
         {
           asset_category: "land",
           depreciation_method: "straight_line",
@@ -695,33 +707,34 @@ export default function InputModelPage() {
           residual_value_pct: 0,
         },
       ],
+      custom_parameters_depreciation: formData.customParametersDepreciation || [],
       dividend_policy: {
-        dividend_payout_ratio_pct: formData.dividendPayoutRatioPct,
-        dividend_payment_frequency: "Annually",
-        minimum_cash_before_dividend: 5000000,
-        minimum_dscr_for_dividend: 1.3,
-        minimum_llcr_for_dividend: 1.5,
-        preferred_dividend_rate_pct: 0,
-        share_buyback_provision: false,
-        dividend_wht_pct: 10.0,
-        dividend_reinvestment_option: false,
+        dividend_payout_ratio_pct: formData.dividendPayoutRatio || formData.dividendPayoutRatioPct,
+        dividend_payment_frequency: formData.dividendPaymentFrequency || "Annually",
+        minimum_cash_before_dividend: formData.minimumCashBeforeDividend || 5000000,
+        minimum_dscr_for_dividend: formData.minimumDscrForDividend || 1.3,
+        minimum_llcr_for_dividend: formData.minimumLlcrForDividend || 1.5,
+        preferred_dividend_rate_pct: formData.preferredDividendRate || 0,
+        share_buyback_provision: formData.shareBuybackProvision === "Yes",
+        dividend_wht_pct: formData.dividendWithholdingTax || 10.0,
+        dividend_reinvestment_option: formData.dividendReinvestmentOption === "Yes",
       },
       exit_valuation: {
         exit_year: formData.exitYear,
         exit_multiple_ev_ebitda: formData.exitMultipleEvEbitda,
-        terminal_growth_rate_pct: formData.terminalGrowthRatePct,
-        discount_rate_npv_pct: formData.discountRateNpvPct,
-        target_irr_pct: formData.targetIrrPct,
-        pe_multiple: 12.0,
-        price_book_multiple: 2.5,
-        revenue_multiple: 1.5,
-        asset_sale_value: 0,
-        transaction_costs_pct: 3.0,
-        valuation_method: "DCF (Discounted Cash Flow)",
-        target_equity_irr_pct: 20.0,
-        target_project_irr_pct: 15.0,
-        payback_period_target_years: 7,
-        minimum_moic: 2.5,
+        terminal_growth_rate_pct: formData.terminalGrowthRate || formData.terminalGrowthRatePct,
+        discount_rate_npv_pct: formData.discountRateForNpv || formData.discountRateNpvPct,
+        target_irr_pct: formData.targetIrr || formData.targetIrrPct,
+        pe_multiple: formData.pEMultiple || 12.0,
+        price_book_multiple: formData.priceBookMultiple || 2.5,
+        revenue_multiple: formData.revenueMultiple || 1.5,
+        asset_sale_value: formData.assetSaleValueIfApplicable || 0,
+        transaction_costs_pct: formData.transactionCosts || 3.0,
+        valuation_method: formData.valuationMethod || "DCF (Discounted Cash Flow)",
+        target_equity_irr_pct: formData.targetEquityIrr || 20.0,
+        target_project_irr_pct: formData.targetProjectIrr || 15.0,
+        payback_period_target_years: formData.paybackPeriodTarget || 7,
+        minimum_moic: formData.minimumMoic || 2.5,
       }
     }
   }
@@ -1347,8 +1360,8 @@ export default function InputModelPage() {
               </div>
               <Button
                 onClick={() => {
-                  const next = !detailMode
-                  setDetailMode(next)
+                  const next = !inputMode
+                  setInputMode(next)
                   toast({
                     title: next ? "Detailed Mode" : "Simple Mode",
                     description: next
@@ -1361,8 +1374,8 @@ export default function InputModelPage() {
                 size="sm"
                 className="gap-2"
               >
-                {detailMode ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                {detailMode ? "Simple" : "Detailed"}
+                {inputMode ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                {inputMode ? "Simple" : "Detailed"}
               </Button>
             </div>
           </Card>
@@ -1542,18 +1555,24 @@ export default function InputModelPage() {
   )
 }
 
+
 // PROJECT INFORMATION FORM
 function ProjectForm({
   formData,
   updateFormData,
-  detailMode,
+  inputMode,
   onProjectTypeChange
 }: {
-  formData: FormData
+  formData: any
   updateFormData: (field: string, value: any) => void
   inputMode: "essential" | "standard" | "expert"
   onProjectTypeChange: (type: "manufacturing" | "real_estate" | "energy" | "oil_gas" | "healthcare" | "technology" | "agriculture" | "infrastructure" | "general") => void
 }) {
+  const { INDUSTRY_SUB_TYPES } = require("../../../../../components/forms/advanced/IndustryConfig");
+  const { Card } = require("@/components/ui/card");
+  const { InputField } = require("../../../../../components/forms/advanced/InputField");
+  const { motion } = require("framer-motion");
+
   return (
     <Card className="p-6 space-y-6">
       <div>
@@ -1607,7 +1626,7 @@ function ProjectForm({
           <InputField
             label="Custom Industry Name"
             type="text"
-            value={formData?.projectName} // Repurposing projectName or using a dedicated field
+            value={formData?.projectName}
             tooltip="Specify your industry sector if it's not listed."
             onChange={(val) => updateFormData('industrySector', val)}
             placeholder="e.g., Mining, Fintech, etc."
@@ -1740,1222 +1759,3 @@ function ProjectForm({
     </Card>
   )
 }
-
-// MACRO & GENERAL ASSUMPTIONS FORM
-function MacroForm({
-  formData,
-  updateFormData,
-  detailMode
-}: {
-  formData: FormData
-  updateFormData: (field: string, value: any) => void
-  inputMode: "essential" | "standard" | "expert"
-}) {
-  return (
-    <Card className="p-6 space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold text-foreground mb-4">Macro Economic & General Assumptions</h3>
-        <p className="text-sm text-muted-foreground">Define global parameters for your financial model</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField
-          label="Reporting Currency"
-          type="select"
-          options={["USD ($)", "NGN (₦)", "EUR (€)", "GBP (£)", "JPY (¥)"]}
-          defaultValue="USD ($)"
-          value={formData?.reportingCurrency}
-          tooltip="The primary currency used for all financial statements and calculations."
-          onChange={(value) => updateFormData('reportingCurrency', value)}
-
-        />
-        <InputField
-          label="Exchange Rate (Local/USD)"
-          type="number"
-          defaultValue="1470"
-          value={formData?.exchangeRate}
-          tooltip="Local currency units per 1 USD (e.g., NGN/USD)."
-          onChange={(value) => updateFormData('exchangeRate', value)}
-        />
-        <InputField label="Base Year" type="number" tooltip="The first year of the financial model (Year 0/1)." value={formData?.baseYear} defaultValue="2025" onChange={(value) => updateFormData('baseYear', value)} />
-        <InputField
-          label="Periodicity"
-          type="select"
-          options={["Monthly", "Quarterly", "Semi-Annually", "Annually"]}
-          defaultValue="Annually"
-          value={formData?.periodicity}
-          tooltip="The time frequency for generated financial reports (e.g., Annual vs Quarterly updates)."
-          onChange={(value) => updateFormData('periodicity', value)}
-        />
-        <InputField label="Number of Years in Model" type="number" value={formData?.numberOfYears} onChange={(value) => updateFormData('numberOfYears', value)} defaultValue="28" tooltip="Total forecast horizon for the project evaluation." />
-        <InputField label="Model Tolerance" type="number" defaultValue="0.001" value={formData?.modelTolerance} onChange={(value) => updateFormData('modelTolerance', value)} tooltip="Maximum allowable error margin for balance sheet balancing." />
-      </div>
-
-      <div className="pt-6 border-t border-border">
-        <h4 className="text-sm font-semibold text-foreground mb-4">Inflation Assumptions</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <InputField
-            label="Local Inflation Rate"
-            type="number"
-            suffix="%"
-            defaultValue="15.0"
-            value={formData?.localInflationRate}
-            tooltip="Projected annual inflation rate for the local market currency."
-            onChange={(value) => updateFormData('localInflationRate', value)}
-          />
-          <InputField
-            label="US/Foreign Inflation Rate"
-            type="number"
-            suffix="%"
-            defaultValue="2.5"
-            value={formData?.foreignInflationRate}
-            tooltip="Projected annual inflation rate for US Dollar (USD) or international benchmark."
-            onChange={(value) => updateFormData('foreignInflationRate', value)}
-          />
-          <InputField
-            label="Long-term Target Inflation"
-            type="number"
-            suffix="%"
-            defaultValue="9.0"
-            tooltip="The equilibrium inflation rate reached after the initial high-growth/volatile period."
-
-            value={formData?.longTermTargetInflation}
-            onChange={(val) => updateFormData('longTermTargetInflation', Number(val))}
-          />
-          <InputField
-            label="Revenue/OpEx Escalation Rate (USD)"
-            type="number"
-            suffix="%"
-            defaultValue="2.5"
-            tooltip="Annual percentage increase applied to revenues and operational costs denominated in USD."
-
-            value={formData?.revenueOpexEscalationRateUsd}
-            onChange={(val) => updateFormData('revenueOpexEscalationRateUsd', Number(val))}
-          />
-        </div>
-      </div>
-
-      {inputMode !== "essential" && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          className="space-y-6 pt-6 border-t border-border"
-        >
-          <h4 className="text-sm font-semibold text-foreground mb-4">Financial Rates & Benchmarks</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField
-              label="Discount Rate / WACC"
-              type="number"
-              suffix="%"
-              defaultValue="12.5"
-              value={formData?.discountRateWacc}
-              tooltip="Weighted Average Cost of Capital, used to discount future cash flows to Net Present Value (NPV)."
-              onChange={(value) => updateFormData('discountRateWacc', value)}
-            />
-            <InputField
-              label="Risk-Free Rate"
-              type="number"
-              suffix="%"
-              defaultValue="4.5"
-              value={formData?.riskFreeRate}
-              tooltip="Theoretical return on an investment with 0% risk, typically the 10-year US Treasury yield."
-              onChange={(value) => updateFormData('riskFreeRate', value)}
-            />
-            <InputField
-              label="Benchmark Rate"
-              type="select"
-              options={["SOFR", "MPR (Monetary Policy Rate)", "LIBOR", "Prime Rate", "Other"]}
-              defaultValue="SOFR"
-              value={formData?.benchmarkRateType}
-              tooltip="The reference interest rate used for debt calculation (e.g., Secured Overnight Financing Rate)."
-              onChange={(value) => updateFormData('benchmarkRate', value)}
-            />
-            <InputField
-              label="Benchmark Rate Value"
-              type="number"
-              suffix="%"
-              defaultValue="5.0"
-              tooltip="Current benchmark rate value"
-              value={formData?.benchmarkRateValue}
-              onChange={(value) => updateFormData('benchMarkRateValue', value)}
-            />
-            <InputField
-              label="Terminal Growth Rate"
-              type="number"
-              suffix="%"
-              defaultValue="3.0"
-              tooltip="Perpetual growth rate for terminal value"
-              value={formData?.terminalGrowthRate}
-              onChange={(value) => updateFormData('terminalGrowthRate', value)}
-            />
-            <InputField
-              label="Contingency Buffer"
-              type="number"
-              suffix="%"
-              defaultValue="4.0"
-              tooltip="General contingency percentage"
-              value={formData?.contingencyBuffer}
-              onChange={(value) => updateFormData('contingencyBuffer', value)}
-            />
-          </div>
-        </motion.div>
-      )}
-    </Card>
-  )
-}
-
-// REVENUE ASSUMPTIONS FORM (with dynamic product support)
-function DebtForm({
-  formData,
-  updateFormData,
-  updateRevenueProduct,
-  addRevenueProduct,
-  removeRevenueProduct,
-  projectType,
-  detailMode
-}: {
-  formData: FormData
-  updateFormData: (field: string, value: any) => void
-  updateRevenueProduct: (index: number, field: string, value: any) => void
-  addRevenueProduct: () => void
-  removeRevenueProduct: (index: number) => void
-  projectType: "manufacturing" | "real-estate" | "energy" | "general"
-  inputMode: "essential" | "standard" | "expert"
-}) {
-  return (
-    <Card className="p-6 space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold text-foreground mb-4">Debt & Financing Structure</h3>
-        <p className="text-sm text-muted-foreground">Configure funding sources and debt terms</p>
-      </div>
-
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertDescription>
-          Define the capital structure and financing mix for your project
-        </AlertDescription>
-      </Alert>
-
-      <div className="pt-4">
-        <h4 className="text-sm font-semibold text-foreground mb-4">Funding Mix</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <InputField
-            label="Total Project Cost"
-            type="number"
-            prefix="$"
-            defaultValue="184215458"
-            calculated
-            tooltip="The comprehensive project cost that requires funding (Final Development Cost)."
-            value={formData?.totalProjectCost}
-            onChange={(val) => updateFormData('totalProjectCost', Number(val))}
-          />
-          <InputField
-            label="Equity Percentage"
-            type="number"
-            suffix="%"
-            defaultValue="23.9"
-            tooltip="The portion of the project cost funded by shareholders' capital."
-
-            value={formData?.equityPercentage}
-            onChange={(val) => updateFormData('equityPercentage', Number(val))}
-          />
-          <InputField
-            label="Equity Amount"
-            type="number"
-            prefix="$"
-            defaultValue="43983691"
-            tooltip="Calculated dollar amount of equity needed based on the percentage."
-            calculated
-            value={formData?.equityAmount}
-            onChange={(val) => updateFormData('equityAmount', Number(val))}
-          />
-          <InputField
-            label="Debt Percentage"
-            type="number"
-            suffix="%"
-            defaultValue="43.0"
-            tooltip="The portion of the project cost funded by external bank loans or bonds."
-
-            value={formData?.debtPercentage}
-            onChange={(val) => updateFormData('debtPercentage', Number(val))}
-          />
-          <InputField
-            label="Debt Amount"
-            type="number"
-            prefix="$"
-            defaultValue="79155515"
-            tooltip="Calculated dollar amount of debt needed based on the percentage."
-            calculated
-            value={formData?.debtAmount}
-            onChange={(val) => updateFormData('debtAmount', Number(val))}
-          />
-          <InputField
-            label="Off-Plan Sales / Pre-sales %"
-            type="number"
-            suffix="%"
-            defaultValue="33.2"
-            tooltip="Funding derived from customer deposits before completion (common in Real Estate)."
-
-            value={formData?.offPlanSalesPreSalesPct}
-            onChange={(val) => updateFormData('offPlanSalesPreSalesPct', Number(val))}
-          />
-        </div>
-      </div>
-
-      <div className="pt-6 border-t border-border">
-        <h4 className="text-sm font-semibold text-foreground mb-4">Debt Terms & Conditions</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <InputField
-            label="Interest Rate Type"
-            type="select"
-            options={["Fixed", "Floating", "Mixed"]}
-            defaultValue="Floating"
-            tooltip="Select whether the interest rate remains constant or changes based on market benchmarks."
-
-            value={formData?.interestRateType}
-            onChange={(val) => updateFormData('interestRateType', val)}
-          />
-          <InputField
-            label="Base Rate"
-            type="select"
-            options={["SOFR", "MPR", "LIBOR", "Prime Rate", "Other"]}
-            defaultValue="SOFR"
-            tooltip="The reference benchmark rate (e.g., SOFR for US Dollars)."
-
-            value={formData?.baseRate}
-            onChange={(val) => updateFormData('baseRate', val)}
-          />
-          <InputField
-            label="Base Rate Value"
-            type="number"
-            suffix="%"
-            defaultValue="5.0"
-            tooltip="The current percentage value of the selected benchmark rate."
-
-            value={formData?.baseRateValue}
-            onChange={(val) => updateFormData('baseRateValue', Number(val))}
-          />
-          <InputField
-            label="Interest Margin/Spread"
-            type="number"
-            suffix="%"
-            defaultValue="3.5"
-            tooltip="The additional interest percentage added by the lender over the base rate."
-
-            value={formData?.interestMarginSpread}
-            onChange={(val) => updateFormData('interestMarginSpread', Number(val))}
-          />
-          <InputField
-            label="All-in Interest Rate"
-            type="number"
-            suffix="%"
-            defaultValue="8.5"
-            calculated
-            tooltip="The total effective interest rate (Base Rate + Margin)."
-            value={formData?.allInInterestRate}
-            onChange={(val) => updateFormData('allInInterestRate', Number(val))}
-          />
-          <InputField
-            label="Loan Tenor"
-            type="number"
-            suffix="years"
-            defaultValue="15"
-            tooltip="The total duration of the loan from first drawdown to final repayment."
-
-            value={formData?.loanTenor}
-            onChange={(val) => updateFormData('loanTenor', Number(val))}
-          />
-        </div>
-      </div>
-
-      {inputMode !== "essential" && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          className="space-y-6 pt-6 border-t border-border"
-        >
-          <h4 className="text-sm font-semibold text-foreground mb-4">Advanced Debt Parameters</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField
-              label="Grace Period"
-              type="number"
-              suffix="months"
-              defaultValue="36"
-              tooltip="The moratorium period (in months) where only interest is paid before principal repayments begin."
-
-              value={formData?.gracePeriod}
-              onChange={(val) => updateFormData('gracePeriod', Number(val))}
-            />
-            <InputField
-              label="Repayment Type"
-              type="select"
-              options={["Amortizing (Equal Installments)", "Bullet (Lump Sum)", "Sculpted (Custom Schedule)"]}
-              defaultValue="Amortizing (Equal Installments)"
-              tooltip="The structure for paying back the loan principal."
-
-              value={formData?.repaymentType}
-              onChange={(val) => updateFormData('repaymentType', val)}
-            />
-            <InputField
-              label="DSRA Requirement"
-              type="number"
-              suffix="months"
-              defaultValue="6"
-              tooltip="Debt Service Reserve Account: The number of months of debt service required to be kept in reserve."
-
-              value={formData?.dsraRequirement}
-              onChange={(val) => updateFormData('dsraRequirement', Number(val))}
-            />
-            <InputField
-              label="DSRA Funding Source"
-              type="select"
-              options={["Cash", "Letter of Credit", "Mixed"]}
-              defaultValue="Cash"
-              tooltip="The method used to fund the debt service reserve account."
-
-              value={formData?.dsraFundingSource}
-              onChange={(val) => updateFormData('dsraFundingSource', val)}
-            />
-            <InputField
-              label="Upfront Fees"
-              type="number"
-              suffix="% of loan"
-              defaultValue="2.0"
-              tooltip="One-time transactional fees paid to lenders at the time of loan closing."
-
-              value={formData?.upfrontFees}
-              onChange={(val) => updateFormData('upfrontFees', Number(val))}
-            />
-            <InputField
-              label="Commitment Fee"
-              type="number"
-              suffix="% p.a."
-              defaultValue="0.5"
-              tooltip="An annual fee charged on the undisbursed portion of the loan facility."
-
-              value={formData?.commitmentFee}
-              onChange={(val) => updateFormData('commitmentFee', Number(val))}
-            />
-          </div>
-
-          <div className="pt-6 border-t border-border">
-            <h4 className="text-sm font-semibold text-foreground mb-4">Debt Drawdown Schedule</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <InputField
-                label="Drawdown Linked To"
-                type="select"
-                options={["CAPEX Schedule", "Custom Schedule", "Equal Drawdowns"]}
-                defaultValue="CAPEX Schedule"
-                tooltip="Determines how loan funds are released (usually follows actual construction spending)."
-
-                value={formData?.drawdownLinkedTo}
-                onChange={(val) => updateFormData('drawdownLinkedTo', val)}
-              />
-              <InputField
-                label="Drawdown Frequency"
-                type="select"
-                options={["Monthly", "Quarterly", "Milestone-based"]}
-                defaultValue="Quarterly"
-                tooltip="The frequency at which loan funds are disbursed from the lender."
-
-                value={formData?.drawdownFrequency}
-                onChange={(val) => updateFormData('drawdownFrequency', val)}
-              />
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </Card>
-  )
-}
-
-// TAX ASSUMPTIONS FORM
-function TaxForm({
-  formData,
-  updateFormData,
-  updateRevenueProduct,
-  addRevenueProduct,
-  removeRevenueProduct,
-  projectType,
-  detailMode
-}: {
-  formData: FormData
-  updateFormData: (field: string, value: any) => void
-  updateRevenueProduct: (index: number, field: string, value: any) => void
-  addRevenueProduct: () => void
-  removeRevenueProduct: (index: number) => void
-  projectType: "manufacturing" | "real-estate" | "energy" | "general"
-  inputMode: "essential" | "standard" | "expert"
-}) {
-  return (
-    <Card className="p-6 space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold text-foreground mb-4">Tax Assumptions</h3>
-        <p className="text-sm text-muted-foreground">Configure tax rates and policies</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField
-          label="Corporate Income Tax Rate"
-          type="number"
-          suffix="%"
-          defaultValue="30.0"
-          tooltip="The standard statutory tax rate applied to the company's taxable profits."
-
-          value={formData?.corporateIncomeTaxRate}
-          onChange={(val) => updateFormData('corporateIncomeTaxRate', Number(val))}
-        />
-        <InputField
-          label="Tax Holiday Period"
-          type="number"
-          suffix="years"
-          defaultValue="0"
-          tooltip="The initial period (in years) where the project is exempt from paying corporate income tax (e.g., Pioneer Status)."
-
-          value={formData?.taxHolidayPeriod}
-          onChange={(val) => updateFormData('taxHolidayPeriod', Number(val))}
-        />
-        <InputField
-          label="Minimum Tax Rate"
-          type="number"
-          suffix="%"
-          defaultValue="0.5"
-          tooltip="A tax floor based on gross turnover, applicable if the calculated CIT is lower than this amount."
-
-          value={formData?.minimumTaxRate}
-          onChange={(val) => updateFormData('minimumTaxRate', Number(val))}
-        />
-        <InputField
-          label="VAT/Sales Tax Rate"
-          type="number"
-          suffix="%"
-          defaultValue="7.5"
-          tooltip="Value Added Tax applied to the sale of goods and services."
-
-          value={formData?.vatSalesTaxRate}
-          onChange={(val) => updateFormData('vatSalesTaxRate', Number(val))}
-        />
-      </div>
-
-      {inputMode !== "essential" && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          className="space-y-6 pt-6 border-t border-border"
-        >
-          <h4 className="text-sm font-semibold text-foreground mb-4">Withholding Taxes</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField
-              label="WHT on Dividends"
-              type="number"
-              suffix="%"
-              defaultValue="10.0"
-              tooltip="Tax withheld at source on dividend payments to shareholders."
-
-              value={formData?.whtOnDividends}
-              onChange={(val) => updateFormData('whtOnDividends', Number(val))}
-            />
-            <InputField
-              label="WHT on Interest"
-              type="number"
-              suffix="%"
-              defaultValue="10.0"
-              tooltip="Tax withheld at source on interest payments to lenders."
-
-              value={formData?.whtOnInterest}
-              onChange={(val) => updateFormData('whtOnInterest', Number(val))}
-            />
-            <InputField
-              label="WHT on Services"
-              type="number"
-              suffix="%"
-              defaultValue="5.0"
-              tooltip="Tax withheld on payments made for professional and technical services."
-
-              value={formData?.whtOnServices}
-              onChange={(val) => updateFormData('whtOnServices', Number(val))}
-            />
-            <InputField
-              label="WHT on Rent"
-              type="number"
-              suffix="%"
-              defaultValue="10.0"
-              tooltip="Tax withheld on lease or rental payments for land and buildings."
-
-              value={formData?.whtOnRent}
-              onChange={(val) => updateFormData('whtOnRent', Number(val))}
-            />
-          </div>
-
-          <div className="pt-6 border-t border-border">
-            <h4 className="text-sm font-semibold text-foreground mb-4">Other Tax Provisions</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <InputField
-                label="Education Tax"
-                type="number"
-                suffix="% of assessable profit"
-                defaultValue="2.5"
-                tooltip="Tertiary education tax applied to assessable profits (specific to Nigeria)."
-
-                value={formData?.educationTax}
-                onChange={(val) => updateFormData('educationTax', Number(val))}
-              />
-              <InputField
-                label="Tax Loss Carryforward Period"
-                type="number"
-                suffix="years"
-                defaultValue="5"
-                tooltip="The number of years that operational losses can be used to reduce future taxable income."
-
-                value={formData?.taxLossCarryforwardPeriod}
-                onChange={(val) => updateFormData('taxLossCarryforwardPeriod', Number(val))}
-              />
-            </div>
-          </div>
-
-          <div className="pt-6 border-t border-border">
-            <h4 className="text-sm font-semibold text-foreground mb-4">Capital Allowances (Tax Depreciation)</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <InputField
-                label="Initial Allowance"
-                type="number"
-                suffix="%"
-                defaultValue="25.0"
-                tooltip="The percentage of capital expenditure that can be deducted for tax purposes in the first year of acquisition."
-
-                value={formData?.initialAllowance}
-                onChange={(val) => updateFormData('initialAllowance', Number(val))}
-              />
-              <InputField
-                label="Annual Allowance"
-                type="number"
-                suffix="%"
-                defaultValue="20.0"
-                tooltip="The annual percentage deduction for tax depreciation in subsequent years."
-
-                value={formData?.annualAllowance}
-                onChange={(val) => updateFormData('annualAllowance', Number(val))}
-              />
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </Card>
-  )
-}
-
-// WORKING CAPITAL FORM
-function WorkingCapitalForm({
-  formData,
-  updateFormData,
-  updateRevenueProduct,
-  addRevenueProduct,
-  removeRevenueProduct,
-  projectType,
-  detailMode
-}: {
-  formData: FormData
-  updateFormData: (field: string, value: any) => void
-  updateRevenueProduct: (index: number, field: string, value: any) => void
-  addRevenueProduct: () => void
-  removeRevenueProduct: (index: number) => void
-  projectType: "manufacturing" | "real-estate" | "energy" | "general"
-  inputMode: "essential" | "standard" | "expert"
-}) {
-  return (
-    <Card className="p-6 space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold text-foreground mb-4">Working Capital Assumptions</h3>
-        <p className="text-sm text-muted-foreground">Define working capital requirements and cash cycle</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField
-          label="Initial Working Capital"
-          type="number"
-          suffix="% of Year 1 OpEx"
-          defaultValue="30.0"
-          tooltip="The amount of cash required at the start of operations, expressed as a percentage of first-year OpEx."
-
-          value={formData?.initialWorkingCapital}
-          onChange={(val) => updateFormData('initialWorkingCapital', Number(val))}
-        />
-        <InputField
-          label="Receivables Days (DSO)"
-          type="number"
-          suffix="days"
-          defaultValue="45"
-          tooltip="Days Sales Outstanding: The average number of days it takes to collect cash from customers after a sale."
-
-          value={formData?.receivablesDaysDso}
-          onChange={(val) => updateFormData('receivablesDaysDso', Number(val))}
-        />
-        <InputField
-          label="Inventory Days (DIO)"
-          type="number"
-          suffix="days"
-          defaultValue="60"
-          tooltip="Days Inventory Outstanding: The average number of days you hold raw materials or finished goods before selling them."
-
-          value={formData?.inventoryDaysDio}
-          onChange={(val) => updateFormData('inventoryDaysDio', Number(val))}
-        />
-        <InputField
-          label="Payables Days (DPO)"
-          type="number"
-          suffix="days"
-          defaultValue="30"
-          tooltip="Days Payables Outstanding: The average number of days you take to pay your suppliers and creditors."
-
-          value={formData?.payablesDaysDpo}
-          onChange={(val) => updateFormData('payablesDaysDpo', Number(val))}
-        />
-        <InputField
-          label="Cash Cycle (Days)"
-          type="number"
-          suffix="days"
-          defaultValue="75"
-          calculated
-          tooltip="The net duration of the cash conversion cycle: DSO + DIO - DPO."
-          value={formData?.cashCycleDays}
-          onChange={(val) => updateFormData('cashCycleDays', Number(val))}
-        />
-      </div>
-
-      {inputMode !== "essential" && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          className="space-y-6 pt-6 border-t border-border"
-        >
-          <h4 className="text-sm font-semibold text-foreground mb-4">Additional Working Capital Parameters</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField
-              label="Working Capital as % of Revenue"
-              type="number"
-              suffix="%"
-              defaultValue="10.0"
-              tooltip="The target level of net working capital maintained as a percentage of gross revenue."
-
-              value={formData?.workingCapitalAsPctOfRevenue}
-              onChange={(val) => updateFormData('workingCapitalAsPctOfRevenue', Number(val))}
-            />
-            <InputField
-              label="Minimum Cash Balance"
-              type="number"
-              prefix="$"
-              defaultValue="1000000"
-              tooltip="The absolute minimum cash reserve the company must hold for operational safety."
-
-              value={formData?.minimumCashBalance}
-              onChange={(val) => updateFormData('minimumCashBalance', Number(val))}
-            />
-            <InputField
-              label="Working Capital Funding"
-              type="select"
-              options={["From Equity", "From Debt", "From Operations", "Mixed"]}
-              defaultValue="From Equity"
-              tooltip="The primary source of funds used to bridge working capital shortfalls."
-
-              value={formData?.workingCapitalFunding}
-              onChange={(val) => updateFormData('workingCapitalFunding', val)}
-            />
-            <InputField
-              label="WC Reserve Account"
-              type="select"
-              options={["Yes", "No"]}
-              defaultValue="No"
-              tooltip="Specifies if a dedicated bank account is maintained specifically for working capital reserves."
-
-              value={formData?.wcReserveAccount}
-              onChange={(val) => updateFormData('wcReserveAccount', val)}
-            />
-          </div>
-        </motion.div>
-      )}
-    </Card>
-  )
-}
-
-// DEPRECIATION FORM
-function DepreciationForm({
-  formData,
-  updateFormData,
-  updateRevenueProduct,
-  addRevenueProduct,
-  removeRevenueProduct,
-  projectType,
-  detailMode
-}: {
-  formData: FormData
-  updateFormData: (field: string, value: any) => void
-  updateRevenueProduct: (index: number, field: string, value: any) => void
-  addRevenueProduct: () => void
-  removeRevenueProduct: (index: number) => void
-  projectType: "manufacturing" | "real-estate" | "energy" | "general"
-  inputMode: "essential" | "standard" | "expert"
-}) {
-  return (
-    <Card className="p-6 space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold text-foreground mb-4">Depreciation & Amortization</h3>
-        <p className="text-sm text-muted-foreground">Define asset depreciation policies</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField
-          label="Depreciation Method"
-          type="select"
-          options={["Straight Line", "Declining Balance", "Units of Production", "Sum of Years Digits"]}
-          defaultValue="Straight Line"
-          tooltip="The accounting method used to allocate the cost of assets over their useful lives."
-
-          value={formData?.depreciationMethod}
-          onChange={(val) => updateFormData('depreciationMethod', val)}
-        />
-        <InputField
-          label="Overall Weighted Average Life"
-          type="number"
-          suffix="years"
-          defaultValue="20"
-          tooltip="The blended average useful life (in years) calculated across all tangible assets in the model."
-
-          value={formData?.overallWeightedAverageLife}
-          onChange={(val) => updateFormData('overallWeightedAverageLife', Number(val))}
-        />
-      </div>
-
-      {inputMode !== "essential" && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          className="space-y-6 pt-6 border-t border-border"
-        >
-          <h4 className="text-sm font-semibold text-foreground mb-4">Asset Category Details</h4>
-
-          <div className="space-y-4">
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <h5 className="text-sm font-medium text-foreground mb-3">Land & Land Improvements</h5>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <InputField label="Land Value" type="number" prefix="$" defaultValue="13711180" size="sm"
-                  tooltip="Total value assigned to land (note: land value is typically not depreciated)."
-                  value={formData?.landValue}
-                  onChange={(val) => updateFormData('landValue', Number(val))}
-                />
-                <InputField label="Useful Life" type="number" suffix="years" defaultValue="0" size="sm" tooltip="Expected duration of asset use. Set to 0 for non-depreciable assets like land."
-                  value={formData?.usefulLife}
-                  onChange={(val) => updateFormData('usefulLife', Number(val))}
-                />
-                <InputField label="Residual Value" tooltip="Scrap or salvage expected value of an asset at end of life." type="number" suffix="%" defaultValue="100" size="sm" calculated
-                  value={formData?.residualValue}
-                  onChange={(val) => updateFormData('residualValue', Number(val))}
-                />
-              </div>
-            </div>
-
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <h5 className="text-sm font-medium text-foreground mb-3">Buildings & Structures</h5>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <InputField label="Value" type="number" prefix="$" defaultValue="109626400" size="sm"
-                  tooltip="The total book value of buildings and permanent civil works."
-                  value={formData?.value}
-                  onChange={(val) => updateFormData('value', Number(val))}
-                />
-                <InputField label="Useful Life" type="number" suffix="years" defaultValue="40" size="sm"
-                  tooltip="The estimated number of years the building structure will be used."
-                  value={formData?.usefulLife}
-                  onChange={(val) => updateFormData('usefulLife', Number(val))}
-                />
-                <InputField label="Residual Value" type="number" suffix="%" defaultValue="10" size="sm"
-                  tooltip="The salvage value of the building as a percentage of its initial cost at the end of its life."
-                  value={formData?.residualValue}
-                  onChange={(val) => updateFormData('residualValue', Number(val))}
-                />
-              </div>
-            </div>
-
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <h5 className="text-sm font-medium text-foreground mb-3">Plant, Equipment & Machinery</h5>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <InputField label="Value" type="number" prefix="$" defaultValue="20554950" size="sm"
-                  value={formData?.value}
-                  onChange={(val) => updateFormData('value', Number(val))}
-                />
-                <InputField label="Useful Life" type="number" suffix="years" defaultValue="15" size="sm"
-                  value={formData?.usefulLife}
-                  onChange={(val) => updateFormData('usefulLife', Number(val))}
-                />
-                <InputField label="Residual Value" type="number" suffix="%" defaultValue="5" size="sm"
-                  value={formData?.residualValue}
-                  onChange={(val) => updateFormData('residualValue', Number(val))}
-                />
-              </div>
-            </div>
-
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <h5 className="text-sm font-medium text-foreground mb-3">Furniture, Fixtures & Equipment</h5>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <InputField label="Value" type="number" prefix="$" defaultValue="6851650" size="sm"
-                  value={formData?.value}
-                  onChange={(val) => updateFormData('value', Number(val))}
-                />
-                <InputField label="Useful Life" type="number" suffix="years" defaultValue="7" size="sm"
-                  value={formData?.usefulLife}
-                  onChange={(val) => updateFormData('usefulLife', Number(val))}
-                />
-                <InputField label="Residual Value" type="number" suffix="%" defaultValue="0" size="sm"
-                  value={formData?.residualValue}
-                  onChange={(val) => updateFormData('residualValue', Number(val))}
-                />
-              </div>
-            </div>
-
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <h5 className="text-sm font-medium text-foreground mb-3">Vehicles & IT Equipment</h5>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <InputField label="Value" type="number" prefix="$" defaultValue="1000000" size="sm"
-                  value={formData?.value}
-                  onChange={(val) => updateFormData('value', Number(val))}
-                />
-                <InputField label="Useful Life" type="number" suffix="years" defaultValue="5" size="sm"
-                  value={formData?.usefulLife}
-                  onChange={(val) => updateFormData('usefulLife', Number(val))}
-                />
-                <InputField label="Residual Value" type="number" suffix="%" defaultValue="0" size="sm"
-                  value={formData?.residualValue}
-                  onChange={(val) => updateFormData('residualValue', Number(val))}
-                />
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </Card>
-  )
-}
-
-// DIVIDEND FORM
-function DividendForm({
-  formData,
-  updateFormData,
-  updateRevenueProduct,
-  addRevenueProduct,
-  removeRevenueProduct,
-  projectType,
-  detailMode
-}: {
-  formData: FormData
-  updateFormData: (field: string, value: any) => void
-  updateRevenueProduct: (index: number, field: string, value: any) => void
-  addRevenueProduct: () => void
-  removeRevenueProduct: (index: number) => void
-  projectType: "manufacturing" | "real-estate" | "energy" | "general"
-  inputMode: "essential" | "standard" | "expert"
-}) {
-  return (
-    <Card className="p-6 space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold text-foreground mb-4">Dividend & Shareholder Assumptions</h3>
-        <p className="text-sm text-muted-foreground">Configure dividend policy and shareholder returns</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField
-          label="Dividend Payout Ratio"
-          type="number"
-          suffix="% of net income"
-          defaultValue="15.0"
-          tooltip="Percentage of profits distributed as dividends"
-
-          value={formData?.dividendPayoutRatio}
-          onChange={(val) => updateFormData('dividendPayoutRatio', Number(val))}
-        />
-        <InputField
-          label="Dividend Payment Frequency"
-          type="select"
-          options={["Annually", "Semi-Annually", "Quarterly", "None"]}
-          defaultValue="Annually"
-
-          value={formData?.dividendPaymentFrequency}
-          onChange={(val) => updateFormData('dividendPaymentFrequency', val)}
-        />
-        <InputField
-          label="Minimum Cash Before Dividend"
-          type="number"
-          prefix="$"
-          defaultValue="5000000"
-          tooltip="Required cash buffer before paying dividends"
-
-          value={formData?.minimumCashBeforeDividend}
-          onChange={(val) => updateFormData('minimumCashBeforeDividend', Number(val))}
-        />
-      </div>
-
-      {inputMode !== "essential" && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          className="space-y-6 pt-6 border-t border-border"
-        >
-          <h4 className="text-sm font-semibold text-foreground mb-4">Advanced Dividend Parameters</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField
-              label="Minimum DSCR for Dividend"
-              type="number"
-              defaultValue="1.3"
-              tooltip="Minimum debt service coverage ratio before paying dividends"
-
-              value={formData?.minimumDscrForDividend}
-              onChange={(val) => updateFormData('minimumDscrForDividend', Number(val))}
-            />
-            <InputField
-              label="Minimum LLCR for Dividend"
-              type="number"
-              defaultValue="1.5"
-              tooltip="Minimum loan life coverage ratio"
-
-              value={formData?.minimumLlcrForDividend}
-              onChange={(val) => updateFormData('minimumLlcrForDividend', Number(val))}
-            />
-            <InputField
-              label="Preferred Dividend Rate"
-              type="number"
-              suffix="% p.a."
-              defaultValue="0"
-              tooltip="For preferred shares if applicable"
-
-              value={formData?.preferredDividendRate}
-              onChange={(val) => updateFormData('preferredDividendRate', Number(val))}
-            />
-            <InputField
-              label="Share Buyback Provision"
-              type="select"
-              options={["Yes", "No"]}
-              defaultValue="No"
-
-              value={formData?.shareBuybackProvision}
-              onChange={(val) => updateFormData('shareBuybackProvision', val)}
-            />
-            <InputField
-              label="Dividend Withholding Tax"
-              type="number"
-              suffix="%"
-              defaultValue="10.0"
-
-              value={formData?.dividendWithholdingTax}
-              onChange={(val) => updateFormData('dividendWithholdingTax', Number(val))}
-            />
-            <InputField
-              label="Dividend Reinvestment Option"
-              type="select"
-              options={["Yes", "No"]}
-              defaultValue="No"
-              tooltip="DRIP - Dividend Reinvestment Plan"
-
-              value={formData?.dividendReinvestmentOption}
-              onChange={(val) => updateFormData('dividendReinvestmentOption', val)}
-            />
-          </div>
-        </motion.div>
-      )}
-    </Card>
-  )
-}
-
-// EXIT & VALUATION FORM
-function ValuationForm({
-  formData,
-  updateFormData,
-  updateRevenueProduct,
-  addRevenueProduct,
-  removeRevenueProduct,
-  projectType,
-  detailMode
-}: {
-  formData: FormData
-  updateFormData: (field: string, value: any) => void
-  updateRevenueProduct: (index: number, field: string, value: any) => void
-  addRevenueProduct: () => void
-  removeRevenueProduct: (index: number) => void
-  projectType: "manufacturing" | "real-estate" | "energy" | "general"
-  inputMode: "essential" | "standard" | "expert"
-}) {
-  return (
-    <Card className="p-6 space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold text-foreground mb-4">Exit & Valuation Assumptions</h3>
-        <p className="text-sm text-muted-foreground">Define exit strategy and valuation parameters</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField
-          label="Exit Year"
-          type="number"
-          defaultValue="10"
-          tooltip="Year of exit from investment (from operations start)"
-
-          value={formData?.exitYear}
-          onChange={(val) => updateFormData('exitYear', Number(val))}
-        />
-        <InputField
-          label="Exit Multiple (EV/EBITDA)"
-          type="number"
-          suffix="x"
-          defaultValue="8.5"
-          tooltip="Enterprise Value / EBITDA multiple"
-
-          value={formData?.exitMultipleEvEbitda}
-          onChange={(val) => updateFormData('exitMultipleEvEbitda', Number(val))}
-        />
-        <InputField
-          label="Terminal Growth Rate"
-          type="number"
-          suffix="%"
-          defaultValue="3.0"
-          tooltip="Perpetual growth rate for terminal value calculation"
-
-          value={formData?.terminalGrowthRate}
-          onChange={(val) => updateFormData('terminalGrowthRate', Number(val))}
-        />
-        <InputField
-          label="Discount Rate for NPV"
-          type="number"
-          suffix="%"
-          defaultValue="12.5"
-          tooltip="Discount rate for net present value calculations"
-
-          value={formData?.discountRateForNpv}
-          onChange={(val) => updateFormData('discountRateForNpv', Number(val))}
-        />
-        <InputField
-          label="Target IRR"
-          type="number"
-          suffix="%"
-          defaultValue="18.0"
-          tooltip="Target internal rate of return"
-
-          value={formData?.targetIrr}
-          onChange={(val) => updateFormData('targetIrr', Number(val))}
-        />
-      </div>
-
-      {inputMode !== "essential" && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          className="space-y-6 pt-6 border-t border-border"
-        >
-          <h4 className="text-sm font-semibold text-foreground mb-4">Alternative Valuation Methods</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField
-              label="P/E Multiple"
-              type="number"
-              suffix="x"
-              defaultValue="12.0"
-              tooltip="Price to Earnings multiple"
-
-              value={formData?.pEMultiple}
-              onChange={(val) => updateFormData('pEMultiple', Number(val))}
-            />
-            <InputField
-              label="Price/Book Multiple"
-              type="number"
-              suffix="x"
-              defaultValue="2.5"
-              tooltip="Price to Book Value multiple"
-
-              value={formData?.priceBookMultiple}
-              onChange={(val) => updateFormData('priceBookMultiple', Number(val))}
-            />
-            <InputField
-              label="Revenue Multiple"
-              type="number"
-              suffix="x"
-              defaultValue="1.5"
-              tooltip="Enterprise Value / Revenue multiple"
-
-              value={formData?.revenueMultiple}
-              onChange={(val) => updateFormData('revenueMultiple', Number(val))}
-            />
-            <InputField
-              label="Asset Sale Value (if applicable)"
-              type="number"
-              prefix="$"
-              defaultValue="0"
-              tooltip="If selling assets instead of equity"
-
-              value={formData?.assetSaleValueIfApplicable}
-              onChange={(val) => updateFormData('assetSaleValueIfApplicable', Number(val))}
-            />
-            <InputField
-              label="Transaction Costs"
-              type="number"
-              suffix="% of exit value"
-              defaultValue="3.0"
-              tooltip="M&A advisory, legal, tax costs"
-
-              value={formData?.transactionCosts}
-              onChange={(val) => updateFormData('transactionCosts', Number(val))}
-            />
-            <InputField
-              label="Valuation Method"
-              type="select"
-              options={["DCF (Discounted Cash Flow)", "Multiple-based", "Asset-based", "Hybrid"]}
-              defaultValue="DCF (Discounted Cash Flow)"
-
-              value={formData?.valuationMethod}
-              onChange={(val) => updateFormData('valuationMethod', val)}
-            />
-          </div>
-
-          <div className="pt-6 border-t border-border">
-            <h4 className="text-sm font-semibold text-foreground mb-4">Return Metrics Targets</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <InputField
-                label="Target Equity IRR"
-                type="number"
-                suffix="%"
-                defaultValue="20.0"
-                tooltip="Target return on equity"
-
-                value={formData?.targetEquityIrr}
-                onChange={(val) => updateFormData('targetEquityIrr', Number(val))}
-              />
-              <InputField
-                label="Target Project IRR"
-                type="number"
-                suffix="%"
-                defaultValue="15.0"
-                tooltip="Target unlevered project return"
-
-                value={formData?.targetProjectIrr}
-                onChange={(val) => updateFormData('targetProjectIrr', Number(val))}
-              />
-              <InputField
-                label="Payback Period Target"
-                type="number"
-                suffix="years"
-                defaultValue="7"
-                tooltip="Desired payback period"
-
-                value={formData?.paybackPeriodTarget}
-                onChange={(val) => updateFormData('paybackPeriodTarget', Number(val))}
-              />
-              <InputField
-                label="Minimum MOIC"
-                type="number"
-                suffix="x"
-                defaultValue="2.5"
-                tooltip="Multiple on Invested Capital"
-
-                value={formData?.minimumMoic}
-                onChange={(val) => updateFormData('minimumMoic', Number(val))}
-              />
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </Card>
-  )
-}
-
