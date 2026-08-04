@@ -23,3 +23,20 @@ After the review, a few complaints were made and need to be implemented:
 9 Reduce Application Limitations
 
 10 increase application flexibility, customization and sleekness
+
+11 Sector specific engine.
+
+12 Build with a library/framework that will allow scalability, flexibility and customization for each industry sector..
+
+13 Ability to have a basic or advanced modeler selection for easy understanding and user experience
+
+14 Monte Carlo Simulations (Should be available to users)
+
+15 Sensitivity Analysis (Should be available to users)
+
+16 Scenario Management (Should be available to users)
+
+17 Build more robust and in-depth data validation, error handling, and debugging tools.
+
+18 Build our own ai agent based on our custom models using RAGs and finetuning 
+
