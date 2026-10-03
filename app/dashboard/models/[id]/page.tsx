@@ -38,9 +38,7 @@ import { SensitivityAnalysisTab } from "@/components/models/SensitivityAnalysisT
 import { ScenarioComparisonTab } from "@/components/models/ScenarioComparisonTab"
 import { QuickEditPanel } from "@/components/models/QuickEditPanel"
 
-const API_BASE_URL = process.env.NODE_ENV === 'production'
-  ? 'https://playground-backend-1t0f.onrender.com/api'
-  : 'http://localhost:8000/api'
+import { API_BASE_URL } from "@/lib/api"
 
 // ─── HELPER COMPONENTS ────────────────────────────────────────────────────────
 

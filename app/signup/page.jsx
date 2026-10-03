@@ -138,7 +138,7 @@ const dispatch = useDispatch();
               </div>
 
               <div className="flex items-start gap-2">
-                <Checkbox id="terms" required className="mt-1" />
+                <Checkbox id="terms" required className="mt-1 border-foreground/70 bg-background" />
                 <Label htmlFor="terms" className="text-xs text-foreground/70 font-normal cursor-pointer">
                   I agree to the Terms of Service and  Privacy Policy
                 

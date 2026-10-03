@@ -13,7 +13,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { useSelector } from "react-redux"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { selectToken } from "@/features/token/tokenSlice"
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
+import { API_BASE_URL } from "@/lib/api"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 

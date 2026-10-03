@@ -2,7 +2,7 @@ import React, { useEffect } from "react"
 import { Users, Plus, X } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { InputField } from "./InputField"
+import { InputField, useInputNumberFormat } from "./InputField"
 import { CustomParametersPanel } from "./CustomParametersPanel"
 import { motion } from "framer-motion"
 import { getOpexTemplate } from "./IndustryConfig"
@@ -22,6 +22,7 @@ export function OpexForm({
   industrySubType: string
   inputMode: "essential" | "standard" | "expert"
 }) {
+  const { currencySymbol, formatNumber } = useInputNumberFormat()
   const isExpert = inputMode === "expert"
   const isStandardOrExpert = inputMode !== "essential"
 
@@ -95,7 +96,7 @@ export function OpexForm({
         
         <div className="bg-primary/10 border border-primary/20 px-4 py-3 rounded-lg text-left sm:text-right w-full sm:w-auto">
           <p className="text-xs text-primary font-medium uppercase tracking-wider mb-1">Est. Fixed OpEx (Year 1)</p>
-          <p className="text-xl font-bold text-foreground">${totalOpexEstimation.toLocaleString()}</p>
+          <p className="text-xl font-bold text-foreground">{currencySymbol}{formatNumber(totalOpexEstimation)}</p>
           <p className="text-[10px] text-muted-foreground mt-0.5">+ variable costs</p>
         </div>
       </div>

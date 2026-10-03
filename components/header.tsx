@@ -110,7 +110,7 @@ export function Header() {
         <Link href={"/"}>
           <div className="flex items-center gap-2 group shrink-0">
             <span className="font-bold text-slate-900 text-lg group-hover:text-blue-600 transition-colors duration-200 hidden sm:inline tracking-tight">
-              Plyground
+              Playground
             </span>
             <span className="font-bold text-slate-900 text-lg group-hover:text-blue-600 transition-colors duration-200 sm:hidden tracking-tight">
               P

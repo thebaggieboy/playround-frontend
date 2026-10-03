@@ -43,7 +43,7 @@ import { useSelector } from "react-redux"
 import { selectToken } from "@/features/token/tokenSlice"
 import { useQuery } from "@tanstack/react-query"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
+import { API_BASE_URL } from "@/lib/api"
 
 const COLORS = ["#0ea5e9", "#10b981", "#f59e0b", "#6366f1", "#ec4899", "#14b8a6", "#f97316", "#8b5cf6"]
 const STATUS_COLORS: Record<string, string> = {
@@ -96,8 +96,15 @@ async function fetchAllPages(url: string, headers: Record<string, string>) {
   let nextUrl: string | null = url
 
   while (nextUrl) {
-    const res = await fetch(nextUrl, { headers }).catch(() => null)
-    if (!res?.ok) break
+    let res: Response
+    try {
+      res = await fetch(nextUrl, { headers })
+    } catch (error) {
+      throw new Error(`Could not reach ${new URL(nextUrl, url).pathname}: ${error instanceof Error ? error.message : "Network error"}`)
+    }
+    if (!res.ok) {
+      throw new Error(`${new URL(nextUrl, url).pathname} returned ${res.status} ${res.statusText}`)
+    }
     const json = await res.json()
 
     if (Array.isArray(json)) {
@@ -105,11 +112,51 @@ async function fetchAllPages(url: string, headers: Record<string, string>) {
       break // non-paginated
     }
 
-    allResults = allResults.concat(json.results || [])
-    nextUrl = json.next || null
+    if (!Array.isArray(json.results)) {
+      throw new Error(`${new URL(nextUrl, url).pathname} returned an unexpected response format`)
+    }
+
+    allResults = allResults.concat(json.results)
+    nextUrl = json.next ? new URL(json.next, nextUrl).toString() : null
   }
 
   return allResults
+}
+
+function getStatementTrendData(statements: any[], statementType: string, preferredItems: RegExp) {
+  const totalsByItem = new Map<string, number>()
+  const valuesByItem = new Map<string, Map<string, number>>()
+
+  statements
+    .filter((statement) => statement.statement_type === statementType && statement.values_by_period)
+    .forEach((statement) => {
+      const item = statement.line_item || "Other"
+      const periodValues = valuesByItem.get(item) || new Map<string, number>()
+
+      Object.entries(statement.values_by_period).forEach(([period, rawValue]) => {
+        const value = Number(rawValue)
+        if (!Number.isFinite(value)) return
+        periodValues.set(period, (periodValues.get(period) || 0) + value)
+        totalsByItem.set(item, (totalsByItem.get(item) || 0) + Math.abs(value))
+      })
+
+      valuesByItem.set(item, periodValues)
+    })
+
+  const preferred = [...valuesByItem.keys()].filter((item) => preferredItems.test(item))
+  const selectedItems = (preferred.length > 0 ? preferred : [...valuesByItem.keys()]
+    .sort((a, b) => (totalsByItem.get(b) || 0) - (totalsByItem.get(a) || 0)))
+    .slice(0, 4)
+  const periods = [...new Set(selectedItems.flatMap((item) => [...(valuesByItem.get(item)?.keys() || [])]))]
+    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+
+  return {
+    items: selectedItems,
+    data: periods.map((period) => ({
+      period,
+      ...Object.fromEntries(selectedItems.map((item) => [item, valuesByItem.get(item)?.get(period) || 0])),
+    })),
+  }
 }
 
 function formatCurrency(val: number, compact = false) {
@@ -127,48 +174,57 @@ function formatCurrency(val: number, compact = false) {
 /* ------------------------------------------------------------------ */
 export default function AnalyticsPage() {
   const token = useSelector(selectToken)
+  const authToken = typeof token === "object" && token?.access ? token.access : token
   const [scenarioFilter, setScenarioFilter] = useState<string>("all")
 
   // React Query Fetcher Helper
   const fetchEndpoint = async (url: string) => {
-    if (!token) return []
+    if (!authToken) throw new Error("Sign in to load analytics.")
     const headers: Record<string, string> = {
-      'Authorization': `JWT ${typeof token === 'object' && token?.access ? token.access : token}`,
+      'Authorization': `JWT ${authToken}`,
       'Content-Type': 'application/json'
     }
     return fetchAllPages(url, headers)
   }
 
   // ─── Global State Caching via React Query ─────────────────────────
-  const { data: models = [], isLoading: modelsLoading } = useQuery({
-    queryKey: ['models'],
+  const { data: models = [], isLoading: modelsLoading, error: modelsError } = useQuery({
+    queryKey: ['analytics', 'models', authToken],
     queryFn: () => fetchEndpoint(`${API_BASE_URL}/models/`),
     staleTime: 5 * 60 * 1000, // 5 minutes cache
-    enabled: !!token,
+    enabled: !!authToken,
   })
 
-  const { data: scenarios = [], isLoading: scenariosLoading } = useQuery({
-    queryKey: ['scenarios', 'detail'],
+  const { data: scenarios = [], isLoading: scenariosLoading, error: scenariosError } = useQuery({
+    queryKey: ['analytics', 'scenarios', authToken],
     queryFn: () => fetchEndpoint(`${API_BASE_URL}/scenarios/?detail=true`),
     staleTime: 5 * 60 * 1000,
-    enabled: !!token,
+    enabled: !!authToken,
   })
 
-  const { data: reports = [], isLoading: reportsLoading } = useQuery({
-    queryKey: ['reports'],
+  const { data: reports = [], isLoading: reportsLoading, error: reportsError } = useQuery({
+    queryKey: ['analytics', 'reports', authToken],
     queryFn: () => fetchEndpoint(`${API_BASE_URL}/reports/`),
     staleTime: 5 * 60 * 1000,
-    enabled: !!token,
+    enabled: !!authToken,
   })
 
-  const { data: calcLogs = [], isLoading: calcLogsLoading } = useQuery({
-    queryKey: ['calcLogs'],
+  const { data: calcLogs = [], isLoading: calcLogsLoading, error: calcLogsError } = useQuery({
+    queryKey: ['analytics', 'calculation-logs', authToken],
     queryFn: () => fetchEndpoint(`${API_BASE_URL}/calculation-logs/`),
     staleTime: 5 * 60 * 1000,
-    enabled: !!token,
+    enabled: !!authToken,
   })
 
-  const isLoading = modelsLoading || scenariosLoading || reportsLoading || calcLogsLoading;
+  const { data: calculatedStatements = [], isLoading: statementsLoading, error: statementsError } = useQuery({
+    queryKey: ['analytics', 'results', authToken],
+    queryFn: () => fetchEndpoint(`${API_BASE_URL}/results/`),
+    staleTime: 5 * 60 * 1000,
+    enabled: !!authToken,
+  })
+
+  const errors = [modelsError, scenariosError, reportsError, calcLogsError, statementsError].filter(Boolean)
+  const isLoading = !!authToken && (modelsLoading || scenariosLoading || reportsLoading || calcLogsLoading || statementsLoading)
 
   const filteredScenarios = useMemo(() => {
     if (scenarioFilter === "all") return scenarios
@@ -289,7 +345,7 @@ export default function AnalyticsPage() {
       successfulCalcs,
       failedCalcs,
     }
-  }, [models, scenarios, reports, calcLogs])
+  }, [models, scenarios, filteredScenarios, reports, calcLogs])
 
   /* ---- Project types distribution ---- */
   const projectTypesData = useMemo(() => {
@@ -407,7 +463,7 @@ export default function AnalyticsPage() {
     return Object.entries(capexMap)
       .map(([name, capex]) => ({ name, capex }))
       .sort((a, b) => b.capex - a.capex)
-  }, [models, scenarios])
+  }, [models, filteredScenarios])
 
   /* ---- IRR Distribution ---- */
   const irrDistributionData = useMemo(() => {
@@ -431,7 +487,7 @@ export default function AnalyticsPage() {
     })
     
     return buckets
-  }, [scenarios])
+  }, [filteredScenarios])
 
   /* ---- Capital Stack Breakdown ---- */
   const capitalStackData = useMemo(() => {
@@ -462,7 +518,7 @@ export default function AnalyticsPage() {
       { name: "Total Equity", value: totalEquity, fill: "#0ea5e9" },
       { name: "Total Debt", value: totalDebt, fill: "#f59e0b" }
     ].filter(d => d.value > 0)
-  }, [scenarios])
+  }, [filteredScenarios])
 
   /* ---- OpEx Breakdown Data ---- */
   const opexBreakdownData = useMemo(() => {
@@ -489,7 +545,7 @@ export default function AnalyticsPage() {
       { name: "Technology", value: tech, fill: "#14b8a6" },
       { name: "Prof. Fees", value: prof, fill: "#f97316" }
     ].filter(d => d.value > 0).sort((a, b) => b.value - a.value)
-  }, [scenarios])
+  }, [filteredScenarios])
 
   /* ---- CapEx Breakdown Data ---- */
   const capexBreakdownData = useMemo(() => {
@@ -510,11 +566,11 @@ export default function AnalyticsPage() {
       { name: "Equipment", value: equipment, fill: "#14b8a6" },
       { name: "FF&E", value: ffe, fill: "#f59e0b" }
     ].filter(d => d.value > 0)
-  }, [scenarios])
+  }, [filteredScenarios])
 
   /* ---- Target IRR vs WACC (Spread) ---- */
   const spreadData = useMemo(() => {
-    return scenarios
+    return filteredScenarios
       .filter((s: any) => s.exit_valuation?.target_irr_pct && s.macro_assumptions?.discount_rate_wacc)
       .map((s: any) => ({
         name: s.name.substring(0, 15) + (s.name.length > 15 ? '...' : ''),
@@ -523,61 +579,16 @@ export default function AnalyticsPage() {
       }))
       .sort((a, b) => b.irr - a.irr)
       .slice(0, 5) // Top 5 scenarios
-  }, [scenarios])
-
-  /* ---- Cash Runway Data ---- */
-  const cashRunwayData = useMemo(() => {
-    let totalCapEx = 0;
-    let totalOpExAnnual = 0;
-    filteredScenarios.forEach((s: any) => {
-      if (s.capital_expenditure) {
-        totalCapEx += (parseFloat(s.capital_expenditure.land_cost) || 0) + (parseFloat(s.capital_expenditure.construction_building_cost) || 0)
-      }
-      if (s.operating_expenses) {
-        totalOpExAnnual += (parseFloat(s.operating_expenses.average_annual_salary) || 0) * (parseInt(s.operating_expenses.total_headcount) || 1)
-      }
-    })
-    const baseCash = totalCapEx > 0 ? totalCapEx * 0.3 : 5000000; 
-    const monthlyBurn = totalOpExAnnual > 0 ? (totalOpExAnnual / 12) : 250000;
-    const data = [];
-    let currentCash = baseCash;
-    for (let i = 0; i <= 12; i++) {
-      data.push({
-        month: i === 0 ? "Now" : `M${i}`,
-        Cash: Math.round(currentCash),
-        Threshold: 0
-      });
-      currentCash -= monthlyBurn;
-      if (i > 4) currentCash += (monthlyBurn * 1.3); // Simulated revenue start
-    }
-    return data;
   }, [filteredScenarios])
 
-  /* ---- Variance Waterfall Data (Revenue to Net) ---- */
-  const waterfallData = useMemo(() => {
-    let opex = 0
-    let capexA = 0
-    filteredScenarios.forEach((s: any) => {
-      if (s.operating_expenses) {
-        opex += ((parseFloat(s.operating_expenses.average_annual_salary) || 0) * (parseInt(s.operating_expenses.total_headcount) || 1)) + (parseFloat(s.operating_expenses.power_electricity_cost_annual) || 0)
-      }
-      if (s.capital_expenditure) {
-        capexA += parseFloat(s.capital_expenditure.equipment_machinery_cost) || 0
-      }
-    })
-    
-    opex = opex || 3500000;
-    capexA = capexA || 2000000;
-    const revenue = (opex + capexA) * 1.4; // Simulate healthy margin
-    const net = revenue - opex - capexA;
-
-    return [
-      { name: "Gross Rev", base: 0, val: revenue, fill: "#10b981" },
-      { name: "OpEx", base: revenue - opex, val: opex, fill: "#ef4444" },
-      { name: "CapEx", base: revenue - opex - capexA, val: capexA, fill: "#f97316" },
-      { name: "Net Cash", base: 0, val: net, fill: "#0ea5e9" }
-    ]
-  }, [filteredScenarios])
+  const incomeStatementTrend = useMemo(
+    () => getStatementTrendData(calculatedStatements, "is", /revenue|ebitda|net income|gross profit/i),
+    [calculatedStatements]
+  )
+  const cashFlowTrend = useMemo(
+    () => getStatementTrendData(calculatedStatements, "cfs", /cash flow|ending cash|net cash/i),
+    [calculatedStatements]
+  )
 
   /* ---- Average completion percentage ---- */
   const avgCompletion = useMemo(() => {
@@ -610,6 +621,16 @@ export default function AnalyticsPage() {
           initial="hidden"
           animate="visible"
         >
+          {!authToken && (
+            <div role="alert" className="rounded-md border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
+              Sign in to load your analytics data.
+            </div>
+          )}
+          {errors.length > 0 && (
+            <div role="alert" className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              Analytics could not load all API data: {errors.map((error: any) => error.message).join("; ")}
+            </div>
+          )}
 
           {/* Page Header */}
           <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6">
@@ -684,6 +705,14 @@ export default function AnalyticsPage() {
                 subtitle={stats.totalCalcs > 0 ? `${calcSuccessRate}% success` : "No calcs"}
                 icon={Zap}
                 iconColor="bg-amber-500"
+              />
+              <StatCard
+                isLoading={isLoading}
+                title="Failed Calculations"
+                value={stats.failedCalcs}
+                subtitle={stats.totalCalcs > 0 ? `${stats.successfulCalcs} successful` : "No calculations yet"}
+                icon={AlertCircle}
+                iconColor="bg-rose-500"
               />
               <StatCard
                 isLoading={isLoading}
@@ -876,77 +905,77 @@ export default function AnalyticsPage() {
 
           {/* ====== FP&A ENTERPRISE CHARTS ====== */}
           <motion.div variants={itemVariants} className="grid gap-6 lg:grid-cols-2">
-            {/* Variance Waterfall */}
+            {/* Calculated Income Statement */}
             <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4 text-purple-500" />
-                  Variance Waterfall (Revenue to Net Cash)
+                  <BarChart3 className="h-4 w-4 text-emerald-500" />
+                  Calculated Income Statement
                 </CardTitle>
-                <CardDescription>Value bridge from simulated top-line to absolute bottom-line</CardDescription>
+                <CardDescription>Period results from calculated financial statements</CardDescription>
               </CardHeader>
               <CardContent className="pl-2">
                 <div className="h-[250px] sm:h-[300px] w-full flex items-center justify-center">
                   {isLoading ? (
                     <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-                  ) : waterfallData.length === 0 ? (
+                  ) : incomeStatementTrend.data.length === 0 ? (
                     <div className="text-center">
                       <BarChart3 className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
-                      <p className="text-sm text-muted-foreground">No Waterfall data yet</p>
+                      <p className="text-sm text-muted-foreground">No calculated income statement data yet</p>
                     </div>
                   ) : (
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={waterfallData} margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
+                      <LineChart data={incomeStatementTrend.data} margin={{ top: 20, right: 24, left: 10, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                        <XAxis dataKey="name" stroke="#888888" fontSize={11} tickLine={false} axisLine={false} />
+                        <XAxis dataKey="period" stroke="#888888" fontSize={11} tickLine={false} axisLine={false} />
                         <YAxis stroke="#888888" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => formatCurrency(val, true)} />
                         <Tooltip
                           formatter={(value: number) => formatCurrency(value, false)}
                           contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: 12 }}
                         />
-                        <Bar dataKey="base" stackId="a" fill="transparent" />
-                        <Bar dataKey="val" stackId="a" radius={[4, 4, 4, 4]}>
-                           {waterfallData.map((entry, index) => (
-                             <Cell key={`cell-${index}`} fill={entry.fill} />
-                           ))}
-                        </Bar>
-                      </BarChart>
+                        <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
+                        {incomeStatementTrend.items.map((item, index) => (
+                          <Line key={item} type="monotone" dataKey={item} stroke={COLORS[index % COLORS.length]} strokeWidth={2} dot={false} />
+                        ))}
+                      </LineChart>
                     </ResponsiveContainer>
                   )}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Cash Flow Runway */}
+            {/* Calculated Cash Flow */}
             <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
                   <Activity className="h-4 w-4 text-rose-500" />
-                  Cash Flow Runway (Burn Trajectory)
+                  Calculated Cash Flow
                 </CardTitle>
-                <CardDescription>Simulated capital buffer over 12 month aggregate</CardDescription>
+                <CardDescription>Period cash flow results across your calculated scenarios</CardDescription>
               </CardHeader>
               <CardContent className="pl-2">
                 <div className="h-[250px] sm:h-[300px] w-full flex items-center justify-center">
                   {isLoading ? (
                     <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-                  ) : cashRunwayData.length === 0 ? (
+                  ) : cashFlowTrend.data.length === 0 ? (
                     <div className="text-center">
                       <TrendingUp className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
-                      <p className="text-sm text-muted-foreground">No cash runway data</p>
+                      <p className="text-sm text-muted-foreground">No calculated cash flow data yet</p>
                     </div>
                   ) : (
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={cashRunwayData} margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
+                      <LineChart data={cashFlowTrend.data} margin={{ top: 20, right: 24, left: 10, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                        <XAxis dataKey="month" stroke="#888888" fontSize={11} tickLine={false} axisLine={false} />
+                        <XAxis dataKey="period" stroke="#888888" fontSize={11} tickLine={false} axisLine={false} />
                         <YAxis stroke="#888888" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => formatCurrency(val, true)} />
                         <Tooltip
                           formatter={(value: number) => formatCurrency(value, false)}
                           contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: 12 }}
                         />
-                        <Line type="monotone" dataKey="Cash" stroke="#0ea5e9" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                        <Line type="monotone" dataKey="Threshold" stroke="#ef4444" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                        <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
+                        {cashFlowTrend.items.map((item, index) => (
+                          <Line key={item} type="monotone" dataKey={item} stroke={COLORS[index % COLORS.length]} strokeWidth={2} dot={false} />
+                        ))}
                       </LineChart>
                     </ResponsiveContainer>
                   )}

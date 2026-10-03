@@ -26,7 +26,7 @@ const INDUSTRY_ICONS: Record<string, { icon: any; color: string; bg: string }> =
   general: { icon: Box, color: "text-indigo-600", bg: "bg-indigo-100 dark:bg-indigo-900/30" },
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
+import { API_BASE_URL } from "@/lib/api"
 
 export default function TemplatesPage() {
   const router = useRouter()

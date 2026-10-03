@@ -20,7 +20,7 @@ export default function RootLayout({
     <html lang="en" className="scroll-smooth">
       <body 
         className="antialiased selection:bg-blue-500/30"
-        style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', Inter, sans-serif" }}
+        style={{ fontFamily: "Poppins, Sans-serif", lineHeight: 1, letterSpacing:2   }}
       >
         <Providers>
           <Header />

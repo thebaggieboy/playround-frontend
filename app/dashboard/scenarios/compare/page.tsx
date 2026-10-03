@@ -21,9 +21,7 @@ import { useSelector } from "react-redux"
 import { selectToken } from "@/features/token/tokenSlice"
 import Link from "next/link"
 
-const API_BASE_URL = process.env.NODE_ENV === 'production'
-    ? 'https://playground-backend-1t0f.onrender.com/api'
-    : 'http://localhost:8000/api'
+import { API_BASE_URL } from "@/lib/api"
 
 const SCENARIO_COLORS: Record<string, string> = {
     base: "#10b981", upside: "#3b82f6", downside: "#f59e0b", custom: "#8b5cf6",

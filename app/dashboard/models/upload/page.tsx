@@ -17,9 +17,7 @@ import { selectToken } from "@/features/token/tokenSlice"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 
-const API_BASE_URL = process.env.NODE_ENV === 'production'
-    ? 'https://playground-backend-1t0f.onrender.com/api'
-    : 'http://localhost:8000/api'
+import { API_BASE_URL } from "@/lib/api"
 
 const ACCEPTED_TYPES = [
     'application/vnd.ms-excel',

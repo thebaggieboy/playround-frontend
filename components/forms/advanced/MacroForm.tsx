@@ -50,8 +50,8 @@ export function MacroForm({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField label="Reporting Currency" type="select" options={["USD ($)", "NGN (₦)", "EUR (€)", "GBP (£)", "JPY (¥)"]} defaultValue="USD ($)" value={formData?.reportingCurrency} tooltip="The primary currency used for all financial statements and calculations." onChange={(value) => updateFormData('reportingCurrency', value)} />
-        <InputField label="Exchange Rate (Local/USD)" type="number" defaultValue="1470" value={formData?.exchangeRate} tooltip="Local currency units per 1 USD (e.g., NGN/USD)." onChange={(value) => updateFormData('exchangeRate', Number(value))} />
+        <InputField label="Number Format" type="select" options={["1,234.56", "1.234,56"]} value={formData?.numberFormat || "1,234.56"} tooltip="Choose the thousands and decimal separators used in numeric fields." onChange={(value) => updateFormData('numberFormat', value)} />
+        <InputField label="Decimal Places" type="select" options={["0", "2", "4", "6"]} value={String(formData?.numberDecimalPlaces ?? 4)} tooltip="Maximum decimal places shown when a numeric field is not being edited." onChange={(value) => updateFormData('numberDecimalPlaces', Number(value))} />
         <InputField label="Base Year" type="number" tooltip="The first year of the financial model (Year 0/1)." value={formData?.baseYear} defaultValue="2025" onChange={(value) => updateFormData('baseYear', Number(value))} />
         <InputField label="Periodicity" type="select" options={["Monthly", "Quarterly", "Semi-Annually", "Annually"]} defaultValue="Annually" value={formData?.periodicity} tooltip="The time frequency for generated financial reports (e.g., Annual vs Quarterly updates)." onChange={(value) => updateFormData('periodicity', value)} />
         <InputField label="Number of Years in Model" type="number" value={formData?.numberOfYears} onChange={(value) => updateFormData('numberOfYears', Number(value))} defaultValue="28" tooltip="Total forecast horizon for the project evaluation." />

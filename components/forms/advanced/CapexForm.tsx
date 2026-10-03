@@ -2,7 +2,7 @@ import React from "react"
 import { Building, Plus, X, PieChart, AlertCircle, CheckCircle2 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { InputField } from "./InputField"
+import { InputField, useInputNumberFormat } from "./InputField"
 import { CustomParametersPanel } from "./CustomParametersPanel"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -19,6 +19,7 @@ export function CapexForm({
   industrySector: string
   inputMode: "essential" | "standard" | "expert"
 }) {
+  const { currencySymbol, formatNumber } = useInputNumberFormat()
   const isExpert = inputMode === "expert"
   const isStandardOrExpert = inputMode !== "essential"
 
@@ -221,15 +222,15 @@ export function CapexForm({
           <div className="lg:col-span-2 space-y-3">
             <div className="flex justify-between items-center py-2 border-b border-border">
               <span className="text-sm text-muted-foreground">Hard Costs (Direct Capex)</span>
-              <span className="text-sm font-medium">${hardCosts.toLocaleString()}</span>
+              <span className="text-sm font-medium">{currencySymbol}{formatNumber(hardCosts)}</span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-border">
               <span className="text-sm text-muted-foreground">Soft Costs (Contingency, Pre-Ops, etc.)</span>
-              <span className="text-sm font-medium">${softCosts.toLocaleString()}</span>
+              <span className="text-sm font-medium">{currencySymbol}{formatNumber(softCosts)}</span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-border bg-secondary/20 -mx-2 px-2 rounded">
               <span className="text-sm font-semibold text-foreground">Total CapEx (Excl. Financing)</span>
-              <span className="text-sm font-bold text-primary">${totalCapexExclFinancing.toLocaleString()}</span>
+              <span className="text-sm font-bold text-primary">{currencySymbol}{formatNumber(totalCapexExclFinancing)}</span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-border">
               <span className="text-sm text-muted-foreground">Estimated Capitalized Interest</span>
@@ -238,7 +239,7 @@ export function CapexForm({
             <div className="flex justify-between items-center py-2 pt-4">
               <span className="text-sm font-semibold text-foreground">Est. Cost Per Unit Capacity</span>
               <span className="text-sm font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-2 py-1 rounded">
-                ${costPerUnit.toLocaleString(undefined, { maximumFractionDigits: 0 })} / unit
+                {currencySymbol}{formatNumber(costPerUnit, 0)} / unit
               </span>
             </div>
           </div>

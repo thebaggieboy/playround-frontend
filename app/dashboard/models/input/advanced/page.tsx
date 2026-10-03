@@ -40,7 +40,7 @@ import { selectToken } from "@/features/token/tokenSlice"
 import { useSelector } from "react-redux"
 import { useToast } from "@/hooks/use-toast"
 import Link from 'next/link'
-import { InputField } from "../../../../../components/forms/advanced/InputField"
+import { InputField, InputNumberFormatProvider } from "../../../../../components/forms/advanced/InputField"
 import { RevenueForm } from "../../../../../components/forms/advanced/RevenueForm"
 import { OpexForm } from "../../../../../components/forms/advanced/OpexForm"
 import { CapexForm } from "../../../../../components/forms/advanced/CapexForm"
@@ -54,9 +54,7 @@ import { ValuationForm } from "../../../../../components/forms/advanced/Valuatio
 
 import { INDUSTRY_SUB_TYPES } from "../../../../../components/forms/advanced/IndustryConfig"
 // API Configuration
-const API_BASE_URL = process.env.NODE_ENV === 'production'
-  ? 'https://playground-backend-1t0f.onrender.com/api'
-  : 'http://localhost:8000/api'
+import { API_BASE_URL } from "@/lib/api"
 
 
 
@@ -74,6 +72,20 @@ type TabType =
   | "valuation"
 
 type ScenarioType = "base" | "upside" | "downside"
+
+const calculateConstructionEndDate = (startDate: string, durationMonths: number) => {
+  const [year, month, day] = startDate.split("-").map(Number)
+  if (![year, month, day, durationMonths].every(Number.isFinite) || durationMonths < 0 || !Number.isInteger(durationMonths)) {
+    return ""
+  }
+
+  const targetMonth = new Date(Date.UTC(year, month - 1 + durationMonths, 1))
+  const lastDayOfMonth = new Date(Date.UTC(targetMonth.getUTCFullYear(), targetMonth.getUTCMonth() + 1, 0)).getUTCDate()
+  return new Date(Date.UTC(targetMonth.getUTCFullYear(), targetMonth.getUTCMonth(), Math.min(day, lastDayOfMonth)))
+    .toISOString()
+    .slice(0, 10)
+}
+
 interface FormData {
   // Project Information
   projectName: string
@@ -95,6 +107,9 @@ interface FormData {
 
   // Macro Assumptions
   reportingCurrency: string
+  fxSource: "Manual" | "OANDA"
+  numberFormat: string
+  numberDecimalPlaces: number
   exchangeRate: number
   baseYear: number
   periodicity: string
@@ -298,6 +313,7 @@ export default function InputModelPage() {
   const [isExporting, setIsExporting] = useState(false)
   const [isExportingPdf, setIsExportingPdf] = useState(false)
   const [isSavingDraft, setIsSavingDraft] = useState(false)
+  const [isFetchingFxRate, setIsFetchingFxRate] = useState(false)
 
   // Model and scenario IDs
   const [modelId, setModelId] = useState<number | null>(null)
@@ -330,6 +346,9 @@ export default function InputModelPage() {
     factoryCapacityMultiplier: 0,
     // Macro Assumptions
     reportingCurrency: "USD ($)",
+    fxSource: "Manual",
+    numberFormat: "1,234.56",
+    numberDecimalPlaces: 4,
     exchangeRate: 1470,
     baseYear: 2025,
     periodicity: "Annually",
@@ -433,11 +452,20 @@ export default function InputModelPage() {
   }, [formData])
 
   // Update form data handler
-  const updateFormData = async (field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }))
+  const updateFormData = (field: string, value: any) => {
+    setFormData(prev => {
+      const next = { ...prev, [field]: value }
+      if (field === "constructionStartDate" || field === "constructionDurationMonths") {
+        const startDate = field === "constructionStartDate" ? value : prev.constructionStartDate
+        const durationMonths = Number(field === "constructionDurationMonths" ? value : prev.constructionDurationMonths)
+        const endDate = startDate && Number.isFinite(durationMonths)
+          ? calculateConstructionEndDate(startDate, durationMonths)
+          : ""
+        next.constructionEndDate = endDate
+        next.operationsStartDate = endDate
+      }
+      return next
+    })
   }
 
   // Update nested form data (for revenue products)
@@ -500,6 +528,30 @@ export default function InputModelPage() {
     return '';
   }
 
+  const fetchOandaRate = async () => {
+    const quote = formData.reportingCurrency.split(" ")[0]
+    if (quote === "USD") {
+      setFormData(prev => ({ ...prev, exchangeRate: 1, fxSource: "OANDA" }))
+      return
+    }
+
+    setIsFetchingFxRate(true)
+    try {
+      const response = await fetch(`${API_BASE_URL}/models/oanda-rate/?quote=${encodeURIComponent(quote)}`, {
+        headers: { Authorization: `JWT ${getAuthToken()}` },
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.detail || "Could not fetch an OANDA exchange rate.")
+
+      setFormData(prev => ({ ...prev, exchangeRate: Number(result.rate), fxSource: "OANDA" }))
+      toast({ title: "OANDA rate updated", description: `1 USD = ${result.rate} ${quote}` })
+    } catch (error: any) {
+      toast({ title: "OANDA rate unavailable", description: error.message || "Enter the exchange rate manually.", variant: "destructive" })
+    } finally {
+      setIsFetchingFxRate(false)
+    }
+  }
+
   // Transform form data to API format
     const transformToAPIFormat = () => {
     return {
@@ -550,7 +602,7 @@ export default function InputModelPage() {
         product_name: product.productName,
         revenue_model_type: product.revenueModelType || 'Volume × Price',
         unit_of_measure: product.unitOfMeasure,
-        currency: product.currency || 'USD ($)',
+        currency: product.currency || formData.reportingCurrency || 'USD ($)',
         year_1_sales_volume: product.year1SalesVolume,
         unit_price_year_1: product.unitPriceYear1,
         volume_growth_rate: product.volumeGrowthRate,
@@ -1202,7 +1254,7 @@ export default function InputModelPage() {
 
   const tabs = [
     { id: "project" as TabType, label: "Project Info", icon: Building2 },
-    { id: "macro" as TabType, label: "Macro & General", icon: Settings },
+    { id: "macro" as TabType, label: "Assumptions", icon: Settings },
     { id: "revenue" as TabType, label: "Revenue", icon: DollarSign },
     { id: "opex" as TabType, label: "Operating Expenses", icon: Users },
     { id: "capex" as TabType, label: "Capital Expenditure", icon: Factory },
@@ -1223,6 +1275,11 @@ export default function InputModelPage() {
   console.log("Token: ", token)
 
   return (
+    <InputNumberFormatProvider
+      locale={formData.numberFormat === "1.234,56" ? "de-DE" : "en-US"}
+      decimalPlaces={formData.numberDecimalPlaces}
+      currency={formData.reportingCurrency}
+    >
     <div className="flex flex-col overflow-hidden flex-1">
       {/* Header */}
       <header className="border-b border-border bg-card px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
@@ -1395,6 +1452,8 @@ export default function InputModelPage() {
                   updateFormData={updateFormData}
                   inputMode={inputMode}
                   onProjectTypeChange={setProjectType}
+                  onFetchOandaRate={fetchOandaRate}
+                  isFetchingFxRate={isFetchingFxRate}
                 />
               )}
               {activeTab === "macro" && (
@@ -1552,6 +1611,7 @@ export default function InputModelPage() {
         </div>
       </div>
     </div>
+    </InputNumberFormatProvider>
   )
 }
 
@@ -1561,12 +1621,16 @@ function ProjectForm({
   formData,
   updateFormData,
   inputMode,
-  onProjectTypeChange
+  onProjectTypeChange,
+  onFetchOandaRate,
+  isFetchingFxRate,
 }: {
   formData: any
   updateFormData: (field: string, value: any) => void
   inputMode: "essential" | "standard" | "expert"
   onProjectTypeChange: (type: "manufacturing" | "real_estate" | "energy" | "oil_gas" | "healthcare" | "technology" | "agriculture" | "infrastructure" | "general") => void
+  onFetchOandaRate: () => void
+  isFetchingFxRate: boolean
 }) {
   const { INDUSTRY_SUB_TYPES } = require("../../../../../components/forms/advanced/IndustryConfig");
   const { Card } = require("@/components/ui/card");
@@ -1581,6 +1645,51 @@ function ProjectForm({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <InputField
+          label="Reporting Currency"
+          type="select"
+          value={formData?.reportingCurrency}
+          options={["USD ($)", "NGN (₦)", "EUR (€)"]}
+          tooltip="Currency used for model reporting and financial inputs."
+          onChange={(value) => {
+            updateFormData("reportingCurrency", value)
+            updateFormData("fxSource", "Manual")
+            if (value === "USD ($)") updateFormData("exchangeRate", 1)
+          }}
+        />
+        <InputField
+          label="FX Source"
+          type="select"
+          value={formData?.fxSource || "Manual"}
+          options={["Manual", "OANDA"]}
+          tooltip="Enter a rate manually or retrieve a current OANDA quote."
+          onChange={(value) => updateFormData("fxSource", value)}
+        />
+        {formData?.fxSource === "OANDA" ? (
+          <div className="flex items-end gap-3">
+            <div className="flex-1">
+              <InputField
+                label="Exchange Rate (Currency per USD)"
+                type="number"
+                value={formData?.exchangeRate}
+                calculated
+                tooltip="OANDA mid-market rate for one US dollar."
+              />
+            </div>
+            <Button type="button" variant="outline" className="mb-0.5 shrink-0 gap-2" onClick={onFetchOandaRate} disabled={isFetchingFxRate}>
+              {isFetchingFxRate && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isFetchingFxRate ? "Fetching" : "Fetch rate"}
+            </Button>
+          </div>
+        ) : (
+          <InputField
+            label="Exchange Rate (Currency per USD)"
+            type="number"
+            value={formData?.exchangeRate}
+            tooltip="Manual conversion rate for one US dollar."
+            onChange={(value) => updateFormData("exchangeRate", Number(value))}
+          />
+        )}
         <InputField
           label="Project Name"
           type="text"
@@ -1640,10 +1749,10 @@ function ProjectForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputField label="Project Commencement Date" type="date" value={formData?.projectCommencementDate} tooltip="The date project planning and administrative activities begin." onChange={(value) => updateFormData('projectCommencementDate', value)} defaultValue="2026-07-01" />
           <InputField label="Construction Start Date" type="date" value={formData?.constructionStartDate} tooltip="The date physical construction on-site is expected to start." onChange={(value) => updateFormData('constructionStartDate', value)} defaultValue="2026-07-01" />
-          <InputField label="Construction Duration" type="number" value={formData?.constructionDuration} onChange={(value) => updateFormData('constructionDuration', value)} suffix="months" defaultValue="36" tooltip="Total time allocated for the construction phase in months." />
+          <InputField label="Construction Duration" type="number" value={formData?.constructionDurationMonths} onChange={(value) => updateFormData('constructionDurationMonths', value === "" ? "" : Number(value))} suffix="months" defaultValue="36" tooltip="Total time allocated for the construction phase in months." />
           <InputField label="Construction End Date" type="date" value={formData?.constructionEndDate} tooltip="The calculated date when construction completes." onChange={(value) => updateFormData('constructionEndDate', value)} defaultValue="2029-07-01" calculated />
-          <InputField label="Operations Start Date" type="date" value={formData?.operationsStartDate} tooltip="The date commercial operations and revenue generation begin." onChange={(value) => updateFormData('operationsStartDate', value)} defaultValue="2029-07-01" />
-          <InputField label="Operations Duration" type="number" value={formData?.operationsDuration} suffix="years" onChange={(value) => updateFormData('operationsDuration', value)} defaultValue="25" tooltip="The total operational life span of the project used for the model." />
+          <InputField label="Operations Start Date" type="date" value={formData?.operationsStartDate} tooltip="Automatically set to the construction end date." defaultValue="2029-07-01" calculated />
+          <InputField label="Operations Duration" type="number" value={formData?.operationsDurationYears} suffix="years" onChange={(value) => updateFormData('operationsDurationYears', value === "" ? "" : Number(value))} defaultValue="25" tooltip="The total operational life span of the project used for the model." />
         </div>
       </div>
 

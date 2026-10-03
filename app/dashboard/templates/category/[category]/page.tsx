@@ -9,7 +9,7 @@ import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import { selectToken } from '@/features/token/tokenSlice'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
+import { API_BASE_URL } from "@/lib/api"
 
 export default function CategoryTemplatesPage() {
     const router = useRouter()

@@ -19,9 +19,7 @@ import {
 } from "@/components/ui/sheet"
 import { useToast } from "@/hooks/use-toast"
 
-const API_BASE_URL = process.env.NODE_ENV === 'production'
-  ? 'https://playground-backend-1t0f.onrender.com/api'
-  : 'http://localhost:8000/api'
+import { API_BASE_URL } from "@/lib/api"
 
 export function QuickEditPanel({ model, scenarioId }: { model: any, scenarioId?: string }) {
   const [isOpen, setIsOpen] = useState(false)

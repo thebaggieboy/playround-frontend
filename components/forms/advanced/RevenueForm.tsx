@@ -145,8 +145,8 @@ export function RevenueForm({
                 <InputField
                   label="Currency"
                   type="select"
-                  options={["USD ($)", "NGN (₦)", "EUR (€)", "GBP (£)"]}
-                  value={product.currency || "USD ($)"}
+                  options={["USD ($)", "NGN (₦)", "EUR (€)"]}
+                  value={product.currency || formData.reportingCurrency || "USD ($)"}
                   onChange={(value) => updateRevenueProduct(idx, 'currency', value)}
                 />
               )}
@@ -154,7 +154,7 @@ export function RevenueForm({
               {revModelType === "Volume × Price" && (
                 <>
                   <InputField label="Year 1 Sales Volume" type="number" onChange={(value) => updateRevenueProduct(idx, 'year1SalesVolume', Number(value))} defaultValue="500000" value={product.year1SalesVolume} />
-                  <InputField label="Unit Price (Year 1)" type="number" prefix="$" onChange={(value) => updateRevenueProduct(idx, 'unitPriceYear1', Number(value))} defaultValue="120" value={product.unitPriceYear1} />
+                  <InputField label="Unit Price (Year 1)" type="number" prefix="$" currency={product.currency || formData.reportingCurrency || "USD ($)"} onChange={(value) => updateRevenueProduct(idx, 'unitPriceYear1', Number(value))} defaultValue="120" value={product.unitPriceYear1} />
                   {isStandardOrExpert && (
                     <>
                       <InputField label="Volume Growth Rate" type="number" suffix="%" onChange={(value) => updateRevenueProduct(idx, 'volumeGrowthRate', Number(value))} defaultValue="5.0" value={product.volumeGrowthRate} />
@@ -167,7 +167,7 @@ export function RevenueForm({
               {revModelType === "Capacity × Tariff" && (
                 <>
                   <InputField label="Capacity Factor" type="number" suffix="%" onChange={(value) => updateRevenueProduct(idx, 'capacityFactor', Number(value))} defaultValue="85" value={product.capacityFactor} />
-                  <InputField label="Tariff Rate" type="number" prefix="$" onChange={(value) => updateRevenueProduct(idx, 'tariffRate', Number(value))} defaultValue="0.10" value={product.tariffRate} />
+                  <InputField label="Tariff Rate" type="number" prefix="$" currency={product.currency || formData.reportingCurrency || "USD ($)"} onChange={(value) => updateRevenueProduct(idx, 'tariffRate', Number(value))} defaultValue="0.10" value={product.tariffRate} />
                   {isStandardOrExpert && (
                     <>
                       <InputField label="Take-or-Pay Minimum" type="number" suffix="%" onChange={(value) => updateRevenueProduct(idx, 'takeOrPayPct', Number(value))} defaultValue="80" value={product.takeOrPayPct} />
@@ -180,7 +180,7 @@ export function RevenueForm({
               {revModelType === "Subscription/SaaS" && (
                 <>
                   <InputField label="Initial Customers" type="number" onChange={(value) => updateRevenueProduct(idx, 'initialCustomers', Number(value))} defaultValue="1000" value={product.initialCustomers} />
-                  <InputField label="ARPU (Monthly)" type="number" prefix="$" onChange={(value) => updateRevenueProduct(idx, 'arpuMonthly', Number(value))} defaultValue="50" value={product.arpuMonthly} />
+                  <InputField label="ARPU (Monthly)" type="number" prefix="$" currency={product.currency || formData.reportingCurrency || "USD ($)"} onChange={(value) => updateRevenueProduct(idx, 'arpuMonthly', Number(value))} defaultValue="50" value={product.arpuMonthly} />
                   {isStandardOrExpert && (
                     <>
                       <InputField label="Customer Growth Rate" type="number" suffix="%/month" onChange={(value) => updateRevenueProduct(idx, 'customerGrowthRate', Number(value))} defaultValue="5.0" value={product.customerGrowthRate} />
@@ -193,7 +193,7 @@ export function RevenueForm({
               {revModelType === "Rental/Lease" && (
                 <>
                   <InputField label="Number of Units" type="number" defaultValue="18" onChange={(val) => updateRevenueProduct(idx, 'numberOfUnits', Number(val))} value={product.numberOfUnits || formData.numberOfUnits} />
-                  <InputField label="Rent per Unit/Area" type="number" prefix="$" defaultValue="2500" onChange={(val) => updateRevenueProduct(idx, 'rentPerUnit', Number(val))} value={product.rentPerUnit} />
+                  <InputField label="Rent per Unit/Area" type="number" prefix="$" currency={product.currency || formData.reportingCurrency || "USD ($)"} defaultValue="2500" onChange={(val) => updateRevenueProduct(idx, 'rentPerUnit', Number(val))} value={product.rentPerUnit} />
                   {isStandardOrExpert && (
                     <>
                       <InputField label="Occupancy Rate" type="number" suffix="%" defaultValue="85" onChange={(val) => updateRevenueProduct(idx, 'occupancyRate', Number(val))} value={product.occupancyRate} />
@@ -205,7 +205,7 @@ export function RevenueForm({
 
               {revModelType === "Fixed Contract" && (
                 <>
-                  <InputField label="Annual Contract Value" type="number" prefix="$" defaultValue="1000000" onChange={(val) => updateRevenueProduct(idx, 'contractValue', Number(val))} value={product.contractValue} />
+                  <InputField label="Annual Contract Value" type="number" prefix="$" currency={product.currency || formData.reportingCurrency || "USD ($)"} defaultValue="1000000" onChange={(val) => updateRevenueProduct(idx, 'contractValue', Number(val))} value={product.contractValue} />
                   <InputField label="Contract Duration" type="number" suffix="years" defaultValue="5" onChange={(val) => updateRevenueProduct(idx, 'contractDuration', Number(val))} value={product.contractDuration} />
                 </>
               )}
