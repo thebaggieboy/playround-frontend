@@ -49,13 +49,13 @@ const solutions = [
 const companyLinks = [
   {
     name: "About Us",
-    description: "Learn about our mission, vision, and the team behind Playground.",
+    description: "Learn about our mission, vision, and the team behind .",
     src: "/about",
     icon: Info,
   },
   {
     name: "Careers",
-    description: "Join the Playground team and help build the future of finance.",
+    description: "Join the Plyground team and help build the future of finance.",
     src: "/careers",
     icon: Briefcase,
   },
@@ -110,7 +110,7 @@ export function Header() {
         <Link href={"/"}>
           <div className="flex items-center gap-2 group shrink-0">
             <span className="font-bold text-slate-900 text-lg group-hover:text-blue-600 transition-colors duration-200 hidden sm:inline tracking-tight">
-              Playground
+              PLYGROUND
             </span>
             <span className="font-bold text-slate-900 text-lg group-hover:text-blue-600 transition-colors duration-200 sm:hidden tracking-tight">
               P
@@ -128,7 +128,7 @@ export function Header() {
               <DropdownMenuContent align="start" className="w-[360px] p-2 bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-xl mt-2">
                 <div className="px-3 py-3 mb-1">
                   <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Platform Solutions</h4>
-                  <p className="text-xs text-slate-500 mt-1.5 font-medium leading-relaxed">Discover how Playground empowers your financial workflows</p>
+                  <p className="text-xs text-slate-500 mt-1.5 font-medium leading-relaxed">Discover how Plyground empowers your financial workflows</p>
                 </div>
                 <DropdownMenuSeparator className="bg-slate-100 mx-2" />
                 <div className="mt-2 space-y-1">
