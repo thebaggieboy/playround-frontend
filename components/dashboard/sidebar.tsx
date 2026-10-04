@@ -95,12 +95,12 @@ export default function DashboardSidebar() {
       <motion.aside
         animate={{ width: isCollapsed ? 56 : 208 }}
         transition={{ duration: 0.25, ease: "easeInOut" }}
-        className={`${isOpen ? "fixed lg:static" : "fixed lg:static"} top-16 lg:top-0 h-[calc(100vh-4rem)] lg:h-screen border-r border-blue-600 bg-blue-700 text-white flex flex-col z-[110] overflow-hidden ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
+        className={`${isOpen ? "fixed lg:static" : "fixed lg:static"} top-16 lg:top-0 h-[calc(100vh-4rem)] lg:h-screen border-r border-blue-700 bg-blue-800 text-white flex flex-col z-[110] overflow-hidden ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
         {/* Logo (Desktop only) */}
-        <div className="hidden lg:flex p-3 border-b border-blue-600 sticky top-0 bg-blue-700 items-center gap-2 overflow-hidden shrink-0">
+        <div className="hidden lg:flex p-3 border-b border-blue-700 sticky top-0 bg-blue-800 items-center gap-2 overflow-hidden shrink-0">
           <Link href="/dashboard" className="flex items-center gap-2 min-w-0">
-            <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center shadow-sm flex-shrink-0">
+            <div className="w-7 h-7 bg-blue-700 rounded-md flex items-center justify-center shadow-sm flex-shrink-0">
               <span className="text-white font-bold text-xs">P</span>
             </div>
             <AnimatePresence>
@@ -112,7 +112,7 @@ export default function DashboardSidebar() {
                   transition={{ duration: 0.2 }}
                   className="font-bold text-sm text-white whitespace-nowrap overflow-hidden"
                 >
-                  Playground
+                  Plyground
                 </motion.span>
               )}
             </AnimatePresence>
@@ -134,7 +134,7 @@ export default function DashboardSidebar() {
                   className={`relative w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md transition-all duration-200 cursor-pointer group
                     ${isActive(item.href)
                       ? "bg-blue-900 text-white shadow-sm"
-                      : "text-white hover:bg-blue-600"
+                      : "text-white hover:bg-blue-700"
                     }`}
                 >
                   <item.icon className="w-4 h-4 flex-shrink-0" />
@@ -165,13 +165,13 @@ export default function DashboardSidebar() {
         </nav>
 
         {/* Bottom: Dark mode + Logout + Collapse */}
-        <div className="p-2 border-t border-blue-600 space-y-1">
+        <div className="p-2 border-t border-blue-700 space-y-1">
           {/* Dark Mode Toggle */}
           {mounted && (
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               title={isCollapsed ? (theme === 'dark' ? 'Light mode' : 'Dark mode') : undefined}
-              className="relative w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-white hover:bg-blue-600 transition-colors group"
+              className="relative w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-white hover:bg-blue-700 transition-colors group"
             >
               {theme === 'dark'
                 ? <Sun className="w-4 h-4 flex-shrink-0" />
@@ -200,7 +200,7 @@ export default function DashboardSidebar() {
           <button
             onClick={handleLogout}
             title={isCollapsed ? "Logout" : undefined}
-            className="relative w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-white hover:bg-blue-600 transition-colors group"
+            className="relative w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-white hover:bg-blue-700 transition-colors group"
           >
             <LogOut className="w-4 h-4 flex-shrink-0" />
             <AnimatePresence>
@@ -226,7 +226,7 @@ export default function DashboardSidebar() {
           {/* Collapse toggle — desktop only */}
           <button
             onClick={toggleCollapse}
-            className="hidden lg:flex w-full items-center gap-2.5 px-2.5 py-2 rounded-md text-white hover:bg-blue-600 transition-colors"
+            className="hidden lg:flex w-full items-center gap-2.5 px-2.5 py-2 rounded-md text-white hover:bg-blue-700 transition-colors"
             title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {isCollapsed

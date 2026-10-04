@@ -48,14 +48,14 @@ export default function DashboardLayout({
   return (
     <div 
       className="dashboard text-xs relative flex h-screen bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-background to-background print:h-auto print:bg-white text-foreground print:text-black print:overflow-visible"
-      style={{ fontFamily: "Poppins, Sans-serif", letterSpacing: 2, lineHeight: 1 }}
+      style={{ fontFamily: "Poppins, Sans-serif", letterSpacing: 1, lineHeight: 1 }}
     >
       <CommandPalette />
       <OnboardingTour />
       <DashboardSidebar />
 
       <motion.main
-        className="flex-1 flex flex-col overflow-hidden pt-16 lg:pt-0 print:overflow-visible print:bg-white print:text-black"
+        className="dashboard-content-density flex-1 flex flex-col overflow-hidden pt-16 lg:pt-0 print:overflow-visible print:bg-white print:text-black"
         initial="hidden"
         animate="visible"
         variants={containerVariants}

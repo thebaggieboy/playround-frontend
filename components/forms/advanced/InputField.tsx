@@ -5,22 +5,25 @@ type InputNumberFormatSettings = {
   locale: string
   decimalPlaces: number
   currency: string
+  compact: boolean
 }
 
 const InputNumberFormatContext = createContext<InputNumberFormatSettings>({
   locale: "en-US",
   decimalPlaces: 4,
   currency: "USD ($)",
+  compact: false,
 })
 
 export function InputNumberFormatProvider({
   locale,
   decimalPlaces,
   currency,
+  compact = false,
   children,
-}: InputNumberFormatSettings & { children: React.ReactNode }) {
+}: Omit<InputNumberFormatSettings, "compact"> & { compact?: boolean; children: React.ReactNode }) {
   return (
-    <InputNumberFormatContext.Provider value={{ locale, decimalPlaces, currency }}>
+    <InputNumberFormatContext.Provider value={{ locale, decimalPlaces, currency, compact }}>
       {children}
     </InputNumberFormatContext.Provider>
   )
@@ -83,7 +86,7 @@ export function InputField({
   options,
   placeholder,
   onChange,
-  size = "default",
+  size,
   error,
   warning,
 }: {
@@ -140,8 +143,13 @@ export function InputField({
     }
   }
 
-  const inputClasses = size === "sm" ? "text-xs py-1.5" : "text-sm py-2"
-  const labelClasses = size === "sm" ? "text-xs" : "text-sm"
+  const isSmall = size === "sm" || (size === undefined && numberFormat.compact)
+  const inputClasses = size === "sm"
+    ? "text-xs py-1.5"
+    : numberFormat.compact && size === undefined
+      ? "text-[13px] py-1.5"
+      : "text-sm py-2"
+  const labelClasses = isSmall ? "text-xs" : "text-sm"
 
   const handleReset = () => {
     if (defaultValue !== undefined && onChange) {
@@ -180,7 +188,7 @@ export function InputField({
                 className="text-muted-foreground hover:text-foreground transition-colors"
                 type="button"
               >
-                <Info className={size === "sm" ? "w-3 h-3" : "w-3.5 h-3.5"} />
+                <Info className={isSmall ? "w-3 h-3" : "w-3.5 h-3.5"} />
               </button>
               {showTooltip && (
                 <div className="absolute left-0 top-5 z-50 w-64 bg-popover text-popover-foreground border shadow-lg text-xs p-2.5 rounded-md">
@@ -205,7 +213,7 @@ export function InputField({
       
       <div className="relative">
         {prefix && (
-          <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground ${size === "sm" ? "text-xs" : "text-sm"}`}>
+          <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground ${isSmall ? "text-xs" : "text-sm"}`}>
             {prefix === "$" ? getCurrencySymbol(currency ?? numberFormat.currency) : prefix}
           </span>
         )}
@@ -242,7 +250,7 @@ export function InputField({
         )}
         
         {suffix && (
-          <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground ${size === "sm" ? "text-xs" : "text-sm"}`}>
+          <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground ${isSmall ? "text-xs" : "text-sm"}`}>
             {suffix}
           </span>
         )}

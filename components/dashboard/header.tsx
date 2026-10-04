@@ -11,10 +11,10 @@ export default function DashboardHeader() {
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="flex items-center justify-between px-4 lg:px-8 py-4">
+      <div className="flex items-center justify-between px-4 lg:px-8 py-3">
         <div>
-          <h1 className="text-xl lg:text-2xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-xs lg:text-sm text-muted-foreground">Welcome back to Playground</p>
+          <h1 className="text-lg lg:text-xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-xs text-muted-foreground">Welcome back to Plyground</p>
         </div>
 
         <div className="flex items-center gap-2 lg:gap-4">

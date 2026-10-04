@@ -34,6 +34,14 @@ import {
 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { selectToken } from "@/features/token/tokenSlice"
@@ -110,7 +118,7 @@ interface FormData {
   fxSource: "Manual" | "OANDA"
   numberFormat: string
   numberDecimalPlaces: number
-  exchangeRate: number
+  exchangeRate: number | ""
   baseYear: number
   periodicity: string
   numberOfYears: number
@@ -314,6 +322,9 @@ export default function InputModelPage() {
   const [isExportingPdf, setIsExportingPdf] = useState(false)
   const [isSavingDraft, setIsSavingDraft] = useState(false)
   const [isFetchingFxRate, setIsFetchingFxRate] = useState(false)
+  const [isCreatedDialogOpen, setIsCreatedDialogOpen] = useState(false)
+  const [createdModelId, setCreatedModelId] = useState<number | null>(null)
+  const [generationWarnings, setGenerationWarnings] = useState<string[]>([])
 
   // Model and scenario IDs
   const [modelId, setModelId] = useState<number | null>(null)
@@ -349,7 +360,7 @@ export default function InputModelPage() {
     fxSource: "Manual",
     numberFormat: "1,234.56",
     numberDecimalPlaces: 4,
-    exchangeRate: 1470,
+    exchangeRate: 1,
     baseYear: 2025,
     periodicity: "Annually",
     numberOfYears: 28,
@@ -808,6 +819,15 @@ export default function InputModelPage() {
 
   // Generate Model (#6 — step-by-step progress)
   const handleGenerateModel = async () => {
+    if (!Number.isFinite(Number(formData.exchangeRate)) || Number(formData.exchangeRate) <= 0) {
+      toast({
+        title: "Exchange rate required",
+        description: "Enter a positive manual rate or fetch one from OANDA before generating the model.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsGenerating(true)
     setCalcStep(0)
 
@@ -922,27 +942,9 @@ export default function InputModelPage() {
       // Check for partial failures in the result
       const failedSteps = result?.failed_steps || []
       await advanceStep(11)
-
-      if (failedSteps.length > 0) {
-        toast({
-          title: "⚠️ Model Generated with Warnings",
-          description: `Some steps had issues: ${failedSteps.join(', ')}. Other statements completed successfully.`,
-          variant: "destructive",
-          duration: 6000,
-        })
-      } else {
-        toast({
-          title: "✨ Model Generated Successfully",
-          description: (
-            <div className="flex flex-col gap-1 mt-1">
-              <span className="text-sm font-medium">All financial statements are ready.</span>
-              <span className="text-xs text-green-700/80 dark:text-green-300">You can now view your model results.</span>
-            </div>
-          ) as any,
-          className: "bg-gradient-to-br from-green-50 to-green-100 border-green-200 dark:from-green-900/40 dark:to-green-900/20 dark:border-green-800",
-          duration: 4000,
-        })
-      }
+      setCreatedModelId(currentModelId)
+      setGenerationWarnings(failedSteps)
+      setIsCreatedDialogOpen(true)
 
     } catch (error) {
       console.error('Generation error:', error)
@@ -1279,13 +1281,14 @@ export default function InputModelPage() {
       locale={formData.numberFormat === "1.234,56" ? "de-DE" : "en-US"}
       decimalPlaces={formData.numberDecimalPlaces}
       currency={formData.reportingCurrency}
+      compact
     >
     <div className="flex flex-col overflow-hidden flex-1">
       {/* Header */}
       <header className="border-b border-border bg-card px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 w-full">
           <div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">Input Model</h1>
+            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">Input Model</h1>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-1 max-w-full no-scrollbar">
@@ -1402,7 +1405,7 @@ export default function InputModelPage() {
 
       {/* Content */}
       <div className="flex-1 overflow-auto bg-secondary/20">
-        <div className="p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6">
+        <div className="p-5 lg:p-6 max-w-7xl mx-auto w-full space-y-5">
           {/* Detail Mode Toggle */}
           <Card className="p-4">
             <div className="flex items-center justify-between">
@@ -1536,7 +1539,7 @@ export default function InputModelPage() {
           </AnimatePresence>
 
           {/* Action Buttons */}
-          <Card className="p-4 sm:p-6 mb-8 mt-4">
+          <Card className="p-3 sm:p-5 mb-8 mt-4">
             <div className="flex flex-col sm:flex-row gap-3 justify-between items-center w-full">
               <div className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto justify-center sm:justify-start">
                 <Button
@@ -1610,6 +1613,33 @@ export default function InputModelPage() {
           </Card>
         </div>
       </div>
+
+      <Dialog open={isCreatedDialogOpen} onOpenChange={setIsCreatedDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader className="items-center">
+            <div className="mb-1 flex h-11 w-11 items-center justify-center rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">
+              <CheckCircle className="h-6 w-6" aria-hidden="true" />
+            </div>
+            <DialogTitle className="text-center">Model created successfully</DialogTitle>
+            <DialogDescription className="text-center">
+              {generationWarnings.length > 0
+                ? `Your model was created, but some calculation steps need attention: ${generationWarnings.join(", ")}.`
+                : "Your financial model is ready to view."}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col-reverse sm:flex-row">
+            <Button asChild disabled={!createdModelId}>
+              <Link href={`/dashboard/models/${createdModelId ?? ""}`}>View model</Link>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => window.location.assign("/dashboard/models/input/advanced")}
+            >
+              Create another
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
     </InputNumberFormatProvider>
   )
@@ -1651,10 +1681,10 @@ function ProjectForm({
           value={formData?.reportingCurrency}
           options={["USD ($)", "NGN (₦)", "EUR (€)"]}
           tooltip="Currency used for model reporting and financial inputs."
-          onChange={(value) => {
+          onChange={(value: string) => {
             updateFormData("reportingCurrency", value)
             updateFormData("fxSource", "Manual")
-            if (value === "USD ($)") updateFormData("exchangeRate", 1)
+            updateFormData("exchangeRate", value === "USD ($)" ? 1 : "")
           }}
         />
         <InputField
@@ -1663,7 +1693,7 @@ function ProjectForm({
           value={formData?.fxSource || "Manual"}
           options={["Manual", "OANDA"]}
           tooltip="Enter a rate manually or retrieve a current OANDA quote."
-          onChange={(value) => updateFormData("fxSource", value)}
+          onChange={(value: string) => updateFormData("fxSource", value)}
         />
         {formData?.fxSource === "OANDA" ? (
           <div className="flex items-end gap-3">
@@ -1687,7 +1717,7 @@ function ProjectForm({
             type="number"
             value={formData?.exchangeRate}
             tooltip="Manual conversion rate for one US dollar."
-            onChange={(value) => updateFormData("exchangeRate", Number(value))}
+            onChange={(value: string) => updateFormData("exchangeRate", Number(value))}
           />
         )}
         <InputField
