@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { InputField } from "./InputField"
 import { CustomParametersPanel } from "./CustomParametersPanel"
 import { motion } from "framer-motion"
-import { REVENUE_MODEL_TYPES, CAPACITY_UNIT_MAPPINGS } from "./IndustryConfig"
+import { getIndustryRevenueUnits, REVENUE_MODEL_TYPES } from "./IndustryConfig"
 
 export function RevenueForm({
   formData,
@@ -15,6 +15,7 @@ export function RevenueForm({
   removeRevenueProduct,
   projectType,
   industrySector,
+  industrySubType,
   inputMode
 }: {
   formData: any
@@ -24,9 +25,10 @@ export function RevenueForm({
   removeRevenueProduct: (index: number) => void
   projectType: string
   industrySector: string
+  industrySubType: string
   inputMode: "essential" | "standard" | "expert"
 }) {
-  const [numProducts, setNumProducts] = useState(formData.revenueProducts?.length || 1)
+  const [numProducts, setNumProducts] = useState<number>(formData.revenueProducts?.length || 1)
   const isExpert = inputMode === "expert"
   const isStandardOrExpert = inputMode !== "essential"
 
@@ -45,10 +47,7 @@ export function RevenueForm({
   }
   
   const getUnitOptions = () => {
-    if (CAPACITY_UNIT_MAPPINGS[industrySector]) {
-      return CAPACITY_UNIT_MAPPINGS[industrySector]
-    }
-    return CAPACITY_UNIT_MAPPINGS["Other"]
+    return getIndustryRevenueUnits(industrySector, industrySubType)
   }
 
   return (

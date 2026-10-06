@@ -59,8 +59,14 @@ import { WorkingCapitalForm } from "../../../../../components/forms/advanced/Wor
 import { DepreciationForm } from "../../../../../components/forms/advanced/DepreciationForm"
 import { DividendForm } from "../../../../../components/forms/advanced/DividendForm"
 import { ValuationForm } from "../../../../../components/forms/advanced/ValuationForm"
+import { IndustryLibraryFields } from "../../../../../components/forms/advanced/IndustryLibraryFields"
 
-import { INDUSTRY_SUB_TYPES } from "../../../../../components/forms/advanced/IndustryConfig"
+import {
+  getIndustryCapacityUnits,
+  getIndustryLibraryMetadata,
+  getIndustryRevenueUnits,
+  INDUSTRY_SUB_TYPES,
+} from "../../../../../components/forms/advanced/IndustryConfig"
 // API Configuration
 import { API_BASE_URL } from "@/lib/api"
 
@@ -100,6 +106,8 @@ interface FormData {
   projectLocation: string
   industrySector: string
   industrySubType: string
+  industryCustomName: string
+  industryLibraryInputs: Record<string, Record<string, string | number>>
   projectType: string
   projectCommencementDate: string
   constructionStartDate: string
@@ -313,7 +321,7 @@ export default function InputModelPage() {
   const [activeTab, setActiveTab] = useState<TabType>("project")
   const [activeScenario, setActiveScenario] = useState<ScenarioType>("base")
   const [inputMode, setInputMode] = useState<"essential" | "standard" | "expert">("standard")
-  const [projectType, setProjectType] = useState<"manufacturing" | "real_estate" | "energy" | "oil_gas" | "healthcare" | "technology" | "agriculture" | "infrastructure" | "general">("general")
+  const [projectType, setProjectType] = useState<"manufacturing" | "real_estate" | "energy" | "oil_gas" | "healthcare" | "technology" | "agriculture" | "infrastructure" | "general">("manufacturing")
 
   // Loading states
   const [isGenerating, setIsGenerating] = useState(false)
@@ -343,6 +351,9 @@ export default function InputModelPage() {
     projectName: "New Financial Model",
     projectLocation: "",
     industrySector: "Manufacturing",
+    industrySubType: "Food & Beverage",
+    industryCustomName: "",
+    industryLibraryInputs: {},
     projectType: "Greenfield",
     projectCommencementDate: "2026-07-01",
     constructionStartDate: "2026-07-01",
@@ -350,7 +361,7 @@ export default function InputModelPage() {
     operationsStartDate: "2029-07-01",
     operationsDurationYears: 10,
     totalCapacity: 100000,
-    capacityUnit: "bpd (barrels per day)",
+    capacityUnit: "tons",
     maximumPlantAvailability: 90,
     availabilityDuringTam: 80,
     commissioningAvailability: 60,
@@ -376,7 +387,7 @@ export default function InputModelPage() {
     revenueProducts: [{
       productOrder: 1,
       productName: "Product 1",
-      unitOfMeasure: "barrels",
+      unitOfMeasure: "tons",
       year1SalesVolume: 500000,
       unitPriceYear1: 120,
       volumeGrowthRate: 5.0,
@@ -571,6 +582,9 @@ export default function InputModelPage() {
         project_location: formData.projectLocation,
         industry_sector: formData.industrySector,
         industry_sub_type: formData.industrySubType,
+        industry_custom_name: formData.industryCustomName,
+        industry_library_inputs: formData.industryLibraryInputs,
+        industry_library_metadata: getIndustryLibraryMetadata(formData.industrySector, formData.industrySubType),
         project_type: formData.projectType,
         project_commencement_date: formData.projectCommencementDate,
         construction_start_date: formData.constructionStartDate,
@@ -1450,90 +1464,131 @@ export default function InputModelPage() {
               transition={{ duration: 0.2 }}
             >
               {activeTab === "project" && (
-                <ProjectForm
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  inputMode={inputMode}
-                  onProjectTypeChange={setProjectType}
-                  onFetchOandaRate={fetchOandaRate}
-                  isFetchingFxRate={isFetchingFxRate}
-                />
+                <>
+                  <ProjectForm
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    inputMode={inputMode}
+                    onProjectTypeChange={setProjectType}
+                    onFetchOandaRate={fetchOandaRate}
+                    isFetchingFxRate={isFetchingFxRate}
+                  />
+                  <IndustryLibraryFields formData={formData} updateFormData={updateFormData} domain="project" />
+                </>
               )}
               {activeTab === "macro" && (
-                <MacroForm
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  inputMode={inputMode}
-                />
+                <>
+                  <MacroForm
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    inputMode={inputMode}
+                  />
+                  <IndustryLibraryFields formData={formData} updateFormData={updateFormData} domain="macro" />
+                </>
               )}
               {activeTab === "revenue" && (
-                <RevenueForm
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  updateRevenueProduct={updateRevenueProduct}
-                  addRevenueProduct={addRevenueProduct}
-                  removeRevenueProduct={removeRevenueProduct}
-                  inputMode={inputMode}
-                  projectType={projectType}
-                />
+                <>
+                  <RevenueForm
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    updateRevenueProduct={updateRevenueProduct}
+                    addRevenueProduct={addRevenueProduct}
+                    removeRevenueProduct={removeRevenueProduct}
+                    inputMode={inputMode}
+                    projectType={projectType}
+                    industrySector={formData.industrySector}
+                    industrySubType={formData.industrySubType}
+                  />
+                  <IndustryLibraryFields formData={formData} updateFormData={updateFormData} domain="revenue" />
+                </>
               )}
               {activeTab === "opex" && (
-                <OpexForm
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  inputMode={inputMode}
-                  projectType={projectType}
-                />
+                <>
+                  <OpexForm
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    inputMode={inputMode}
+                    projectType={projectType}
+                    industrySector={formData.industrySector}
+                    industrySubType={formData.industrySubType}
+                  />
+                  <IndustryLibraryFields formData={formData} updateFormData={updateFormData} domain="opex" />
+                </>
               )}
               {activeTab === "capex" && (
-                <CapexForm
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  inputMode={inputMode}
-                  projectType={projectType}
-                />
+                <>
+                  <CapexForm
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    inputMode={inputMode}
+                    projectType={projectType}
+                    industrySector={formData.industrySector}
+                    industrySubType={formData.industrySubType}
+                  />
+                  <IndustryLibraryFields formData={formData} updateFormData={updateFormData} domain="capex" />
+                </>
               )}
               {activeTab === "debt" && (
-                <DebtForm
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  inputMode={inputMode}
-                />
+                <>
+                  <DebtForm
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    inputMode={inputMode}
+                  />
+                  <IndustryLibraryFields formData={formData} updateFormData={updateFormData} domain="financing" />
+                </>
               )}
               {activeTab === "tax" && (
-                <TaxForm
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  inputMode={inputMode}
-                />
+                <>
+                  <TaxForm
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    inputMode={inputMode}
+                  />
+                  <IndustryLibraryFields formData={formData} updateFormData={updateFormData} domain="tax" />
+                </>
               )}
               {activeTab === "working-capital" && (
-                <WorkingCapitalForm
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  inputMode={inputMode}
-                />
+                <>
+                  <WorkingCapitalForm
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    inputMode={inputMode}
+                    industrySector={formData.industrySector}
+                    industrySubType={formData.industrySubType}
+                  />
+                  <IndustryLibraryFields formData={formData} updateFormData={updateFormData} domain="working-capital" />
+                </>
               )}
               {activeTab === "depreciation" && (
-                <DepreciationForm
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  inputMode={inputMode}
-                />
+                <>
+                  <DepreciationForm
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    inputMode={inputMode}
+                  />
+                  <IndustryLibraryFields formData={formData} updateFormData={updateFormData} domain="depreciation" />
+                </>
               )}
               {activeTab === "dividend" && (
-                <DividendForm
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  inputMode={inputMode}
-                />
+                <>
+                  <DividendForm
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    inputMode={inputMode}
+                  />
+                  <IndustryLibraryFields formData={formData} updateFormData={updateFormData} domain="dividend" />
+                </>
               )}
               {activeTab === "valuation" && (
-                <ValuationForm
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  inputMode={inputMode}
-                />
+                <>
+                  <ValuationForm
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    inputMode={inputMode}
+                  />
+                  <IndustryLibraryFields formData={formData} updateFormData={updateFormData} domain="valuation" />
+                </>
               )}
             </motion.div>
           </AnimatePresence>
@@ -1662,11 +1717,6 @@ function ProjectForm({
   onFetchOandaRate: () => void
   isFetchingFxRate: boolean
 }) {
-  const { INDUSTRY_SUB_TYPES } = require("../../../../../components/forms/advanced/IndustryConfig");
-  const { Card } = require("@/components/ui/card");
-  const { InputField } = require("../../../../../components/forms/advanced/InputField");
-  const { motion } = require("framer-motion");
-
   return (
     <Card className="p-6 space-y-6">
       <div>
@@ -1735,10 +1785,19 @@ function ProjectForm({
           type="select"
           value={formData?.industrySector}
           tooltip="The primary economic sector the project belongs to."
-          options={["Manufacturing", "Real Estate", "Energy & Power", "Oil & Gas", "Healthcare", "Technology", "Agriculture", "Infrastructure", "Other"]}
+          options={["Manufacturing", "Real Estate", "Energy & Power", "Oil & Gas", "Infrastructure", "Healthcare", "Agriculture", "Mining and Natural Resources", "Technology", "Other"]}
           defaultValue="Manufacturing"
           onChange={(val) => {
             updateFormData('industrySector', val);
+            const firstSubType = INDUSTRY_SUB_TYPES[val]?.[0] ?? "";
+            updateFormData('industrySubType', firstSubType);
+            const capacityUnits = getIndustryCapacityUnits(val, firstSubType);
+            updateFormData('capacityUnit', capacityUnits[0] ?? "units");
+            const revenueUnits = getIndustryRevenueUnits(val, firstSubType);
+            updateFormData("revenueProducts", (formData.revenueProducts || []).map((product: any) => ({
+              ...product,
+              unitOfMeasure: revenueUnits.includes(product.unitOfMeasure) ? product.unitOfMeasure : revenueUnits[0],
+            })));
             if (val === "Manufacturing") onProjectTypeChange("manufacturing")
             else if (val === "Real Estate") onProjectTypeChange("real_estate")
             else if (val === "Energy & Power") onProjectTypeChange("energy")
@@ -1758,16 +1817,25 @@ function ProjectForm({
             value={formData?.industrySubType}
             options={INDUSTRY_SUB_TYPES[formData?.industrySector || "Manufacturing"]}
             defaultValue={INDUSTRY_SUB_TYPES[formData?.industrySector || "Manufacturing"][0]}
-            onChange={(val) => updateFormData('industrySubType', val)}
+            onChange={(val) => {
+              updateFormData('industrySubType', val);
+              const capacityUnits = getIndustryCapacityUnits(formData.industrySector, val);
+              updateFormData('capacityUnit', capacityUnits.includes(formData.capacityUnit) ? formData.capacityUnit : capacityUnits[0]);
+              const revenueUnits = getIndustryRevenueUnits(formData.industrySector, val);
+              updateFormData("revenueProducts", (formData.revenueProducts || []).map((product: any) => ({
+                ...product,
+                unitOfMeasure: revenueUnits.includes(product.unitOfMeasure) ? product.unitOfMeasure : revenueUnits[0],
+              })));
+            }}
           />
         )}
         {formData?.industrySector === "Other" && (
           <InputField
             label="Custom Industry Name"
             type="text"
-            value={formData?.projectName}
+            value={formData?.industryCustomName}
             tooltip="Specify your industry sector if it's not listed."
-            onChange={(val) => updateFormData('industrySector', val)}
+            onChange={(val) => updateFormData('industryCustomName', val)}
             placeholder="e.g., Mining, Fintech, etc."
           />
         )}
@@ -1807,8 +1875,8 @@ function ProjectForm({
               type="select"
               value={formData?.capacityUnit}
               tooltip="The unit of measurement for your project's output capacity."
-              options={["bpd (barrels per day)", "tons/day", "MW (Megawatts)", "units/month", "sq.ft", "sq.m", "kg/day", "liters/day", "other"]}
-              defaultValue="bpd (barrels per day)"
+              options={getIndustryCapacityUnits(formData?.industrySector || "Other", formData?.industrySubType || "")}
+              defaultValue={getIndustryCapacityUnits(formData?.industrySector || "Other", formData?.industrySubType || "")[0]}
               onChange={(value) => updateFormData('capacityUnit', value)}
             />
             <InputField

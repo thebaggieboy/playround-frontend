@@ -49,10 +49,12 @@ export function OpexForm({
   }
 
   const templateItems = getOpexTemplate(industrySector, industrySubType)
+  const getTemplateFieldName = (name: string) =>
+    `templateOpex_${industrySector}_${industrySubType}_${name}`.replace(/[^a-zA-Z0-9_]/g, "")
   
   useEffect(() => {
     templateItems.forEach(item => {
-      const fieldName = `templateOpex_${item.name.replace(/\s+/g, '')}`
+      const fieldName = getTemplateFieldName(item.name)
       if (formData[fieldName] === undefined) {
         updateFormData(fieldName, item.defaultValue)
       }
@@ -75,7 +77,7 @@ export function OpexForm({
   
   templateItems.forEach(item => {
     if (item.type.includes('fixed')) {
-      const fieldName = `templateOpex_${item.name.replace(/\s+/g, '')}`
+      const fieldName = getTemplateFieldName(item.name)
       totalOpexEstimation += Number(formData[fieldName] || 0)
     }
   })
@@ -106,7 +108,7 @@ export function OpexForm({
           <h4 className="text-sm font-semibold text-foreground mb-4 mt-6">Industry-Specific Costs ({industrySubType || industrySector})</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {templateItems.map((item, idx) => {
-              const fieldName = `templateOpex_${item.name.replace(/\s+/g, '')}`
+              const fieldName = getTemplateFieldName(item.name)
               return (
                 <InputField
                   key={idx}

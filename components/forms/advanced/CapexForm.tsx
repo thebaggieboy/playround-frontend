@@ -11,17 +11,28 @@ export function CapexForm({
   updateFormData,
   projectType,
   industrySector,
+  industrySubType,
   inputMode
 }: {
   formData: any
   updateFormData: (field: string, value: any) => void
   projectType: string
   industrySector: string
+  industrySubType: string
   inputMode: "essential" | "standard" | "expert"
 }) {
   const { currencySymbol, formatNumber } = useInputNumberFormat()
   const isExpert = inputMode === "expert"
   const isStandardOrExpert = inputMode !== "essential"
+  const industryAssetLabel = industrySector === "Energy & Power"
+    ? `${industrySubType || "Power"} plant and equipment`
+    : industrySector === "Mining and Natural Resources"
+      ? "Mining and processing plant and equipment"
+      : industrySector === "Real Estate"
+        ? "Building systems and equipment"
+        : industrySector === "Healthcare"
+          ? "Clinical and diagnostic equipment"
+          : "Plant, machinery and equipment"
 
   const customCapexItems = formData.customCapexItems || []
 
@@ -124,7 +135,7 @@ export function CapexForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <InputField label="Land Value" type="number" prefix="$" defaultValue="13711180" tooltip="The total value of land required for the project." value={formData?.landValue} onChange={(val) => updateFormData('landValue', Number(val))} />
         <InputField label="Building & Civil Works" type="number" prefix="$" defaultValue="109626400" tooltip="Costs associated with constructing buildings, foundations, and site improvements." value={formData?.buildingCivilWorks} onChange={(val) => updateFormData('buildingCivilWorks', Number(val))} />
-        <InputField label="Plant, Machinery & Equipment" type="number" prefix="$" defaultValue="20554950" tooltip="The cost of purchasing and installing primary operational machinery." value={formData?.plantMachineryEquipment} onChange={(val) => updateFormData('plantMachineryEquipment', Number(val))} />
+        <InputField label={industryAssetLabel} type="number" prefix="$" defaultValue="20554950" tooltip={`The cost of purchasing and installing primary ${industrySector.toLowerCase()} operational assets.`} value={formData?.plantMachineryEquipment} onChange={(val) => updateFormData('plantMachineryEquipment', Number(val))} />
         <InputField label="Furniture, Fixtures & Equipment (FF&E)" type="number" prefix="$" defaultValue="6851650" tooltip="Costs for office furniture, interior fixtures, and general equipment." value={formData?.ffeFurnitureFixtures} onChange={(val) => updateFormData('ffeFurnitureFixtures', Number(val))} />
         {isStandardOrExpert && (
           <>

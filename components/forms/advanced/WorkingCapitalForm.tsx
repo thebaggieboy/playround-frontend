@@ -6,23 +6,42 @@ import { motion } from "framer-motion"
 export function WorkingCapitalForm({
   formData,
   updateFormData,
-  inputMode
+  inputMode,
+  industrySector,
+  industrySubType
 }: {
   formData: any
   updateFormData: (field: string, value: any) => void
   inputMode: "essential" | "standard" | "expert"
+  industrySector: string
+  industrySubType: string
 }) {
+  const receivablesLabel = industrySector === "Energy & Power"
+    ? "Offtaker Receivable Days (DSO)"
+    : industrySector === "Healthcare"
+      ? "Patient / Payer Receivable Days (DSO)"
+      : "Customer Receivable Days (DSO)"
+  const inventoryLabel = industrySector === "Energy & Power"
+    ? "Critical Spares Inventory Days"
+    : industrySector === "Mining and Natural Resources"
+      ? "Consumables and Spares Inventory Days"
+      : industrySector === "Manufacturing"
+        ? "Raw Material / Finished Goods Days"
+        : industrySector === "Agriculture"
+          ? "Production Inventory Days"
+          : "Inventory Days (DIO)"
+
   return (
     <Card className="p-6 space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-foreground mb-4">Working Capital Assumptions</h3>
-        <p className="text-sm text-muted-foreground">Define working capital requirements and cash cycle</p>
+        <h3 className="text-lg font-semibold text-foreground mb-4">{industrySubType || industrySector} Working Capital Assumptions</h3>
+        <p className="text-sm text-muted-foreground">Define receivables, inventory or operating supplies, payables and cash-cycle timing for this project.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <InputField label="Initial Working Capital" type="number" suffix="% of Year 1 OpEx" defaultValue="30.0" tooltip="The amount of cash required at the start of operations, expressed as a percentage of first-year OpEx." value={formData?.initialWorkingCapital} onChange={(val) => updateFormData('initialWorkingCapital', Number(val))} />
-        <InputField label="Receivables Days (DSO)" type="number" suffix="days" defaultValue="45" tooltip="Days Sales Outstanding: The average number of days it takes to collect cash from customers after a sale." value={formData?.receivablesDaysDso} onChange={(val) => updateFormData('receivablesDaysDso', Number(val))} />
-        <InputField label="Inventory Days (DIO)" type="number" suffix="days" defaultValue="60" tooltip="Days Inventory Outstanding: The average number of days you hold raw materials or finished goods before selling them." value={formData?.inventoryDaysDio} onChange={(val) => updateFormData('inventoryDaysDio', Number(val))} />
+        <InputField label={receivablesLabel} type="number" suffix="days" defaultValue="45" tooltip="Days Sales Outstanding: the average time between billing and cash collection. For power projects this follows the offtaker's contract payment terms." value={formData?.receivablesDaysDso} onChange={(val) => updateFormData('receivablesDaysDso', Number(val))} />
+        <InputField label={inventoryLabel} type="number" suffix="days" defaultValue="60" tooltip="Days Inventory Outstanding: holding period for the materials, consumables, products or spares relevant to this sector." value={formData?.inventoryDaysDio} onChange={(val) => updateFormData('inventoryDaysDio', Number(val))} />
         <InputField label="Payables Days (DPO)" type="number" suffix="days" defaultValue="30" tooltip="Days Payables Outstanding: The average number of days you take to pay your suppliers and creditors." value={formData?.payablesDaysDpo} onChange={(val) => updateFormData('payablesDaysDpo', Number(val))} />
         <InputField label="Cash Cycle (Days)" type="number" suffix="days" defaultValue="75" calculated tooltip="The net duration of the cash conversion cycle: DSO + DIO - DPO." value={formData?.cashCycleDays} onChange={(val) => updateFormData('cashCycleDays', Number(val))} />
       </div>

@@ -225,6 +225,11 @@ export function InputField({
             onChange={(e) => onChange?.(e.target.value)}
             disabled={calculated}
           >
+            {placeholder && (
+              <option value="" disabled>
+                {placeholder}
+              </option>
+            )}
             {options?.map((opt) => (
               <option key={opt} value={opt}>
                 {opt}

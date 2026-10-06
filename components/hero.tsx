@@ -23,7 +23,7 @@ export function Hero() {
   }, [])
 
   return (
-    <section className="relative min-h-[90vh] flex flex-col items-center justify-center py-20 px-4 sm:px-6 lg:px-8 overflow-hidden bg-transparent perspective-1000">
+    <section className="relative min-h-[90vh] flex flex-col items-center justify-center py-20 px-4 sm:px-6 lg:px-8 overflow-hidden bg-transparent perspective-1000 text-xs">
       <style dangerouslySetInnerHTML={{ __html: `
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
       ` }} />
