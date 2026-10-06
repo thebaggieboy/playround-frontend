@@ -38,6 +38,17 @@ function fmtPct(value: number): string {
   return `${value.toFixed(1)}%`
 }
 
+function formatValuationMetric(key: string, value: unknown): string {
+  if (value === null || value === undefined || value === "") return "—"
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue)) return "—"
+  if (key.endsWith("(%)")) return fmtPct(numericValue)
+  if (key.endsWith("(x)")) return `${numericValue.toFixed(2)}x`
+  if (key === "Payback Period (Years)") return `${numericValue.toFixed(2)} years`
+  if (key === "Exit Year") return numericValue.toFixed(0)
+  return fmt(numericValue)
+}
+
 /**
  * Given the grouped calculated_data from the API, extract a named statement line
  * as an array of { period, value } objects ready for Recharts.
@@ -708,7 +719,7 @@ export default function ReportDetailPage() {
                     Object.entries(stmt.values_by_period ?? {}).map(([key, val]) => (
                       <div key={key} className="flex justify-between border-b border-border pb-2 last:border-0">
                         <span className="text-muted-foreground">{key}</span>
-                        <span className="font-medium text-primary">{fmt(Number(val))}</span>
+                        <span className="font-medium text-primary">{formatValuationMetric(key, val)}</span>
                       </div>
                     ))
                   )}

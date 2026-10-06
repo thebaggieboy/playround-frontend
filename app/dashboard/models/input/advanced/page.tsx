@@ -47,6 +47,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { selectToken } from "@/features/token/tokenSlice"
 import { useSelector } from "react-redux"
 import { useToast } from "@/hooks/use-toast"
+import { toast as sonnerToast } from "sonner"
 import Link from 'next/link'
 import { InputField, InputNumberFormatProvider } from "../../../../../components/forms/advanced/InputField"
 import { RevenueForm } from "../../../../../components/forms/advanced/RevenueForm"
@@ -88,6 +89,170 @@ type TabType =
   | "valuation"
 
 type ScenarioType = "base" | "upside" | "downside"
+
+type IncompleteInput = {
+  section: string
+  label: string
+}
+
+const FORM_SECTIONS: Array<{ name: string; fields: string[] }> = [
+  { name: "Project information", fields: ["projectName", "projectLocation", "industrySector", "industrySubType", "industryCustomName", "projectType", "projectCommencementDate", "constructionStartDate", "constructionDurationMonths", "operationsStartDate", "operationsDurationYears", "totalCapacity", "capacityUnit", "maximumPlantAvailability", "availabilityDuringTam", "commissioningAvailability", "factoryCapacityMultiplier"] },
+  { name: "Macro assumptions", fields: ["reportingCurrency", "fxSource", "numberFormat", "numberDecimalPlaces", "exchangeRate", "baseYear", "periodicity", "numberOfYears", "localInflationRate", "foreignInflationRate", "discountRateWacc", "riskFreeRate", "benchmarkRateType", "benchmarkRateValue", "terminalGrowthRate", "modelTolerance", "longtermTargetInflation", "revenueOpexEscalationUsd", "contingencyBuffer"] },
+  { name: "Revenue", fields: ["revenueProducts"] },
+  { name: "Operating expenses", fields: ["totalHeadcount", "averageAnnualSalary", "salaryEscalationRate", "benefitsPayrollTaxPct", "powerElectricityCostAnnual", "utilitiesEscalationRate", "regularMaintenancePctRevenue", "insuranceAnnual", "marketingSalesPctRevenue", "waterGasUtilitiesAnnual", "administrativeExpensesAnnual", "rentFacilitiesAnnual", "technologySoftwareAnnual"] },
+  { name: "Capital expenditure", fields: ["landCost", "constructionBuildingCost", "equipmentMachineryCost", "ffeCost", "contingencyPct", "professionalFeesPct", "permitsApprovalsPct", "vatOnConstructionPct"] },
+  { name: "Debt & financing", fields: ["equityPercentage", "debtPercentage", "baseRateType", "baseRateValue", "interestMarginSpread", "loanTenorYears"] },
+  { name: "Tax", fields: ["corporateIncomeTaxRate", "vatSalesTaxRate"] },
+  { name: "Working capital", fields: ["receivablesDaysDso", "inventoryDaysDio", "payablesDaysDpo", "payablesDaysDpo2", "minimumCashBalance"] },
+  { name: "Depreciation", fields: ["depreciationMethod"] },
+  { name: "Dividend policy", fields: ["dividendPayoutRatioPct"] },
+  { name: "Valuation", fields: ["exitYear", "exitMultipleEvEbitda", "terminalGrowthRatePct", "discountRateNpvPct", "targetIrrPct"] },
+]
+
+const humanizeInputName = (name: string) =>
+  name.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/[_-]+/g, " ").replace(/^./, (letter) => letter.toUpperCase())
+
+const OPTIONAL_FORM_FIELDS = new Set([
+  "projectLocation",
+  "industryCustomName",
+  "factoryCapacityMultiplier",
+  "availabilityDuringTam",
+  "numberFormat",
+  "numberDecimalPlaces",
+  "fxSource",
+])
+
+const isIncompleteValue = (value: unknown) => {
+  if (value === null || value === undefined) return true
+  if (typeof value === "string") return value.trim() === ""
+  if (typeof value === "number") return !Number.isFinite(value)
+  return false
+}
+
+function getIncompleteInputs(formData: FormData): IncompleteInput[] {
+  const missing: IncompleteInput[] = []
+  const sectionByField = new Map(
+    FORM_SECTIONS.flatMap(({ name, fields }) => fields.map((field) => [field, name] as const)),
+  )
+
+  for (const [field, value] of Object.entries(formData)) {
+    if (field === "industryLibraryInputs" || field === "revenueProducts") continue
+    if (OPTIONAL_FORM_FIELDS.has(field)) continue
+    if (isIncompleteValue(value)) {
+      missing.push({
+        section: sectionByField.get(field) ?? "Additional model inputs",
+        label: humanizeInputName(field),
+      })
+    }
+  }
+
+  const positiveRequirements: Array<[keyof FormData, string, string]> = [
+    ["constructionDurationMonths", "Project information", "Construction duration must be greater than zero"],
+    ["operationsDurationYears", "Project information", "Operations duration must be greater than zero"],
+    ["totalCapacity", "Project information", "Rated capacity must be greater than zero"],
+    ["exchangeRate", "Macro assumptions", "Enter a positive exchange rate"],
+    ["baseYear", "Macro assumptions", "Enter a valid base year"],
+    ["numberOfYears", "Macro assumptions", "Forecast length must be greater than zero"],
+    ["discountRateWacc", "Macro assumptions", "Discount rate must be greater than zero"],
+  ]
+  for (const [field, section, label] of positiveRequirements) {
+    const value = Number(formData[field])
+    if (!Number.isFinite(value) || value <= 0) missing.push({ section, label })
+  }
+
+  if (Number(formData.equityPercentage) + Number(formData.debtPercentage) !== 100) {
+    missing.push({ section: "Debt & financing", label: "Debt and equity percentages must total 100%" })
+  }
+
+  const solarP50Yield = formData.industryLibraryInputs[
+    `${formData.industrySector}:${formData.industrySubType}:project`
+  ]?.p50Yield
+  for (const [index, product] of formData.revenueProducts.entries()) {
+    const productLabel = product.productName?.trim() || `Product ${index + 1}`
+    for (const field of ["productName", "unitOfMeasure", "volumeGrowthRate", "priceEscalationRate"] as const) {
+      const value = product[field]
+      if (isIncompleteValue(value)) {
+        missing.push({ section: "Revenue", label: `${productLabel}: ${humanizeInputName(field)}` })
+      }
+    }
+    const hasLibraryGeneration = Number(solarP50Yield) > 0 &&
+      product.unitOfMeasure.toLowerCase().startsWith("mwh")
+    if (!hasLibraryGeneration && (!Number.isFinite(product.year1SalesVolume) || product.year1SalesVolume <= 0)) {
+      missing.push({ section: "Revenue", label: `${productLabel}: Sales volume / production` })
+    }
+    if (!Number.isFinite(product.unitPriceYear1) || product.unitPriceYear1 <= 0) {
+      missing.push({ section: "Revenue", label: `${productLabel}: Unit price` })
+    }
+  }
+
+  for (const [scope, values] of Object.entries(formData.industryLibraryInputs ?? {})) {
+    const section = `${humanizeInputName(scope.split(":").at(-1) ?? "industry")} library inputs`
+    const libraryFields = Object.entries(values).filter(([field]) =>
+      !["sourceTier", "sourceReference", "sourceDate", "licence"].includes(field),
+    )
+    for (const [field, value] of libraryFields) {
+      if (isIncompleteValue(value)) {
+        missing.push({ section, label: humanizeInputName(field) })
+      }
+    }
+
+    const hasNumericValue = libraryFields.some(([, value]) => typeof value === "number")
+    if (!hasNumericValue) continue
+
+    const tier = String(values.sourceTier ?? "")
+    const validTiers = [
+      "Tier 1: Official and primary",
+      "Tier 2: Institutional and industry",
+      "Tier 3: Commercial data",
+      "Tier 4: Market and user data",
+    ]
+    const sourceMissing = !validTiers.includes(tier) || !String(values.sourceReference ?? "").trim()
+    if (sourceMissing) {
+      if (!validTiers.includes(tier)) missing.push({ section, label: "Valid source tier" })
+      if (!String(values.sourceReference ?? "").trim()) missing.push({ section, label: "Source / reference" })
+    }
+    if (tier.startsWith("Tier 1") || tier.startsWith("Tier 2") || tier.startsWith("Tier 3")) {
+      const sourceDate = String(values.sourceDate ?? "").trim()
+      const parsedSourceDate = new Date(`${sourceDate}T00:00:00Z`)
+      if (
+        !/^\d{4}-\d{2}-\d{2}$/.test(sourceDate) ||
+        Number.isNaN(parsedSourceDate.getTime()) ||
+        parsedSourceDate.toISOString().slice(0, 10) !== sourceDate
+      ) {
+        missing.push({ section, label: "Valid publication / source date" })
+      }
+      if (!String(values.licence ?? "").trim()) missing.push({ section, label: "Licence / usage rights" })
+    }
+  }
+
+  return missing
+}
+
+function getIncompleteInputCount(formData: FormData) {
+  const missing = getIncompleteInputs(formData)
+  const regularFields = Object.entries(formData).filter(([field]) =>
+    field !== "industryLibraryInputs" &&
+    field !== "revenueProducts" &&
+    !OPTIONAL_FORM_FIELDS.has(field),
+  )
+  const revenueFieldCount = formData.revenueProducts.length * 6
+  const libraryFieldCount = Object.values(formData.industryLibraryInputs).reduce((count, values) => {
+    const libraryValues = Object.entries(values).filter(([field]) =>
+      !["sourceTier", "sourceReference", "sourceDate", "licence"].includes(field),
+    )
+    const hasNumericValue = libraryValues.some(([, value]) => typeof value === "number")
+    if (!hasNumericValue) return count + libraryValues.length
+    const tier = String(values.sourceTier ?? "")
+    return count + libraryValues.length + 2 + (tier.startsWith("Tier 1") || tier.startsWith("Tier 2") || tier.startsWith("Tier 3") ? 2 : 0)
+  }, 0)
+  const totalFields = regularFields.length + revenueFieldCount + libraryFieldCount
+  return {
+    missing,
+    percentage: totalFields
+      ? Math.max(0, Math.round(((totalFields - missing.length) / totalFields) * 100))
+      : 0,
+  }
+}
 
 const calculateConstructionEndDate = (startDate: string, durationMonths: number) => {
   const [year, month, day] = startDate.split("-").map(Number)
@@ -463,16 +628,7 @@ export default function InputModelPage() {
   console.log("FormData: ", formData)
   // Calculate completion percentage based on filled fields
   useEffect(() => {
-    const totalFields = Object.keys(formData).length
-    const filledFields = Object.values(formData).filter(value => {
-      if (Array.isArray(value)) return value.length > 0
-      if (typeof value === 'string') return value.trim() !== ''
-      if (typeof value === 'number') return value !== 0
-      return !!value
-    }).length
-
-    const percentage = Math.round((filledFields / totalFields) * 100)
-    setCompletionPercentage(percentage)
+    setCompletionPercentage(getIncompleteInputCount(formData).percentage)
   }, [formData])
 
   // Update form data handler
@@ -836,6 +992,89 @@ export default function InputModelPage() {
 
   // Generate Model (#6 — step-by-step progress)
   const handleGenerateModel = async () => {
+    const incomplete = getIncompleteInputCount(formData)
+    if (incomplete.percentage < 100 || incomplete.missing.length > 0) {
+      const grouped = incomplete.missing.reduce<Record<string, string[]>>((groups, input) => {
+        groups[input.section] = [...(groups[input.section] ?? []), input.label]
+        return groups
+      }, {})
+      const sectionTabs: Record<string, TabType> = {
+        "Project information": "project",
+        "Project library inputs": "project",
+        "Macro assumptions": "macro",
+        "Project information": "project",
+        "Macro library inputs": "macro",
+        Revenue: "revenue",
+        "Revenue library inputs": "revenue",
+        "Operating expenses": "opex",
+        "Opex library inputs": "opex",
+        "Capital expenditure": "capex",
+        "Capex library inputs": "capex",
+        "Debt & financing": "debt",
+        "Financing library inputs": "debt",
+        Tax: "tax",
+        "Tax library inputs": "tax",
+        "Working capital": "working-capital",
+        "Working capital library inputs": "working-capital",
+        Depreciation: "depreciation",
+        "Depreciation library inputs": "depreciation",
+        "Dividend policy": "dividend",
+        "Dividend library inputs": "dividend",
+        Valuation: "valuation",
+        "Valuation library inputs": "valuation",
+      }
+      const sections = Object.entries(grouped)
+      const firstSectionTab = sectionTabs[sections[0]?.[0]]
+      const visibleSections = sections.slice(0, 5)
+      const visibleCount = visibleSections.reduce((count, [, fields]) => count + Math.min(fields.length, 3), 0)
+      const omittedCount = Math.max(0, incomplete.missing.length - visibleCount)
+
+      sonnerToast.error("Complete your model inputs", {
+        description: (
+          <div className="mt-1 max-h-64 space-y-3 overflow-y-auto pr-1 text-left">
+            <p className="text-xs text-muted-foreground">
+              {incomplete.percentage}% complete · {incomplete.missing.length} item{incomplete.missing.length === 1 ? "" : "s"} need attention before generation.
+            </p>
+            {visibleSections.map(([section, fields]) => (
+              <div key={section}>
+                <p className="mb-1 text-xs font-semibold text-foreground">{section}</p>
+                <ul className="space-y-1">
+                  {fields.slice(0, 3).map((field, index) => (
+                    <li key={`${section}-${field}-${index}`} className="text-xs leading-relaxed text-muted-foreground">
+                      • {field}
+                    </li>
+                  ))}
+                  {fields.length > 3 && (
+                    <li className="text-xs text-muted-foreground">+ {fields.length - 3} more</li>
+                  )}
+                </ul>
+              </div>
+            ))}
+            {omittedCount > 0 && (
+              <p className="text-xs font-medium text-muted-foreground">
+                And {omittedCount} more item{omittedCount === 1 ? "" : "s"} in the remaining sections.
+              </p>
+            )}
+            {firstSectionTab && (
+              <button
+                type="button"
+                className="mt-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+                onClick={() => {
+                  sonnerToast.dismiss()
+                  setActiveTab(firstSectionTab)
+                  document.getElementById("input-form-tabs")?.scrollIntoView({ behavior: "smooth", block: "start" })
+                }}
+              >
+                Go to {sections[0][0]}
+              </button>
+            )}
+          </div>
+        ),
+        duration: 12000,
+      })
+      return
+    }
+
     if (!Number.isFinite(Number(formData.exchangeRate)) || Number(formData.exchangeRate) <= 0) {
       toast({
         title: "Exchange rate required",
@@ -1322,23 +1561,23 @@ export default function InputModelPage() {
             <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">Input Model</h1>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-1 max-w-full no-scrollbar">
+          <div className="grid w-full grid-cols-2 gap-2 md:flex md:w-auto md:items-center md:gap-3">
             {/* Quick Actions */}
-            <Link href="/dashboard/models/upload" className="shrink-0">
-              <Button variant="outline" size="sm" className="gap-2 border-dashed hover:border-primary hover:bg-primary/5 transition-all text-xs sm:text-sm h-8 sm:h-9">
-                <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <Link href="/dashboard/models/upload" className="w-full md:w-auto md:shrink-0">
+              <Button variant="outline" size="sm" className="w-full justify-center gap-2 border-dashed hover:border-primary hover:bg-primary/5 transition-all text-xs sm:text-sm h-9">
+                <Upload className="w-4 h-4 shrink-0" />
                 Import
               </Button>
             </Link>
-            <Link href="/dashboard/templates" className="shrink-0">
-              <Button variant="outline" size="sm" className="gap-2 hover:border-primary hover:bg-primary/5 transition-all text-xs sm:text-sm h-8 sm:h-9">
-                <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <Link href="/dashboard/templates" className="w-full md:w-auto md:shrink-0">
+              <Button variant="outline" size="sm" className="w-full justify-center gap-2 hover:border-primary hover:bg-primary/5 transition-all text-xs sm:text-sm h-9">
+                <FileText className="w-4 h-4 shrink-0" />
                 Templates
               </Button>
             </Link>
 
             {/* Scenario Selector */}
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <div className="col-span-2 grid grid-cols-3 gap-1.5 md:flex md:items-center md:gap-2 md:shrink-0">
               {scenarios.map((scenario) => {
                 const Icon = scenario.icon
                 return (
@@ -1356,9 +1595,9 @@ export default function InputModelPage() {
                     }}
                     variant={activeScenario === scenario.id ? "default" : "outline"}
                     size="sm"
-                    className="gap-1.5 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9 whitespace-nowrap"
+                    className="min-w-0 gap-1 sm:gap-2 text-[11px] sm:text-sm h-9 px-2 sm:px-3 whitespace-nowrap"
                   >
-                    <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                     {scenario.label}
                   </Button>
                 )
@@ -1411,7 +1650,7 @@ export default function InputModelPage() {
       </header>
 
       {/* Tab Navigation */}
-      <div className="border-b border-border bg-card">
+      <div id="input-form-tabs" className="border-b border-border bg-card">
         <div className="px-4 sm:px-6 lg:px-8 overflow-x-auto no-scrollbar">
           <div className="flex gap-1 min-w-max pb-1">
             {tabs.map((tab) => {
@@ -1425,7 +1664,7 @@ export default function InputModelPage() {
                     : "border-transparent text-muted-foreground hover:text-foreground"
                     }`}
                 >
-                  <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                   {tab.label}
                 </button>
               )
@@ -1613,72 +1852,72 @@ export default function InputModelPage() {
           {/* Action Buttons */}
           <Card className="p-3 sm:p-5 mb-8 mt-4">
             <div className="flex flex-col sm:flex-row gap-3 justify-between items-center w-full">
-              <div className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto justify-center sm:justify-start">
+              <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:gap-3 sm:justify-start">
                 <Button
                   variant="outline"
-                  className="gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 flex-1 sm:flex-none"
+                  className="w-full gap-1.5 text-xs sm:w-auto sm:gap-2 sm:text-sm h-9 sm:flex-none"
                   onClick={handleExportExcel}
                   disabled={isExporting || !scenarioId}
                 >
                   {isExporting ? (
                     <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
                   ) : (
-                    <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                   )}
                   Excel <span className="hidden sm:inline">Export</span>
                 </Button>
                 <Button
                   variant="outline"
-                  className="gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 flex-1 sm:flex-none"
+                  className="w-full gap-1.5 text-xs sm:w-auto sm:gap-2 sm:text-sm h-9 sm:flex-none"
                   onClick={handleExportPdf}
                   disabled={isExportingPdf || !scenarioId}
                 >
                   {isExportingPdf ? (
                     <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
                   ) : (
-                    <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                   )}
                   PDF <span className="hidden sm:inline">Export</span>
                 </Button>
                 <Button
                   variant="outline"
-                  className="gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 flex-1 sm:flex-none"
+                  className="w-full gap-1.5 text-xs sm:w-auto sm:gap-2 sm:text-sm h-9 sm:flex-none"
                   onClick={handleSaveAsTemplate}
                   disabled={isSavingTemplate || !modelId}
                 >
                   {isSavingTemplate ? (
                     <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
                   ) : (
-                    <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                   )}
                   Template
                 </Button>
               </div>
-              <div className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto justify-center sm:justify-end mt-2 sm:mt-0">
+              <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:gap-3 sm:justify-end sm:mt-0">
                 <Button
                   variant="outline"
-                  className="gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 flex-1 sm:flex-none"
+                  className="w-full gap-1.5 text-xs sm:w-auto sm:gap-2 sm:text-sm h-9 sm:flex-none"
                   onClick={handleSaveDraft}
                   disabled={isSavingDraft}
                 >
                   {isSavingDraft ? (
                     <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
                   ) : (
-                    <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                   )}
                   Save Draft
                 </Button>
                 <Button
-                  className="gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 flex-1 sm:flex-none"
+                  className="w-full gap-1.5 text-xs sm:w-auto sm:gap-2 sm:text-sm h-9 sm:flex-none"
                   onClick={handleGenerateModel}
                   disabled={isGenerating}
                 >
                   {isGenerating ? (
                     <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
                   ) : (
-                    <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                   )}
-                  Generate Model
+                  Generate<span className="hidden sm:inline"> Model</span>
                 </Button>
               </div>
             </div>

@@ -31,12 +31,20 @@ const menuItems = [
 export default function DashboardSidebar() {
   const [isOpen, setIsOpen] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const pathname = usePathname()
   const dispatch = useDispatch()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
+
+  useEffect(() => {
+    const updateViewport = () => setIsMobile(window.innerWidth < 1024)
+    updateViewport()
+    window.addEventListener("resize", updateViewport)
+    return () => window.removeEventListener("resize", updateViewport)
+  }, [])
 
   // Persist collapse state
   useEffect(() => {
@@ -68,7 +76,7 @@ export default function DashboardSidebar() {
   return (
     <>
       {/* Mobile Top Toggle Button */}
-      <div className="lg:hidden absolute top-4 left-4 z-[120]">
+      <div className="lg:hidden fixed top-3 left-3 z-[120]">
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="p-2 rounded-md bg-card border border-border shadow-md hover:bg-secondary text-foreground transition-colors flex items-center justify-center"
@@ -93,26 +101,26 @@ export default function DashboardSidebar() {
 
       {/* Sidebar */}
       <motion.aside
-        animate={{ width: isCollapsed ? 56 : 208 }}
+        animate={{ width: isMobile ? 280 : isCollapsed ? 56 : 208 }}
         transition={{ duration: 0.25, ease: "easeInOut" }}
         className={`${isOpen ? "fixed lg:static" : "fixed lg:static"} top-16 lg:top-0 h-[calc(100vh-4rem)] lg:h-screen border-r border-[#25334a] bg-[#111c2e] text-slate-100 flex flex-col z-[110] overflow-hidden shadow-[4px_0_24px_rgba(15,23,42,0.08)] ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
-        {/* Logo (Desktop only) */}
-        <div className="hidden lg:flex p-3 border-b border-[#25334a] sticky top-0 bg-[#111c2e] items-center gap-2 overflow-hidden shrink-0">
-          <Link href="/dashboard" className="flex items-center gap-2 min-w-0">
-            <div className="w-7 h-7 bg-[#263d5d] rounded-md flex items-center justify-center shadow-sm flex-shrink-0">
+        {/* Brand wordmark stays visible in the mobile drawer, including when desktop is collapsed. */}
+        <div className="flex p-3 border-b border-[#25334a] sticky top-0 bg-[#111c2e] items-center gap-2 overflow-hidden shrink-0 min-h-14">
+          <Link href="/dashboard" className="flex items-center gap-2 min-w-0" aria-label="Plyground dashboard">
+            <div className="hidden lg:flex w-7 h-7 bg-[#263d5d] rounded-md items-center justify-center shadow-sm flex-shrink-0">
               <span className="text-white font-bold text-xs">P</span>
             </div>
             <AnimatePresence>
-              {!isCollapsed && (
+              {(!isCollapsed || isMobile) && (
                 <motion.span
                   initial={{ opacity: 0, width: 0 }}
                   animate={{ opacity: 1, width: "auto" }}
                   exit={{ opacity: 0, width: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="font-bold text-sm text-white whitespace-nowrap overflow-hidden"
+                  className="font-bold text-sm tracking-[0.16em] text-white whitespace-nowrap overflow-hidden"
                 >
-                  Plyground
+                  PLYGROUND
                 </motion.span>
               )}
             </AnimatePresence>
@@ -120,7 +128,7 @@ export default function DashboardSidebar() {
         </div>
 
         {/* Nav Items */}
-        <nav className="flex-1 p-2 pt-16 lg:pt-2 space-y-0.5 overflow-y-auto overflow-x-hidden">
+        <nav className="flex-1 p-2 pt-3 lg:pt-2 space-y-0.5 overflow-y-auto overflow-x-hidden">
           {menuItems.map((item, index) => (
             <motion.div
               key={item.href}
@@ -130,7 +138,7 @@ export default function DashboardSidebar() {
             >
               <Link href={item.href} onClick={closeSidebar}>
                 <div
-                  title={isCollapsed ? item.label : undefined}
+                  title={isCollapsed && !isMobile ? item.label : undefined}
                   className={`relative w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md transition-all duration-200 cursor-pointer group
                     ${isActive(item.href)
                       ? "bg-[#263750] text-white shadow-sm ring-1 ring-inset ring-white/5 before:absolute before:inset-y-1.5 before:left-0 before:w-0.5 before:rounded-full before:bg-sky-300"
@@ -139,7 +147,7 @@ export default function DashboardSidebar() {
                 >
                   <item.icon className="w-4 h-4 flex-shrink-0" />
                   <AnimatePresence>
-                    {!isCollapsed && (
+                    {(!isCollapsed || isMobile) && (
                       <motion.span
                         initial={{ opacity: 0, width: 0 }}
                         animate={{ opacity: 1, width: "auto" }}
@@ -153,7 +161,7 @@ export default function DashboardSidebar() {
                   </AnimatePresence>
 
                   {/* Tooltip when collapsed */}
-                  {isCollapsed && (
+                  {isCollapsed && !isMobile && (
                     <div className="absolute left-full ml-2 py-1 px-2 bg-[#17243a] text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg ring-1 ring-white/10">
                       {item.label}
                     </div>
@@ -170,7 +178,7 @@ export default function DashboardSidebar() {
           {mounted && (
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              title={isCollapsed ? (theme === 'dark' ? 'Light mode' : 'Dark mode') : undefined}
+              title={isCollapsed && !isMobile ? (theme === 'dark' ? 'Light mode' : 'Dark mode') : undefined}
               className="relative w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-slate-300 hover:bg-[#1b2a40] hover:text-white transition-colors group"
             >
               {theme === 'dark'
@@ -178,7 +186,7 @@ export default function DashboardSidebar() {
                 : <Moon className="w-4 h-4 flex-shrink-0" />
               }
               <AnimatePresence>
-                {!isCollapsed && (
+                {(!isCollapsed || isMobile) && (
                   <motion.span
                     initial={{ opacity: 0, width: 0 }}
                     animate={{ opacity: 1, width: "auto" }}
@@ -190,7 +198,7 @@ export default function DashboardSidebar() {
                   </motion.span>
                 )}
               </AnimatePresence>
-              {isCollapsed && (
+              {isCollapsed && !isMobile && (
                 <div className="absolute left-full ml-2 py-1 px-2 bg-[#17243a] text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg ring-1 ring-white/10">
                   {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
                 </div>
@@ -199,12 +207,12 @@ export default function DashboardSidebar() {
           )}
           <button
             onClick={handleLogout}
-            title={isCollapsed ? "Logout" : undefined}
+            title={isCollapsed && !isMobile ? "Logout" : undefined}
             className="relative w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-slate-300 hover:bg-[#1b2a40] hover:text-white transition-colors group"
           >
             <LogOut className="w-4 h-4 flex-shrink-0" />
             <AnimatePresence>
-              {!isCollapsed && (
+              {(!isCollapsed || isMobile) && (
                 <motion.span
                   initial={{ opacity: 0, width: 0 }}
                   animate={{ opacity: 1, width: "auto" }}
@@ -216,7 +224,7 @@ export default function DashboardSidebar() {
                 </motion.span>
               )}
             </AnimatePresence>
-            {isCollapsed && (
+            {isCollapsed && !isMobile && (
               <div className="absolute left-full ml-2 py-1 px-2 bg-[#17243a] text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg ring-1 ring-white/10">
                 Logout
               </div>

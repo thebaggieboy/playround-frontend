@@ -4,6 +4,7 @@ import Providers from "@/features/Providers"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { Header } from "@/components/header"
+import { Toaster } from "@/components/ui/sonner"
 
 export const metadata: Metadata = {
   title: "Playground | Enterprise Financial Modeling Simplified",
@@ -25,7 +26,7 @@ export default function RootLayout({
         <Providers>
           <Header />
           {children}
-
+          <Toaster position="top-right" richColors closeButton />
         </Providers>
 
 
