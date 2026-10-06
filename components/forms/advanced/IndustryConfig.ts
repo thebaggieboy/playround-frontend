@@ -210,6 +210,241 @@ export interface IndustryLibraryField {
   unit?: string;
   options?: string[];
   description: string;
+  libraryItemId?: null;
+  valueType?: "number" | "categorical" | "text";
+  benchmarkStatus?: "not-approved";
+  sourceRequired?: boolean;
+  projectOverrideAllowed?: true;
+  validation?: { minimum?: number; maximum?: number };
+}
+
+export interface IndustryFormCopy {
+  productionHeading: string;
+  capacityLabel: string;
+  capacityUnitLabel: string;
+  capacityDescription: string;
+  availabilityLabel: string;
+  availabilityDescription: string;
+  commissioningLabel: string;
+  sectionNames: Record<IndustryLibraryDomain, string>;
+  revenueStreamLabel: string;
+  revenueNameLabel: string;
+  laborHeading: string;
+  workforceLabel: string;
+  primaryUtilityLabel: string;
+  capexAssetLabel: string;
+  capexCivilLabel: string;
+}
+
+export function getIndustryFormCopy(industry: string, subType: string): IndustryFormCopy {
+  const profile = {
+    productionHeading: "Capacity & Production Details",
+    capacityLabel: "Total Plant/Factory Capacity",
+    capacityUnitLabel: "Capacity Unit",
+    capacityDescription: "The maximum production output the facility is designed for at rated capacity.",
+    availabilityLabel: "Maximum Plant Availability",
+    availabilityDescription: "Expected operating availability after planned and unplanned outages.",
+    commissioningLabel: "Commissioning Availability",
+    sectionNames: {
+      project: "Project Information",
+      macro: `${industry} Macro Assumptions`,
+      revenue: `${industry} Revenue Assumptions`,
+      opex: `${industry} Operating Costs`,
+      capex: `${industry} Capital Investment`,
+      financing: `${industry} Financing Structure`,
+      tax: `${industry} Tax & Statutory Assumptions`,
+      "working-capital": `${industry} Working Capital`,
+      depreciation: `${industry} Asset Depreciation`,
+      dividend: `${industry} Distributions & Shareholder Returns`,
+      valuation: `${industry} Project Valuation`,
+    } satisfies Record<IndustryLibraryDomain, string>,
+    revenueStreamLabel: "Revenue Stream",
+    revenueNameLabel: "Product/Service Name",
+    laborHeading: "Workforce & Personnel Costs",
+    workforceLabel: "Total Headcount",
+    primaryUtilityLabel: "Primary Energy / Utility Cost",
+    capexAssetLabel: "Plant, Machinery & Equipment",
+    capexCivilLabel: "Building & Civil Works",
+  }
+
+  if (industry === "Energy & Power") {
+    const solar = subType === "Solar"
+    const battery = subType === "Battery Storage"
+    return {
+      ...profile,
+      productionHeading: battery ? "Storage Power & Energy Capacity" : `${subType || "Power"} Generation & Yield Details`,
+      capacityLabel: battery ? "Storage Power Capacity" : `${subType || "Power"} Installed Capacity`,
+      capacityUnitLabel: battery ? "Power / Energy Capacity Unit" : "Installed Capacity Unit",
+      capacityDescription: battery
+        ? "Maximum storage charge or discharge power; enter storage energy capacity separately."
+        : `Nameplate ${subType.toLowerCase()} generation capacity. Select AC, DC or energy units to match the project design.`,
+      availabilityLabel: "Plant / System Availability",
+      availabilityDescription: "Expected operating availability after planned and unplanned outages.",
+      commissioningLabel: "Commissioning / Ramp-up Availability",
+      sectionNames: {
+        ...profile.sectionNames,
+        revenue: `${subType} Offtake & Revenue`,
+        opex: `${subType} Operations & Lifecycle Costs`,
+        capex: `${subType} Generation / Storage CAPEX`,
+        financing: "Power Project Financing & Reserves",
+        tax: "Power Project Tax & Incentives",
+        "working-capital": "Power Offtaker Receivables & Operating Reserves",
+        depreciation: `${subType} Asset Lives & Depreciation`,
+        dividend: "Power Project Distributions & Reserve Conditions",
+        valuation: `${subType} Generation Case & Project Valuation`,
+      },
+      revenueStreamLabel: solar ? "Offtake / Energy Revenue Stream" : `${subType} Revenue Stream`,
+      revenueNameLabel: battery ? "Storage Service / Revenue Product" : solar ? "Energy Offtake Product" : `${subType} Product / Service`,
+      laborHeading: "Plant Operations & Maintenance Workforce",
+      workforceLabel: "Plant Operations FTEs",
+      primaryUtilityLabel: battery ? "Auxiliary Electricity & Charging Cost" : "Auxiliary Electricity / Station Service Cost",
+      capexAssetLabel: battery ? "Battery Energy Storage System (BESS)" : `${subType} Generation Plant & Equipment`,
+      capexCivilLabel: solar ? "Site Preparation & Solar Civil Works" : `${subType} Civil & Site Works`,
+    }
+  }
+
+  if (industry === "Mining and Natural Resources") {
+    return {
+      ...profile,
+      productionHeading: `${subType || "Mining"} & Processing Throughput`,
+      capacityLabel: "Annual Ore / Plant Throughput",
+      capacityUnitLabel: "Ore or Product Capacity Unit",
+      capacityDescription: "Design throughput for mine production or processing; specify ore, concentrate or saleable product basis.",
+      availabilityLabel: "Mine / Processing Plant Availability",
+      availabilityDescription: "Expected operating availability of the mine and processing circuit.",
+      commissioningLabel: "Ramp-up Recovery / Throughput",
+      sectionNames: {
+        ...profile.sectionNames,
+        revenue: "Commodity Sales & Offtake",
+        opex: "Mining, Processing & Site Operating Costs",
+        capex: "Mine Development & Processing CAPEX",
+        financing: "Mine Development Financing & Reserves",
+        tax: "Mining Tax, Royalties & Duties",
+        "working-capital": "Ore Stockpiles, Consumables & Receivables",
+        depreciation: "Mine, Plant & Development Asset Lives",
+        dividend: "Mine Cash Distribution & Covenant Policy",
+        valuation: "Commodity Price Case & Mine Valuation",
+      },
+      revenueStreamLabel: "Commodity / Product Sales Stream",
+      revenueNameLabel: "Commodity / Saleable Product",
+      laborHeading: "Mine, Processing & Site Workforce",
+      workforceLabel: "Mine & Plant FTEs",
+      primaryUtilityLabel: "Mine & Processing Power Cost",
+      capexAssetLabel: "Mine Fleet & Processing Plant",
+      capexCivilLabel: "Mine Infrastructure & Site Development",
+    }
+  }
+
+  const sectorCopy: Record<string, Partial<IndustryFormCopy>> = {
+    Manufacturing: {
+      productionHeading: `${subType || "Manufacturing"} Production & Throughput`,
+      capacityLabel: "Annual Nameplate Production Capacity",
+      capacityUnitLabel: "Production Capacity Unit",
+      capacityDescription: "Maximum annual product output at rated operating capacity.",
+      availabilityLabel: "Production Line Availability",
+      commissioningLabel: "Production Ramp-up Availability",
+      revenueStreamLabel: "Product Sales Stream",
+      revenueNameLabel: "Product / SKU Name",
+      laborHeading: "Production Workforce & Personnel Costs",
+      workforceLabel: "Production & Support FTEs",
+      primaryUtilityLabel: "Production Energy Cost",
+      capexAssetLabel: `${subType || "Manufacturing"} Production Line & Equipment`,
+      capexCivilLabel: "Factory & Process Civil Works",
+    },
+    Agriculture: {
+      productionHeading: `${subType || "Agriculture"} Production & Yield`,
+      capacityLabel: "Annual Farm / Production Output",
+      capacityUnitLabel: "Agricultural Output Unit",
+      capacityDescription: "Expected annual output, land area or production volume; select the matching unit.",
+      availabilityLabel: "Production / Facility Availability",
+      commissioningLabel: "First-Cycle Production Ramp-up",
+      revenueStreamLabel: "Crop / Livestock / Produce Sales",
+      revenueNameLabel: "Crop / Livestock Product",
+      laborHeading: "Farm & Seasonal Workforce",
+      workforceLabel: "Farm & Seasonal FTEs",
+      primaryUtilityLabel: "Irrigation / Production Energy Cost",
+      capexAssetLabel: "Farm Machinery & Production Assets",
+      capexCivilLabel: "Land Preparation & Agricultural Infrastructure",
+    },
+    "Real Estate": {
+      productionHeading: `${subType || "Property"} Area & Inventory`,
+      capacityLabel: "Gross / Saleable Property Area",
+      capacityUnitLabel: "Area / Property Unit",
+      capacityDescription: "Gross, lettable or saleable area or unit count as appropriate to the property.",
+      availabilityLabel: "Lettable / Saleable Availability",
+      commissioningLabel: "Lease-up / Occupancy at Opening",
+      revenueStreamLabel: "Property / Tenancy Revenue Stream",
+      revenueNameLabel: "Property Type / Unit Category",
+      laborHeading: "Property Operations & Management Team",
+      workforceLabel: "Property Operations FTEs",
+      primaryUtilityLabel: "Common-Area Utilities Cost",
+      capexAssetLabel: "Building Systems & Property Equipment",
+      capexCivilLabel: "Building Construction & Site Works",
+    },
+    Healthcare: {
+      productionHeading: `${subType || "Healthcare"} Clinical Service Capacity`,
+      capacityLabel: "Beds / Patients / Procedures Capacity",
+      capacityUnitLabel: "Clinical Capacity Unit",
+      capacityDescription: "Use the relevant service measure: beds, patients per day or procedures per month.",
+      availabilityLabel: "Clinical Service Availability",
+      commissioningLabel: "Clinical Service Ramp-up",
+      revenueStreamLabel: "Clinical Service Revenue Stream",
+      revenueNameLabel: "Clinical Service / Care Category",
+      laborHeading: "Clinical & Facility Workforce",
+      workforceLabel: "Clinical & Facility FTEs",
+      primaryUtilityLabel: "Clinical Facility Energy Cost",
+      capexAssetLabel: "Clinical & Diagnostic Equipment",
+      capexCivilLabel: "Clinical Facility & Specialist Civil Works",
+    },
+    Technology: {
+      productionHeading: `${subType || "Technology"} Service & Platform Capacity`,
+      capacityLabel: "Addressable Platform / Service Capacity",
+      capacityUnitLabel: "Digital Capacity Unit",
+      capacityDescription: "Use the relevant digital measure: users, subscribers, data throughput, API calls or racks.",
+      availabilityLabel: "Platform / Service Availability",
+      commissioningLabel: "Customer / Platform Ramp-up",
+      revenueStreamLabel: "Digital Product / Service Revenue",
+      revenueNameLabel: "Platform / Subscription / Service",
+      laborHeading: "Product, Engineering & Support Workforce",
+      workforceLabel: "Product & Support FTEs",
+      primaryUtilityLabel: "Cloud / Data Centre Energy Cost",
+      capexAssetLabel: "Technology Platform & Compute Equipment",
+      capexCivilLabel: "Data Centre & Technical Infrastructure",
+    },
+    Infrastructure: {
+      productionHeading: `${subType || "Infrastructure"} Service Throughput`,
+      capacityLabel: "Design Service / Network Capacity",
+      capacityUnitLabel: "Infrastructure Capacity Unit",
+      capacityDescription: "Enter the infrastructure throughput in the matching service unit, such as km, passengers or tonnes per day.",
+      availabilityLabel: "Asset / Network Availability",
+      commissioningLabel: "Service Opening Ramp-up",
+      revenueStreamLabel: "Concession / User-Fee Revenue Stream",
+      revenueNameLabel: "Service / User-Fee Category",
+      laborHeading: "Asset Operations & Maintenance Workforce",
+      workforceLabel: "Operations & Maintenance FTEs",
+      primaryUtilityLabel: "Network / Asset Energy Cost",
+      capexAssetLabel: `${subType || "Infrastructure"} Asset & Systems`,
+      capexCivilLabel: `${subType || "Infrastructure"} Civil Works`,
+    },
+    "Oil & Gas": {
+      productionHeading: `${subType || "Oil & Gas"} Production & Throughput`,
+      capacityLabel: "Design Production / Throughput Capacity",
+      capacityUnitLabel: "Hydrocarbon Capacity Unit",
+      capacityDescription: "Enter the facility's design production, transport, storage or processing throughput.",
+      availabilityLabel: "Facility / Asset Availability",
+      commissioningLabel: "Production Ramp-up Availability",
+      revenueStreamLabel: "Hydrocarbon Product / Service Stream",
+      revenueNameLabel: "Hydrocarbon Product / Service",
+      laborHeading: "Facility & Field Workforce",
+      workforceLabel: "Field & Facility FTEs",
+      primaryUtilityLabel: "Process Energy & Utilities Cost",
+      capexAssetLabel: `${subType || "Oil & Gas"} Process & Operating Equipment`,
+      capexCivilLabel: "Site, Pipeline & Process Civil Works",
+    },
+  }
+
+  const selected = sectorCopy[industry]
+  return selected ? { ...profile, ...selected } : profile
 }
 
 const POWER_SUBSECTORS = ["Solar", "Battery Storage", "Wind", "Hydro", "Thermal", "Nuclear", "Biogas", "Hydrogen"];
@@ -430,7 +665,25 @@ export function getIndustryRevenueUnits(industry: string, subType: string): stri
   return CAPACITY_UNIT_MAPPINGS[industry] ?? CAPACITY_UNIT_MAPPINGS.Other;
 }
 
-export function getIndustryLibraryFields(
+export function getIndustryRevenueModelTypes(industry: string, subType: string): string[] {
+  if (industry === "Energy & Power") {
+    if (subType === "Battery Storage") return ["Energy Throughput × Price", "Capacity × Availability Tariff", "Ancillary Services Contract", "Fixed Contract"];
+    if (subType === "Hydrogen") return ["Volume × Price", "Hydrogen Offtake Contract", "Fixed Contract"];
+    if (subType === "Biogas") return ["Volume × Price", "Generation × Tariff", "Biomethane Offtake Contract", "Fixed Contract"];
+    return ["Generation × Tariff", "Power Purchase Agreement (PPA)", "Merchant Energy", "Capacity Payment", "Fixed Contract"];
+  }
+  if (industry === "Mining and Natural Resources") return ["Commodity Volume × Price", "Offtake Contract", "Treatment / Throughput Fee", "By-product Credits"];
+  if (industry === "Real Estate") return ["Rental / Lease", "Unit Sales", "Property Services Contract", "% of Market"];
+  if (industry === "Healthcare") return ["Procedure × Tariff", "Patient-Day × Rate", "Consultation × Fee", "Fixed Contract"];
+  if (industry === "Agriculture") return ["Harvest Volume × Price", "Livestock Sales", "Processing / Offtake Contract", "By-product Sales"];
+  if (industry === "Infrastructure") return ["Usage × Tariff", "Availability Payment", "Concession / Toll Revenue", "Fixed Contract"];
+  if (industry === "Technology") return ["Subscription/SaaS", "Users × ARPU", "Usage-Based", "Fixed Contract"];
+  if (industry === "Oil & Gas") return ["Hydrocarbon Volume × Price", "Throughput / Tariff", "Processing Fee", "Offtake Contract"];
+  if (industry === "Manufacturing") return ["Product Volume × Price", "Capacity × Tariff", "Fixed Supply Contract", "% of Market"];
+  return REVENUE_MODEL_TYPES;
+}
+
+function getRawIndustryLibraryFields(
   domain: IndustryLibraryDomain,
   industry: string,
   subType: string,
@@ -548,6 +801,7 @@ export function getIndustryLibraryFields(
     }
     return DOMAIN_FIELDS[domain];
   }
+
   if (domain === "revenue") {
     return [
       { id: "revenueMechanism", label: "Revenue Mechanism", type: "select", options: ["Volume × price", "Service / throughput fee", "Rental / lease", "Subscription", "Fixed contract", "Project-specific"], description: `Select the revenue mechanism appropriate to ${industry} / ${subType || "the selected project"}.` },
@@ -594,6 +848,39 @@ export function getIndustryLibraryFields(
     return DOMAIN_FIELDS.dividend;
   }
   return DOMAIN_FIELDS[domain];
+}
+
+export function getIndustryLibraryFields(
+  domain: IndustryLibraryDomain,
+  industry: string,
+  subType: string,
+): IndustryLibraryField[] {
+  return getRawIndustryLibraryFields(domain, industry, subType).map((field) => {
+    const isPercentage = field.unit?.includes("%") ?? false;
+    const validation = isPercentage ? { minimum: 0, maximum: 100 } : undefined;
+    return {
+      ...field,
+      libraryItemId: null,
+      valueType: field.type === "number" ? "number" : field.type === "select" ? "categorical" : "text",
+      benchmarkStatus: "not-approved",
+      sourceRequired: field.type === "number",
+      projectOverrideAllowed: true,
+      ...(validation ? { validation } : {}),
+    };
+  });
+}
+
+export function getIndustryLibrarySchema(industry: string, subType: string) {
+  const domains: IndustryLibraryDomain[] = [
+    "project", "macro", "revenue", "opex", "capex", "financing", "tax",
+    "working-capital", "depreciation", "dividend", "valuation",
+  ];
+  return Object.fromEntries(
+    domains.map((domain) => [
+      domain,
+      getIndustryLibraryFields(domain, industry, subType),
+    ]),
+  );
 }
 
 export function getIndustryLibraryMetadata(industry: string, subType: string) {

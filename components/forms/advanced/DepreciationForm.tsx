@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { InputField } from "./InputField"
 import { CustomParametersPanel } from "./CustomParametersPanel"
 import { motion, AnimatePresence } from "framer-motion"
+import { getIndustryFormCopy } from "./IndustryConfig"
 
 export function DepreciationForm({
   formData,
@@ -17,6 +18,9 @@ export function DepreciationForm({
 }) {
   const isExpert = inputMode === "expert"
   const isStandardOrExpert = inputMode !== "essential"
+  const industry = formData?.industrySector || "Project"
+  const subType = formData?.industrySubType || industry
+  const industryCopy = getIndustryFormCopy(industry, subType)
 
   const customAssetClasses = formData.customAssetClasses || []
 
@@ -45,13 +49,13 @@ export function DepreciationForm({
   return (
     <Card className="p-6 space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-foreground mb-4">Depreciation & Amortization</h3>
-        <p className="text-sm text-muted-foreground">Define asset depreciation policies</p>
+        <h3 className="text-lg font-semibold text-foreground mb-4">{industryCopy.sectionNames.depreciation}</h3>
+        <p className="text-sm text-muted-foreground">Set useful lives, depreciation methods and component schedules for {subType} assets; apply each asset's approved tax and accounting treatment.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField label="Global Depreciation Method" type="select" options={["Straight Line", "Declining Balance", "Units of Production", "Sum of Years Digits"]} defaultValue="Straight Line" tooltip="The default accounting method used for assets not specified below." value={formData?.depreciationMethod} onChange={(val) => updateFormData('depreciationMethod', val)} />
-        <InputField label="Overall Weighted Average Life" type="number" suffix="years" defaultValue="20" tooltip="The blended average useful life (in years) calculated across all tangible assets in the model." value={formData?.overallWeightedAverageLife} onChange={(val) => updateFormData('overallWeightedAverageLife', Number(val))} />
+        <InputField label={`${subType} Default Depreciation Method`} type="select" options={["Straight Line", "Declining Balance", "Units of Production", "Sum of Years Digits"]} defaultValue="Straight Line" tooltip={`The accounting method applied to ${subType} assets without a separate approved asset-class policy.`} value={formData?.depreciationMethod} onChange={(val) => updateFormData('depreciationMethod', val)} />
+        <InputField label={`${subType} Weighted Average Asset Life`} type="number" suffix="years" defaultValue="20" tooltip={`The blended useful life of tangible ${subType} assets; set component-specific lives below where they differ.`} value={formData?.overallWeightedAverageLife} onChange={(val) => updateFormData('overallWeightedAverageLife', Number(val))} />
       </div>
 
       {isStandardOrExpert && (
@@ -60,7 +64,7 @@ export function DepreciationForm({
             <div>
               <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <Plus className="w-4 h-4 text-primary" />
-                Asset-Class Specific Depreciation Schedules
+                {subType} Asset-Class Depreciation Schedules
               </h4>
               <p className="text-xs text-muted-foreground mt-1">Override the global method by defining specific asset classes and their unique schedules.</p>
             </div>

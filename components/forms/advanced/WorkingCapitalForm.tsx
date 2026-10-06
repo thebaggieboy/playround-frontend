@@ -52,7 +52,7 @@ export function WorkingCapitalForm({
           animate={{ opacity: 1, height: "auto" }}
           className="space-y-6 pt-6 border-t border-border"
         >
-          <h4 className="text-sm font-semibold text-foreground mb-4">Additional Working Capital Parameters</h4>
+          <h4 className="text-sm font-semibold text-foreground mb-4">{industrySubType} Additional Operating Reserves & Settlement Items</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <InputField label="Working Capital as % of Revenue" type="number" suffix="%" defaultValue="10.0" tooltip="The target level of net working capital maintained as a percentage of gross revenue." value={formData?.workingCapitalAsPctOfRevenue} onChange={(val) => updateFormData('workingCapitalAsPctOfRevenue', Number(val))} />
             <InputField label="Minimum Cash Balance" type="number" prefix="$" defaultValue="1000000" tooltip="The absolute minimum cash reserve the company must hold for operational safety." value={formData?.minimumCashBalance} onChange={(val) => updateFormData('minimumCashBalance', Number(val))} />

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { InputField, useInputNumberFormat } from "./InputField"
 import { CustomParametersPanel } from "./CustomParametersPanel"
 import { motion } from "framer-motion"
-import { getOpexTemplate } from "./IndustryConfig"
+import { getIndustryFormCopy, getOpexTemplate } from "./IndustryConfig"
 
 export function OpexForm({
   formData,
@@ -25,6 +25,21 @@ export function OpexForm({
   const { currencySymbol, formatNumber } = useInputNumberFormat()
   const isExpert = inputMode === "expert"
   const isStandardOrExpert = inputMode !== "essential"
+  const industryCopy = getIndustryFormCopy(industrySector, industrySubType)
+  const secondaryUtilityLabel = industrySector === "Energy & Power"
+    ? "Water & Plant Service Utilities"
+    : industrySector === "Mining and Natural Resources"
+      ? "Water, Fuel & Process Utilities"
+      : industrySector === "Agriculture"
+        ? "Water, Irrigation & Farm Utilities"
+        : "Water, Gas & Other Utilities"
+  const commercialCostHeading = industrySector === "Real Estate"
+    ? "Property Management & Leasing Costs"
+    : industrySector === "Technology"
+      ? "Customer Acquisition & Platform Administration"
+      : industrySector === "Energy & Power" || industrySector === "Mining and Natural Resources"
+        ? "Site Administration, Community & Regulatory Costs"
+        : "Commercial, Administrative & General Costs"
 
   const customOpexItems = formData.customOpexItems || []
   
@@ -92,8 +107,8 @@ export function OpexForm({
     <Card className="p-6 space-y-6">
       <div className="flex justify-between items-start flex-col sm:flex-row gap-4">
         <div>
-          <h3 className="text-lg font-semibold text-foreground mb-4">Operating Expenses (OpEx)</h3>
-          <p className="text-sm text-muted-foreground">Define operational costs and expense assumptions</p>
+          <h3 className="text-lg font-semibold text-foreground mb-4">{industryCopy.sectionNames.opex} (OpEx)</h3>
+          <p className="text-sm text-muted-foreground">Define {industrySubType || industrySector} workforce, production inputs, utilities, lifecycle maintenance, insurance and site costs.</p>
         </div>
         
         <div className="bg-primary/10 border border-primary/20 px-4 py-3 rounded-lg text-left sm:text-right w-full sm:w-auto">
@@ -127,10 +142,10 @@ export function OpexForm({
       )}
 
       <div className={templateItems.length > 0 ? "pt-6 border-t border-border" : "pt-0 border-t border-border mt-6"}>
-        <h4 className="text-sm font-semibold text-foreground mb-4 mt-6">Labor & Personnel Costs</h4>
+        <h4 className="text-sm font-semibold text-foreground mb-4 mt-6">{industryCopy.laborHeading}</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <InputField label="Total Headcount" type="number" defaultValue="250"
-            tooltip="The total number of full-time equivalent (FTE) employees."
+          <InputField label={industryCopy.workforceLabel} type="number" defaultValue="250"
+            tooltip={`The total number of full-time equivalent employees supporting ${industrySubType || industrySector} operations.`}
             value={formData?.totalHeadcount}
             onChange={(val) => updateFormData('totalHeadcount', Number(val))}
           />
@@ -151,7 +166,7 @@ export function OpexForm({
             </>
           )}
           <InputField
-            label="Total Annual Staff Cost"
+            label={`Total Annual ${industrySubType || industrySector} Workforce Cost`}
             type="number"
             prefix="$"
             defaultValue={14062500}
@@ -162,13 +177,13 @@ export function OpexForm({
       </div>
 
       <div className="pt-6 border-t border-border">
-        <h4 className="text-sm font-semibold text-foreground mb-4">Utilities & Facilities</h4>
+        <h4 className="text-sm font-semibold text-foreground mb-4">{industrySubType || industrySector} Utilities & Facilities</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <InputField label="Power/Electricity Cost" type="number" prefix="$" suffix="/year" defaultValue="300000"
+          <InputField label={industryCopy.primaryUtilityLabel} type="number" prefix="$" suffix="/year" defaultValue="300000"
             value={formData?.powerElectricityCost}
             onChange={(val) => updateFormData('powerElectricityCost', Number(val))}
           />
-          <InputField label="Water & Gas Utilities" type="number" prefix="$" suffix="/year" defaultValue="100000"
+          <InputField label={secondaryUtilityLabel} type="number" prefix="$" suffix="/year" defaultValue="100000"
             value={formData?.waterGasUtilities}
             onChange={(val) => updateFormData('waterGasUtilities', Number(val))}
           />
@@ -183,9 +198,9 @@ export function OpexForm({
 
       {isStandardOrExpert && (
         <div className="pt-6 border-t border-border">
-          <h4 className="text-sm font-semibold text-foreground mb-4">Maintenance & Insurance</h4>
+          <h4 className="text-sm font-semibold text-foreground mb-4">{industrySubType || industrySector} Maintenance, Replacement & Insurance</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField label="Regular Maintenance" type="number" suffix="% of revenue" defaultValue="2.5"
+            <InputField label={industrySector === "Energy & Power" ? "Routine Plant O&M Cost" : industrySector === "Mining and Natural Resources" ? "Mine & Processing Maintenance" : "Routine Maintenance Cost"} type="number" suffix="% of revenue" defaultValue="2.5"
               value={formData?.regularMaintenance}
               onChange={(val) => updateFormData('regularMaintenance', Number(val))}
             />
@@ -195,13 +210,13 @@ export function OpexForm({
             />
             {(projectType === "manufacturing" || projectType === "energy" || industrySector === "Oil & Gas") && (
               <>
-                <InputField label="Turn Around Maintenance (TAM) Cost" type="number" prefix="$" defaultValue="2000000"
-                  tooltip="The lump-sum cost of a scheduled, large-scale plant shutdown for overhaul and inspections."
+                <InputField label={industrySector === "Energy & Power" ? "Major Plant Overhaul / Outage Cost" : "Turnaround Maintenance Cost"} type="number" prefix="$" defaultValue="2000000"
+                  tooltip="The lump-sum cost of scheduled major plant or production-asset maintenance and inspection."
                   value={formData?.turnAroundMaintenanceTamCost}
                   onChange={(val) => updateFormData('turnAroundMaintenanceTamCost', Number(val))}
                 />
-                <InputField label="TAM Frequency" type="number" suffix="years" defaultValue="5"
-                  tooltip="Years between major maintenance"
+                <InputField label="Major Maintenance Interval" type="number" suffix="years" defaultValue="5"
+                  tooltip="Years between scheduled major maintenance or overhaul events."
                   value={formData?.tamFrequency}
                   onChange={(val) => updateFormData('tamFrequency', Number(val))}
                 />
@@ -217,7 +232,7 @@ export function OpexForm({
           animate={{ opacity: 1, height: "auto" }}
           className="space-y-6 pt-6 border-t border-border"
         >
-          <h4 className="text-sm font-semibold text-foreground mb-4">Administrative & General</h4>
+          <h4 className="text-sm font-semibold text-foreground mb-4">{commercialCostHeading}</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <InputField label="Marketing & Sales" type="number" suffix="% of revenue" defaultValue="8.0"
               value={formData?.marketingSales}

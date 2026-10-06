@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { InputField } from "./InputField"
 import { CustomParametersPanel } from "./CustomParametersPanel"
 import { motion, AnimatePresence } from "framer-motion"
+import { getIndustryFormCopy } from "./IndustryConfig"
 
 export function DebtForm({
   formData,
@@ -18,6 +19,9 @@ export function DebtForm({
 }) {
   const isExpert = inputMode === "expert"
   const isStandardOrExpert = inputMode !== "essential"
+  const industry = formData?.industrySector || "Project"
+  const subType = formData?.industrySubType || industry
+  const industryCopy = getIndustryFormCopy(industry, subType)
   
   const customDebtTranches = formData.customDebtTranches || []
 
@@ -46,32 +50,34 @@ export function DebtForm({
   return (
     <Card className="p-6 space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-foreground mb-4">Debt & Financing Structure</h3>
-        <p className="text-sm text-muted-foreground">Configure funding sources and debt terms</p>
+        <h3 className="text-lg font-semibold text-foreground mb-4">{industryCopy.sectionNames.financing}</h3>
+        <p className="text-sm text-muted-foreground">Configure project capital sources, debt facilities, repayment terms, covenants and reserves for {subType}.</p>
       </div>
 
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          Define the capital structure and financing mix for your project
+          Define the capital structure, financing route and funding mix for this {subType} project.
         </AlertDescription>
       </Alert>
 
       <div className="pt-4">
-        <h4 className="text-sm font-semibold text-foreground mb-4">Funding Mix</h4>
+        <h4 className="text-sm font-semibold text-foreground mb-4">{subType} Capital Structure & Funding Mix</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputField label="Total Project Cost" type="number" prefix="$" defaultValue="184215458" calculated tooltip="The comprehensive project cost that requires funding (Final Development Cost)." value={formData?.totalProjectCost} onChange={(val) => updateFormData('totalProjectCost', Number(val))} />
           <InputField label="Equity Percentage" type="number" suffix="%" defaultValue="23.9" tooltip="The portion of the project cost funded by shareholders' capital." value={formData?.equityPercentage} onChange={(val) => updateFormData('equityPercentage', Number(val))} />
           <InputField label="Equity Amount" type="number" prefix="$" defaultValue="43983691" tooltip="Calculated dollar amount of equity needed based on the percentage." calculated value={formData?.equityAmount} onChange={(val) => updateFormData('equityAmount', Number(val))} />
           <InputField label="Debt Percentage" type="number" suffix="%" defaultValue="43.0" tooltip="The portion of the project cost funded by external bank loans or bonds." value={formData?.debtPercentage} onChange={(val) => updateFormData('debtPercentage', Number(val))} />
           <InputField label="Debt Amount" type="number" prefix="$" defaultValue="79155515" tooltip="Calculated dollar amount of debt needed based on the percentage." calculated value={formData?.debtAmount} onChange={(val) => updateFormData('debtAmount', Number(val))} />
-          <InputField label="Off-Plan Sales / Pre-sales %" type="number" suffix="%" defaultValue="33.2" tooltip="Funding derived from customer deposits before completion." value={formData?.offPlanSalesPreSalesPct} onChange={(val) => updateFormData('offPlanSalesPreSalesPct', Number(val))} />
+          {industry === "Real Estate" && (
+            <InputField label="Off-Plan Sales / Pre-sales %" type="number" suffix="%" defaultValue="33.2" tooltip="Funding derived from property-buyer deposits before completion." value={formData?.offPlanSalesPreSalesPct} onChange={(val) => updateFormData('offPlanSalesPreSalesPct', Number(val))} />
+          )}
         </div>
       </div>
 
       {customDebtTranches.length === 0 && (
         <div className="pt-6 border-t border-border">
-          <h4 className="text-sm font-semibold text-foreground mb-4">Primary Debt Terms & Conditions</h4>
+          <h4 className="text-sm font-semibold text-foreground mb-4">{subType} Primary Facility Terms & Conditions</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <InputField label="Interest Rate Type" type="select" options={["Fixed", "Floating", "Mixed"]} defaultValue="Floating" tooltip="Select whether the interest rate remains constant or changes based on market benchmarks." value={formData?.interestRateType} onChange={(val) => updateFormData('interestRateType', val)} />
             <InputField label="Base Rate" type="select" options={["SOFR", "MPR", "LIBOR", "Prime Rate", "Other"]} defaultValue="SOFR" tooltip="The reference benchmark rate (e.g., SOFR for US Dollars)." value={formData?.baseRate} onChange={(val) => updateFormData('baseRate', val)} />
@@ -135,7 +141,7 @@ export function DebtForm({
           animate={{ opacity: 1, height: "auto" }}
           className="space-y-6 pt-6 border-t border-border"
         >
-          <h4 className="text-sm font-semibold text-foreground mb-4">Advanced Debt Parameters</h4>
+          <h4 className="text-sm font-semibold text-foreground mb-4">{subType} Covenant & Debt Service Parameters</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <InputField label="Grace Period" type="number" suffix="months" defaultValue="36" tooltip="The moratorium period (in months) where only interest is paid before principal repayments begin." value={formData?.gracePeriod} onChange={(val) => updateFormData('gracePeriod', Number(val))} />
             <InputField label="Repayment Type" type="select" options={["Amortizing (Equal Installments)", "Bullet (Lump Sum)", "Sculpted (Custom Schedule)"]} defaultValue="Amortizing (Equal Installments)" tooltip="The structure for paying back the loan principal." value={formData?.repaymentType} onChange={(val) => updateFormData('repaymentType', val)} />
@@ -146,7 +152,7 @@ export function DebtForm({
           </div>
 
           <div className="pt-6 border-t border-border">
-            <h4 className="text-sm font-semibold text-foreground mb-4">Debt Drawdown Schedule</h4>
+            <h4 className="text-sm font-semibold text-foreground mb-4">{subType} Facility Drawdown & Repayment Schedule</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <InputField label="Drawdown Linked To" type="select" options={["CAPEX Schedule", "Custom Schedule", "Equal Drawdowns"]} defaultValue="CAPEX Schedule" tooltip="Determines how loan funds are released (usually follows actual construction spending)." value={formData?.drawdownLinkedTo} onChange={(val) => updateFormData('drawdownLinkedTo', val)} />
               <InputField label="Drawdown Frequency" type="select" options={["Monthly", "Quarterly", "Milestone-based"]} defaultValue="Quarterly" tooltip="The frequency at which loan funds are disbursed from the lender." value={formData?.drawdownFrequency} onChange={(val) => updateFormData('drawdownFrequency', val)} />

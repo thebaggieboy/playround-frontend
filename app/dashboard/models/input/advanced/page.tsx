@@ -63,7 +63,9 @@ import { IndustryLibraryFields } from "../../../../../components/forms/advanced/
 
 import {
   getIndustryCapacityUnits,
+  getIndustryFormCopy,
   getIndustryLibraryMetadata,
+  getIndustryLibrarySchema,
   getIndustryRevenueUnits,
   INDUSTRY_SUB_TYPES,
 } from "../../../../../components/forms/advanced/IndustryConfig"
@@ -585,6 +587,7 @@ export default function InputModelPage() {
         industry_custom_name: formData.industryCustomName,
         industry_library_inputs: formData.industryLibraryInputs,
         industry_library_metadata: getIndustryLibraryMetadata(formData.industrySector, formData.industrySubType),
+        industry_library_schema: getIndustryLibrarySchema(formData.industrySector, formData.industrySubType),
         project_type: formData.projectType,
         project_commencement_date: formData.projectCommencementDate,
         construction_start_date: formData.constructionStartDate,
@@ -924,7 +927,10 @@ export default function InputModelPage() {
         }
       )
 
-      if (!saveResponse.ok) throw new Error('Failed to save scenario data')
+      if (!saveResponse.ok) {
+        const errorData = await saveResponse.json().catch(() => ({}))
+        throw new Error(errorData.detail || JSON.stringify(errorData) || "Failed to save scenario data")
+      }
 
       // Animate through calculation steps while API call runs
       await advanceStep(2)
@@ -1166,8 +1172,11 @@ export default function InputModelPage() {
     setIsSavingDraft(true)
 
     try {
+      let currentModelId = modelId
+      let currentScenarioId = scenarioId
+
       // Create model if doesn't exist
-      if (!modelId) {
+      if (!currentModelId) {
         const createResponse = await fetch(`${API_BASE_URL}/models/`, {
           method: 'POST',
           headers: {
@@ -1186,11 +1195,13 @@ export default function InputModelPage() {
         }
 
         const modelData = await createResponse.json()
-        setModelId(modelData.id)
-        if (modelData.scenarios?.[0]) setScenarioId(modelData.scenarios[0].id)
+        currentModelId = modelData.id
+        currentScenarioId = modelData.scenarios?.[0]?.id ?? null
+        setModelId(currentModelId)
+        setScenarioId(currentScenarioId)
       } else {
         // Ensure the selected industry dropdown value is saved!
-        const updateModelResponse = await fetch(`${API_BASE_URL}/models/${modelId}/`, {
+        const updateModelResponse = await fetch(`${API_BASE_URL}/models/${currentModelId}/`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -1203,27 +1214,33 @@ export default function InputModelPage() {
         });
         
         if (!updateModelResponse.ok) {
-           console.warn('Failed to update financial model metadata');
+          const errorData = await updateModelResponse.json().catch(() => ({}))
+          throw new Error(errorData.detail || JSON.stringify(errorData) || "Failed to update model metadata.")
         }
       }
 
       // Save scenario data
-      if (scenarioId) {
-        const scenarioData = {
-          ...transformToAPIFormat(),
-          name: 'Base Case',
-          scenario_type: 'base',
-          model: modelId
-        }
+      if (!currentScenarioId) {
+        throw new Error("No scenario is associated with this model yet, so the draft could not be saved.")
+      }
 
-        await fetch(`${API_BASE_URL}/scenarios/${scenarioId}/`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `JWT ${getAuthToken()}`
-          },
-          body: JSON.stringify(scenarioData)
-        })
+      const scenarioData = {
+        ...transformToAPIFormat(),
+        name: 'Base Case',
+        scenario_type: 'base',
+        model: currentModelId
+      }
+      const saveResponse = await fetch(`${API_BASE_URL}/scenarios/${currentScenarioId}/`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `JWT ${getAuthToken()}`
+        },
+        body: JSON.stringify(scenarioData)
+      })
+      if (!saveResponse.ok) {
+        const errorData = await saveResponse.json().catch(() => ({}))
+        throw new Error(errorData.detail || JSON.stringify(errorData) || "Failed to save scenario data.")
       }
 
       setLastSaved(new Date())
@@ -1717,11 +1734,13 @@ function ProjectForm({
   onFetchOandaRate: () => void
   isFetchingFxRate: boolean
 }) {
+  const industryCopy = getIndustryFormCopy(formData?.industrySector || "Other", formData?.industrySubType || "")
+
   return (
     <Card className="p-6 space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-foreground mb-4">Project Information</h3>
-        <p className="text-sm text-muted-foreground">Define basic project details and timeline</p>
+        <h3 className="text-lg font-semibold text-foreground mb-4">{formData?.industrySubType || formData?.industrySector} Project Definition</h3>
+        <p className="text-sm text-muted-foreground">Define the project scope, jurisdiction, lifecycle and operating basis for this industry and sub-sector.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1843,7 +1862,13 @@ function ProjectForm({
       </div>
 
       <div className="pt-6 border-t border-border">
-        <h4 className="text-sm font-semibold text-foreground mb-4">Project Timeline</h4>
+        <h4 className="text-sm font-semibold text-foreground mb-4">
+          {formData?.industrySector === "Energy & Power"
+            ? "Development, Commissioning & Commercial Operations Timeline"
+            : formData?.industrySector === "Mining and Natural Resources"
+              ? "Mine Development, Commissioning & Operating Life"
+              : `${formData?.industrySubType || formData?.industrySector} Project Development & Operating Timeline`}
+        </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputField label="Project Commencement Date" type="date" value={formData?.projectCommencementDate} tooltip="The date project planning and administrative activities begin." onChange={(value) => updateFormData('projectCommencementDate', value)} defaultValue="2026-07-01" />
           <InputField label="Construction Start Date" type="date" value={formData?.constructionStartDate} tooltip="The date physical construction on-site is expected to start." onChange={(value) => updateFormData('constructionStartDate', value)} defaultValue="2026-07-01" />
@@ -1860,18 +1885,18 @@ function ProjectForm({
           animate={{ opacity: 1, height: "auto" }}
           className="pt-6 border-t border-border space-y-6"
         >
-          <h4 className="text-sm font-semibold text-foreground mb-4">Capacity & Production Details</h4>
+          <h4 className="text-sm font-semibold text-foreground mb-4">{industryCopy.productionHeading}</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <InputField
-              label="Total Plant/Factory Capacity"
+              label={industryCopy.capacityLabel}
               type="number"
               defaultValue="100000"
               value={formData?.totalCapacity}
-              tooltip="The maximum production output the plant is designed for (at 100% load)."
+              tooltip={industryCopy.capacityDescription}
               onChange={(value) => updateFormData('totalCapacity', value)}
             />
             <InputField
-              label="Capacity Unit"
+              label={industryCopy.capacityUnitLabel}
               type="select"
               value={formData?.capacityUnit}
               tooltip="The unit of measurement for your project's output capacity."
@@ -1880,25 +1905,27 @@ function ProjectForm({
               onChange={(value) => updateFormData('capacityUnit', value)}
             />
             <InputField
-              label="Maximum Plant Availability"
+              label={industryCopy.availabilityLabel}
               type="number"
               suffix="%"
               defaultValue="90"
               value={formData?.maximumPlantAvailability}
-              tooltip="The percentage of time the plant is operational after factoring in routine maintenance."
+              tooltip={industryCopy.availabilityDescription}
               onChange={(value) => updateFormData('maximumPlantAvailability', value)}
             />
+            {["Energy & Power", "Manufacturing", "Oil & Gas"].includes(formData?.industrySector) && (
+              <InputField
+                label={formData?.industrySector === "Energy & Power" ? "Availability During Major Maintenance Year" : "Availability During Major Maintenance"}
+                type="number"
+                suffix="%"
+                defaultValue="80"
+                value={formData?.availabilityDuringTam}
+                tooltip={`Operating availability during scheduled major maintenance or overhaul periods for ${formData?.industrySubType || formData?.industrySector}.`}
+                onChange={(value) => updateFormData('availabilityDuringTam', value)}
+              />
+            )}
             <InputField
-              label="Availability During TAM Year"
-              type="number"
-              suffix="%"
-              defaultValue="80"
-              value={formData?.availabilityDuringTam}
-              tooltip="Plant availability during years where Turn Around Maintenance (TAM) occurs."
-              onChange={(value) => updateFormData('availabilityDuringTam', value)}
-            />
-            <InputField
-              label="Commissioning Availability"
+              label={industryCopy.commissioningLabel}
               type="number"
               suffix="%"
               defaultValue="60"
@@ -1906,27 +1933,27 @@ function ProjectForm({
               tooltip="Expected availability during the initial ramp-up or commissioning period."
               onChange={(value) => updateFormData('commissioningAvailability', value)}
             />
-            <InputField
-              label="Factory Capacity Multiplier"
-              type="number"
-              defaultValue="0.25"
-
-              tooltip="A scaling factor applied to the total capacity for specific calculation adjustments."
-
-              value={formData?.factoryCapacityMultiplier}
-              onChange={(val) => updateFormData('factoryCapacityMultiplier', Number(val))}
-            />
+            {formData?.industrySector === "Manufacturing" && (
+              <InputField
+                label="Production Capacity Multiplier"
+                type="number"
+                defaultValue="0.25"
+                tooltip="A production-line scaling factor used for manufacturing capacity adjustments."
+                value={formData?.factoryCapacityMultiplier}
+                onChange={(val) => updateFormData('factoryCapacityMultiplier', Number(val))}
+              />
+            )}
           </div>
 
           <div className="pt-6 border-t border-border">
-            <h4 className="text-sm font-semibold text-foreground mb-4">Phase Implementation (if applicable)</h4>
+            <h4 className="text-sm font-semibold text-foreground mb-4">{industryCopy.productionHeading} — Development Phases</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <InputField label="Number of Phases" type="select" tooltip="Select if the project is built in a single stage or multiple stages." options={["Single Phase", "2 Phases", "3 Phases", "4+ Phases"]} defaultValue="Single Phase"
                 value={formData?.numberOfPhases}
                 onChange={(val) => updateFormData('numberOfPhases', val)}
               />
               <InputField label="Phase I Capacity" type="number" defaultValue="100000"
-                tooltip="Output capacity specifically for the first phase of development."
+                tooltip={`Output capacity specifically for the first ${formData?.industrySubType || formData?.industrySector} development phase.`}
                 value={formData?.phaseICapacity}
                 onChange={(val) => updateFormData('phaseICapacity', Number(val))}
               />

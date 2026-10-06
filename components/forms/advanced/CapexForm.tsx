@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { InputField, useInputNumberFormat } from "./InputField"
 import { CustomParametersPanel } from "./CustomParametersPanel"
 import { motion, AnimatePresence } from "framer-motion"
+import { getIndustryFormCopy } from "./IndustryConfig"
 
 export function CapexForm({
   formData,
@@ -24,15 +25,23 @@ export function CapexForm({
   const { currencySymbol, formatNumber } = useInputNumberFormat()
   const isExpert = inputMode === "expert"
   const isStandardOrExpert = inputMode !== "essential"
-  const industryAssetLabel = industrySector === "Energy & Power"
-    ? `${industrySubType || "Power"} plant and equipment`
+  const industryCopy = getIndustryFormCopy(industrySector, industrySubType)
+  const landLabel = industrySector === "Energy & Power"
+    ? "Project Site / Land Rights"
     : industrySector === "Mining and Natural Resources"
-      ? "Mining and processing plant and equipment"
+      ? "Mine Site, Land & Access Rights"
       : industrySector === "Real Estate"
-        ? "Building systems and equipment"
-        : industrySector === "Healthcare"
-          ? "Clinical and diagnostic equipment"
-          : "Plant, machinery and equipment"
+        ? "Land Acquisition / Lease"
+        : "Land Value"
+  const ffeLabel = industrySector === "Energy & Power"
+    ? "Electrical Balance of System & Controls"
+    : industrySector === "Mining and Natural Resources"
+      ? "Mine Support, Laboratory & Site Equipment"
+      : industrySector === "Healthcare"
+        ? "Clinical Fit-out & Medical Furniture"
+        : industrySector === "Technology"
+          ? "IT, Network & Platform Equipment"
+          : "Furniture, Fixtures & Equipment (FF&E)"
 
   const customCapexItems = formData.customCapexItems || []
 
@@ -84,7 +93,7 @@ export function CapexForm({
   })
 
   const totalCapexExclFinancing = hardCosts + softCosts
-  const capacity = Number(formData.projectCapacity || 1)
+  const capacity = Number(formData.projectCapacity || formData.totalCapacity || 1)
   const costPerUnit = capacity > 0 ? totalCapexExclFinancing / capacity : 0
 
   // Drawdown validation
@@ -107,8 +116,8 @@ export function CapexForm({
     <Card className="p-6 space-y-6">
       <div className="flex justify-between items-start flex-col sm:flex-row gap-4">
         <div>
-          <h3 className="text-lg font-semibold text-foreground mb-4">Capital Expenditure (CapEx)</h3>
-          <p className="text-sm text-muted-foreground">Define core assets and development costs</p>
+          <h3 className="text-lg font-semibold text-foreground mb-4">{industryCopy.sectionNames.capex} (CAPEX)</h3>
+          <p className="text-sm text-muted-foreground">Define {industrySubType || industrySector} site, civil works, core assets, development costs, phasing and asset links.</p>
         </div>
         
         {/* Funding Gap Banner */}
@@ -133,10 +142,10 @@ export function CapexForm({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField label="Land Value" type="number" prefix="$" defaultValue="13711180" tooltip="The total value of land required for the project." value={formData?.landValue} onChange={(val) => updateFormData('landValue', Number(val))} />
-        <InputField label="Building & Civil Works" type="number" prefix="$" defaultValue="109626400" tooltip="Costs associated with constructing buildings, foundations, and site improvements." value={formData?.buildingCivilWorks} onChange={(val) => updateFormData('buildingCivilWorks', Number(val))} />
-        <InputField label={industryAssetLabel} type="number" prefix="$" defaultValue="20554950" tooltip={`The cost of purchasing and installing primary ${industrySector.toLowerCase()} operational assets.`} value={formData?.plantMachineryEquipment} onChange={(val) => updateFormData('plantMachineryEquipment', Number(val))} />
-        <InputField label="Furniture, Fixtures & Equipment (FF&E)" type="number" prefix="$" defaultValue="6851650" tooltip="Costs for office furniture, interior fixtures, and general equipment." value={formData?.ffeFurnitureFixtures} onChange={(val) => updateFormData('ffeFurnitureFixtures', Number(val))} />
+        <InputField label={landLabel} type="number" prefix="$" defaultValue="13711180" tooltip={`The project-specific land, site lease or access-right cost for ${industrySubType || industrySector}.`} value={formData?.landValue} onChange={(val) => updateFormData('landValue', Number(val))} />
+        <InputField label={industryCopy.capexCivilLabel} type="number" prefix="$" defaultValue="109626400" tooltip={`Costs associated with ${industrySubType || industrySector} site preparation, civil works and infrastructure.`} value={formData?.buildingCivilWorks} onChange={(val) => updateFormData('buildingCivilWorks', Number(val))} />
+        <InputField label={industryCopy.capexAssetLabel} type="number" prefix="$" defaultValue="20554950" tooltip={`The cost of purchasing and installing primary ${industrySubType || industrySector} operational assets.`} value={formData?.plantMachineryEquipment} onChange={(val) => updateFormData('plantMachineryEquipment', Number(val))} />
+        <InputField label={ffeLabel} type="number" prefix="$" defaultValue="6851650" tooltip={`Specialist fixtures, control systems and equipment supporting ${industrySubType || industrySector} operations.`} value={formData?.ffeFurnitureFixtures} onChange={(val) => updateFormData('ffeFurnitureFixtures', Number(val))} />
         {isStandardOrExpert && (
           <>
             <InputField label="Vehicles & IT Equipment" type="number" prefix="$" defaultValue="1000000" tooltip="Vehicles, computers, servers, and software." value={formData?.vehiclesItEquipment} onChange={(val) => updateFormData('vehiclesItEquipment', Number(val))} />
@@ -153,9 +162,9 @@ export function CapexForm({
           <div>
             <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
               <Plus className="w-4 h-4 text-primary" />
-              Custom CapEx Components
+              Custom {industrySubType || industrySector} CAPEX Components
             </h4>
-            <p className="text-xs text-muted-foreground mt-1">Add specific capital expenditures not covered above</p>
+            <p className="text-xs text-muted-foreground mt-1">Add {industrySubType || industrySector} assets, development costs or lifecycle replacement capital not covered above.</p>
           </div>
           <Button onClick={handleAddCustomCapex} variant="outline" size="sm" className="gap-1.5 text-xs h-8" disabled={customCapexItems.length >= 25}>
             <Plus className="w-3.5 h-3.5" />
@@ -202,7 +211,7 @@ export function CapexForm({
       </div>
 
       <div className="pt-6 border-t border-border">
-        <h4 className="text-sm font-semibold text-foreground mb-4">Construction & Drawdown Schedule</h4>
+        <h4 className="text-sm font-semibold text-foreground mb-4">{industrySubType || industrySector} Development CAPEX & Drawdown Schedule</h4>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <InputField label="Year 1" type="number" suffix="%" defaultValue="60" value={formData?.drawdownYear1} onChange={(val) => updateFormData('drawdownYear1', Number(val))} error={!drawdownValid ? "Invalid total" : undefined} />
           <InputField label="Year 2" type="number" suffix="%" defaultValue="30" value={formData?.drawdownYear2} onChange={(val) => updateFormData('drawdownYear2', Number(val))} error={!drawdownValid ? "Invalid total" : undefined} />
@@ -248,9 +257,9 @@ export function CapexForm({
               <span className="text-sm font-medium italic text-muted-foreground">Calculated in engine</span>
             </div>
             <div className="flex justify-between items-center py-2 pt-4">
-              <span className="text-sm font-semibold text-foreground">Est. Cost Per Unit Capacity</span>
+              <span className="text-sm font-semibold text-foreground">Est. CAPEX Per {formData.capacityUnit || "Capacity Unit"}</span>
               <span className="text-sm font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-2 py-1 rounded">
-                {currencySymbol}{formatNumber(costPerUnit, 0)} / unit
+                {currencySymbol}{formatNumber(costPerUnit, 0)} / {formData.capacityUnit || "capacity unit"}
               </span>
             </div>
           </div>

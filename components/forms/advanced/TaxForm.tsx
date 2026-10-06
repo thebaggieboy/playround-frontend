@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { InputField } from "./InputField"
 import { CustomParametersPanel } from "./CustomParametersPanel"
 import { motion, AnimatePresence } from "framer-motion"
+import { getIndustryFormCopy } from "./IndustryConfig"
 
 export function TaxForm({
   formData,
@@ -17,6 +18,9 @@ export function TaxForm({
 }) {
   const isExpert = inputMode === "expert"
   const isStandardOrExpert = inputMode !== "essential"
+  const industry = formData?.industrySector || "Project"
+  const subType = formData?.industrySubType || industry
+  const industryCopy = getIndustryFormCopy(industry, subType)
 
   const customTaxes = formData.customTaxes || []
 
@@ -45,13 +49,13 @@ export function TaxForm({
   return (
     <Card className="p-6 space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-foreground mb-4">Tax Assumptions</h3>
-        <p className="text-sm text-muted-foreground">Configure tax rates and policies</p>
+        <h3 className="text-lg font-semibold text-foreground mb-4">{industryCopy.sectionNames.tax}</h3>
+        <p className="text-sm text-muted-foreground">Configure jurisdictional tax rates, duties, incentives and sector-specific levies applicable to {subType}.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField label="Corporate Income Tax Rate" type="number" suffix="%" defaultValue="30.0" tooltip="The standard statutory tax rate applied to the company's taxable profits." value={formData?.corporateIncomeTaxRate} onChange={(val) => updateFormData('corporateIncomeTaxRate', Number(val))} />
-        <InputField label="VAT/Sales Tax Rate" type="number" suffix="%" defaultValue="7.5" tooltip="Value Added Tax applied to the sale of goods and services." value={formData?.vatSalesTaxRate} onChange={(val) => updateFormData('vatSalesTaxRate', Number(val))} />
+        <InputField label={industry === "Mining and Natural Resources" ? "Corporate Income Tax on Mining Entity" : "Corporate Income Tax Rate"} type="number" suffix="%" defaultValue="30.0" tooltip={`The jurisdictional statutory income tax rate applied to ${subType} taxable profits. Verify eligibility and legal source before applying project incentives.`} value={formData?.corporateIncomeTaxRate} onChange={(val) => updateFormData('corporateIncomeTaxRate', Number(val))} />
+        <InputField label={industry === "Real Estate" ? "VAT on Property Sales / Services" : industry === "Mining and Natural Resources" ? "VAT on Mineral Sales / Inputs" : industry === "Energy & Power" ? "VAT on Power / Energy Supplies" : "VAT / Sales Tax Rate"} type="number" suffix="%" defaultValue="7.5" tooltip={`Value Added Tax or sales tax treatment applicable to ${subType} transactions and recoverable project inputs.`} value={formData?.vatSalesTaxRate} onChange={(val) => updateFormData('vatSalesTaxRate', Number(val))} />
         <InputField label="Tax Holiday Period" type="number" suffix="years" defaultValue="0" tooltip="The initial period (in years) where the project is exempt from paying corporate income tax (e.g., Pioneer Status)." value={formData?.taxHolidayPeriod} onChange={(val) => updateFormData('taxHolidayPeriod', Number(val))} />
         <InputField label="Tax Holiday Rate" type="number" suffix="%" defaultValue="0" tooltip="The effective tax rate applied during the tax holiday period (usually 0%)." value={formData?.taxHolidayRate} onChange={(val) => updateFormData('taxHolidayRate', Number(val))} />
         <InputField label="Minimum Tax Rate" type="number" suffix="%" defaultValue="0.5" tooltip="A tax floor based on gross turnover, applicable if the calculated CIT is lower than this amount." value={formData?.minimumTaxRate} onChange={(val) => updateFormData('minimumTaxRate', Number(val))} />
@@ -65,7 +69,7 @@ export function TaxForm({
                 <Plus className="w-4 h-4 text-primary" />
                 Custom Taxes & Duties
               </h4>
-              <p className="text-xs text-muted-foreground mt-1">Add localized taxes like Carbon Tax, Royalties, or property taxes.</p>
+              <p className="text-xs text-muted-foreground mt-1">Add statutory charges relevant to {subType}, such as royalties, duties, carbon levies or property taxes.</p>
             </div>
             <Button onClick={handleAddCustomTax} variant="outline" size="sm" className="gap-1.5 text-xs h-8" disabled={customTaxes.length >= 10}>
               <Plus className="w-3.5 h-3.5" />
@@ -105,7 +109,7 @@ export function TaxForm({
           animate={{ opacity: 1, height: "auto" }}
           className="space-y-6 pt-6 border-t border-border"
         >
-          <h4 className="text-sm font-semibold text-foreground mb-4">Withholding Taxes</h4>
+          <h4 className="text-sm font-semibold text-foreground mb-4">{subType} Withholding & Transaction Taxes</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <InputField label="WHT on Dividends" type="number" suffix="%" defaultValue="10.0" tooltip="Tax withheld at source on dividend payments to shareholders." value={formData?.whtOnDividends} onChange={(val) => updateFormData('whtOnDividends', Number(val))} />
             <InputField label="WHT on Interest" type="number" suffix="%" defaultValue="10.0" tooltip="Tax withheld at source on interest payments to lenders." value={formData?.whtOnInterest} onChange={(val) => updateFormData('whtOnInterest', Number(val))} />
@@ -114,7 +118,7 @@ export function TaxForm({
           </div>
 
           <div className="pt-6 border-t border-border">
-            <h4 className="text-sm font-semibold text-foreground mb-4">Other Tax Provisions</h4>
+            <h4 className="text-sm font-semibold text-foreground mb-4">{industry} Other Statutory Provisions</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <InputField label="Education Tax" type="number" suffix="% of assessable profit" defaultValue="2.5" tooltip="Tertiary education tax applied to assessable profits (specific to Nigeria)." value={formData?.educationTax} onChange={(val) => updateFormData('educationTax', Number(val))} />
               <InputField label="Tax Loss Carryforward Period" type="number" suffix="years" defaultValue="5" tooltip="The number of years that operational losses can be used to reduce future taxable income." value={formData?.taxLossCarryforwardPeriod} onChange={(val) => updateFormData('taxLossCarryforwardPeriod', Number(val))} />
@@ -122,7 +126,7 @@ export function TaxForm({
           </div>
 
           <div className="pt-6 border-t border-border">
-            <h4 className="text-sm font-semibold text-foreground mb-4">Capital Allowances (Tax Depreciation)</h4>
+            <h4 className="text-sm font-semibold text-foreground mb-4">{subType} Capital Allowances & Tax Depreciation</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <InputField label="Initial Allowance" type="number" suffix="%" defaultValue="25.0" tooltip="The percentage of capital expenditure that can be deducted for tax purposes in the first year of acquisition." value={formData?.initialAllowance} onChange={(val) => updateFormData('initialAllowance', Number(val))} />
               <InputField label="Annual Allowance" type="number" suffix="%" defaultValue="20.0" tooltip="The annual percentage deduction for tax depreciation in subsequent years." value={formData?.annualAllowance} onChange={(val) => updateFormData('annualAllowance', Number(val))} />

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { InputField } from "./InputField"
 import { CustomParametersPanel } from "./CustomParametersPanel"
 import { motion, AnimatePresence } from "framer-motion"
+import { getIndustryFormCopy } from "./IndustryConfig"
 
 export function MacroForm({
   formData,
@@ -17,6 +18,9 @@ export function MacroForm({
 }) {
   const isExpert = inputMode === "expert"
   const isStandardOrExpert = inputMode !== "essential"
+  const industry = formData?.industrySector || "Project"
+  const subType = formData?.industrySubType || industry
+  const industryCopy = getIndustryFormCopy(industry, subType)
 
   const customMacroDrivers = formData.customMacroDrivers || []
 
@@ -45,8 +49,8 @@ export function MacroForm({
   return (
     <Card className="p-6 space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-foreground mb-4">Macro Economic & General Assumptions</h3>
-        <p className="text-sm text-muted-foreground">Define global parameters for your financial model</p>
+        <h3 className="text-lg font-semibold text-foreground mb-4">{industryCopy.sectionNames.macro}</h3>
+        <p className="text-sm text-muted-foreground">Set jurisdiction, price-basis, escalation, financing benchmark and forecast assumptions applicable to {subType}.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -59,7 +63,7 @@ export function MacroForm({
       </div>
 
       <div className="pt-6 border-t border-border">
-        <h4 className="text-sm font-semibold text-foreground mb-4">Inflation Assumptions</h4>
+        <h4 className="text-sm font-semibold text-foreground mb-4">{subType} Price Escalation & Inflation Assumptions</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputField label="Local Inflation Rate" type="number" suffix="%" defaultValue="15.0" value={formData?.localInflationRate} tooltip="Projected annual inflation rate for the local market currency." onChange={(value) => updateFormData('localInflationRate', Number(value))} />
           <InputField label="US/Foreign Inflation Rate" type="number" suffix="%" defaultValue="2.5" value={formData?.foreignInflationRate} tooltip="Projected annual inflation rate for US Dollar (USD) or international benchmark." onChange={(value) => updateFormData('foreignInflationRate', Number(value))} />
@@ -117,7 +121,7 @@ export function MacroForm({
           animate={{ opacity: 1, height: "auto" }}
           className="space-y-6 pt-6 border-t border-border"
         >
-          <h4 className="text-sm font-semibold text-foreground mb-4">Financial Rates & Benchmarks</h4>
+          <h4 className="text-sm font-semibold text-foreground mb-4">{subType} Financing Rates & Index Benchmarks</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <InputField label="Discount Rate / WACC" type="number" suffix="%" defaultValue="12.5" value={formData?.discountRateWacc} tooltip="Weighted Average Cost of Capital, used to discount future cash flows to Net Present Value (NPV)." onChange={(value) => updateFormData('discountRateWacc', Number(value))} />
             <InputField label="Risk-Free Rate" type="number" suffix="%" defaultValue="4.5" value={formData?.riskFreeRate} tooltip="Theoretical return on an investment with 0% risk, typically the 10-year US Treasury yield." onChange={(value) => updateFormData('riskFreeRate', Number(value))} />

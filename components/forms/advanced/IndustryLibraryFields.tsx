@@ -48,7 +48,7 @@ export function IndustryLibraryFields({
           {metadata.level} · {metadata.status}
         </p>
         <p className="mt-2 text-xs text-muted-foreground">
-          Library benchmarks are not prefilled unless an approved source is available. Enter project values and retain their source in the project record.
+          These are sector-specific project inputs, not approved benchmark values. No official library item ID or benchmark is assigned until its source is governed; numeric entries require a source tier and reference.
         </p>
       </div>
 
@@ -58,7 +58,7 @@ export function IndustryLibraryFields({
           return (
             <InputField
               key={field.id}
-              label={field.label}
+              label={`${field.label}${field.sourceRequired ? " *" : ""}`}
               type={field.type}
               options={field.options}
               value={value === undefined || value === null ? "" : String(value)}

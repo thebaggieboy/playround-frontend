@@ -5,7 +5,11 @@ import { Button } from "@/components/ui/button"
 import { InputField } from "./InputField"
 import { CustomParametersPanel } from "./CustomParametersPanel"
 import { motion } from "framer-motion"
-import { getIndustryRevenueUnits, REVENUE_MODEL_TYPES } from "./IndustryConfig"
+import {
+  getIndustryFormCopy,
+  getIndustryRevenueModelTypes,
+  getIndustryRevenueUnits,
+} from "./IndustryConfig"
 
 export function RevenueForm({
   formData,
@@ -31,6 +35,7 @@ export function RevenueForm({
   const [numProducts, setNumProducts] = useState<number>(formData.revenueProducts?.length || 1)
   const isExpert = inputMode === "expert"
   const isStandardOrExpert = inputMode !== "essential"
+  const industryCopy = getIndustryFormCopy(industrySector, industrySubType)
 
   const handleAddProduct = () => {
     if (numProducts < 20) {
@@ -53,14 +58,14 @@ export function RevenueForm({
   return (
     <Card className="p-6 space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-foreground mb-4">Revenue Assumptions</h3>
-        <p className="text-sm text-muted-foreground">Configure revenue streams and growth assumptions</p>
+        <h3 className="text-lg font-semibold text-foreground mb-4">{industryCopy.sectionNames.revenue}</h3>
+        <p className="text-sm text-muted-foreground">Configure {industrySubType || industrySector} revenue drivers, volumes, units, price mechanisms and contract terms.</p>
       </div>
 
       <div className="flex items-center justify-between p-4 bg-blue-50/50 rounded-lg border border-blue-200/50">
         <div className="flex items-center gap-2">
           <DollarSign className="w-5 h-5 text-blue-600" />
-          <span className="text-sm font-medium">Number of Revenue Streams/Products</span>
+          <span className="text-sm font-medium">Number of {industryCopy.revenueStreamLabel}s</span>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -87,14 +92,18 @@ export function RevenueForm({
 
       {formData.revenueProducts?.map((product: any, idx: number) => {
         const revModelType = product.revenueModelType || "Volume × Price"
+        const model = revModelType.toLowerCase()
+        const isVolumePriceModel = /volume|harvest|commodity|throughput|product sales|livestock|by-product|merchant|purchase agreement/.test(model)
+        const isTariffModel = /tariff|capacity payment|availability payment|ancillary|arbitrage/.test(model)
+        const isSubscriptionModel = /subscription|arpu|usage-based/.test(model)
+        const isRentalModel = /rental|lease|unit sales/.test(model)
+        const isContractModel = /contract|offtake|concession|fixed supply|property services|agreement/.test(model)
+        const isGenericVolumeModel = !isVolumePriceModel && !isTariffModel && !isSubscriptionModel && !isRentalModel && !isContractModel
         return (
           <div key={idx} className="pt-6 border-t border-border">
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-sm font-semibold text-foreground">
-                {projectType === "real_estate" ? `Property Type ${idx + 1}` :
-                  projectType === "manufacturing" ? `Product ${idx + 1}` :
-                    (projectType === "energy" || projectType === "oil_gas") ? `Revenue Stream ${idx + 1}` :
-                      `Revenue Stream ${idx + 1}`}
+                `${industryCopy.revenueStreamLabel} ${idx + 1}`
               </h4>
               {idx > 0 && (
                 <Button
@@ -110,7 +119,7 @@ export function RevenueForm({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <InputField
-                label={projectType === "real_estate" ? "Building/Unit Type" : "Product/Service Name"}
+                label={industryCopy.revenueNameLabel}
                 type="text"
                 tooltip="The specific name or category of the revenue-generating asset or product."
                 value={product.productName}
@@ -126,15 +135,15 @@ export function RevenueForm({
               <InputField
                 label="Revenue Model Type"
                 type="select"
-                options={REVENUE_MODEL_TYPES}
+                options={getIndustryRevenueModelTypes(industrySector, industrySubType)}
                 value={revModelType}
                 onChange={(value) => updateRevenueProduct(idx, 'revenueModelType', value)}
               />
 
               <InputField
-                label="Unit of Measure"
+                label={industrySector === "Energy & Power" ? "Generation / Discharge / Product Unit" : industrySector === "Mining and Natural Resources" ? "Ore / Saleable Product Unit" : industrySector === "Healthcare" ? "Clinical Service Unit" : industrySector === "Real Estate" ? "Property / Area Unit" : "Sales / Service Unit"}
                 type="select"
-                tooltip="The standard unit used to quantify sales."
+                tooltip={`The controlled ${industrySubType || industrySector} unit used to quantify revenue volume or service delivery.`}
                 value={product.unitOfMeasure}
                 onChange={(value) => updateRevenueProduct(idx, 'unitOfMeasure', value)}
                 options={getUnitOptions()}
@@ -150,10 +159,10 @@ export function RevenueForm({
                 />
               )}
 
-              {revModelType === "Volume × Price" && (
+              {(isVolumePriceModel || isGenericVolumeModel) && (
                 <>
-                  <InputField label="Year 1 Sales Volume" type="number" onChange={(value) => updateRevenueProduct(idx, 'year1SalesVolume', Number(value))} defaultValue="500000" value={product.year1SalesVolume} />
-                  <InputField label="Unit Price (Year 1)" type="number" prefix="$" currency={product.currency || formData.reportingCurrency || "USD ($)"} onChange={(value) => updateRevenueProduct(idx, 'unitPriceYear1', Number(value))} defaultValue="120" value={product.unitPriceYear1} />
+                  <InputField label={industrySector === "Energy & Power" ? "Year 1 Net Energy / Product Sold" : industrySector === "Mining and Natural Resources" ? "Year 1 Saleable Mineral / Product Volume" : industrySector === "Healthcare" ? "Year 1 Patient / Procedure Volume" : industrySector === "Real Estate" ? "Year 1 Units / Area Leased or Sold" : "Year 1 Sales / Service Volume"} type="number" onChange={(value) => updateRevenueProduct(idx, 'year1SalesVolume', Number(value))} defaultValue="500000" value={product.year1SalesVolume} />
+                  <InputField label={industrySector === "Energy & Power" ? "Energy Tariff / Contract Price (Year 1)" : industrySector === "Mining and Natural Resources" ? "Commodity Price (Year 1)" : industrySector === "Healthcare" ? "Service Tariff / Fee (Year 1)" : industrySector === "Real Estate" ? "Rent / Sale Price per Unit (Year 1)" : "Unit Price / Service Fee (Year 1)"} type="number" prefix="$" currency={product.currency || formData.reportingCurrency || "USD ($)"} onChange={(value) => updateRevenueProduct(idx, 'unitPriceYear1', Number(value))} defaultValue="120" value={product.unitPriceYear1} />
                   {isStandardOrExpert && (
                     <>
                       <InputField label="Volume Growth Rate" type="number" suffix="%" onChange={(value) => updateRevenueProduct(idx, 'volumeGrowthRate', Number(value))} defaultValue="5.0" value={product.volumeGrowthRate} />
@@ -163,7 +172,7 @@ export function RevenueForm({
                 </>
               )}
 
-              {revModelType === "Capacity × Tariff" && (
+              {isTariffModel && (
                 <>
                   <InputField label="Capacity Factor" type="number" suffix="%" onChange={(value) => updateRevenueProduct(idx, 'capacityFactor', Number(value))} defaultValue="85" value={product.capacityFactor} />
                   <InputField label="Tariff Rate" type="number" prefix="$" currency={product.currency || formData.reportingCurrency || "USD ($)"} onChange={(value) => updateRevenueProduct(idx, 'tariffRate', Number(value))} defaultValue="0.10" value={product.tariffRate} />
@@ -176,7 +185,7 @@ export function RevenueForm({
                 </>
               )}
 
-              {revModelType === "Subscription/SaaS" && (
+              {isSubscriptionModel && (
                 <>
                   <InputField label="Initial Customers" type="number" onChange={(value) => updateRevenueProduct(idx, 'initialCustomers', Number(value))} defaultValue="1000" value={product.initialCustomers} />
                   <InputField label="ARPU (Monthly)" type="number" prefix="$" currency={product.currency || formData.reportingCurrency || "USD ($)"} onChange={(value) => updateRevenueProduct(idx, 'arpuMonthly', Number(value))} defaultValue="50" value={product.arpuMonthly} />
@@ -189,7 +198,7 @@ export function RevenueForm({
                 </>
               )}
 
-              {revModelType === "Rental/Lease" && (
+              {isRentalModel && (
                 <>
                   <InputField label="Number of Units" type="number" defaultValue="18" onChange={(val) => updateRevenueProduct(idx, 'numberOfUnits', Number(val))} value={product.numberOfUnits || formData.numberOfUnits} />
                   <InputField label="Rent per Unit/Area" type="number" prefix="$" currency={product.currency || formData.reportingCurrency || "USD ($)"} defaultValue="2500" onChange={(val) => updateRevenueProduct(idx, 'rentPerUnit', Number(val))} value={product.rentPerUnit} />
@@ -202,7 +211,7 @@ export function RevenueForm({
                 </>
               )}
 
-              {revModelType === "Fixed Contract" && (
+              {isContractModel && (
                 <>
                   <InputField label="Annual Contract Value" type="number" prefix="$" currency={product.currency || formData.reportingCurrency || "USD ($)"} defaultValue="1000000" onChange={(val) => updateRevenueProduct(idx, 'contractValue', Number(val))} value={product.contractValue} />
                   <InputField label="Contract Duration" type="number" suffix="years" defaultValue="5" onChange={(val) => updateRevenueProduct(idx, 'contractDuration', Number(val))} value={product.contractDuration} />
@@ -254,7 +263,7 @@ export function RevenueForm({
           animate={{ opacity: 1, height: "auto" }}
           className="space-y-6 pt-6 border-t border-border"
         >
-          <h4 className="text-sm font-semibold text-foreground mb-4">Advanced Revenue Parameters</h4>
+          <h4 className="text-sm font-semibold text-foreground mb-4">{industrySubType} Contract, Indexation & Revenue Drivers</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <InputField
               label="Receivables Days (DSO)"

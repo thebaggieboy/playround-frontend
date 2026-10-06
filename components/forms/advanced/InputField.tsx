@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react"
 import { Info, RotateCcw, AlertCircle } from "lucide-react"
+import { parseFormattedNumber } from "./number-format"
 
 type InputNumberFormatSettings = {
   locale: string
@@ -60,16 +61,6 @@ const toEditableNumber = (value: string | number, locale: string) => {
   return Number.isFinite(number)
     ? new Intl.NumberFormat(locale, { useGrouping: false, maximumFractionDigits: 20 }).format(number)
     : String(value)
-}
-
-const parseFormattedNumber = (value: string, locale: string) => {
-  const parts = new Intl.NumberFormat(locale).formatToParts(12345.6)
-  const groupSeparator = parts.find((part) => part.type === "group")?.value ?? ","
-  const decimalSeparator = parts.find((part) => part.type === "decimal")?.value ?? "."
-  return value
-    .replace(/\s/g, "")
-    .split(groupSeparator).join("")
-    .split(decimalSeparator).join(".")
 }
 
 export function InputField({
