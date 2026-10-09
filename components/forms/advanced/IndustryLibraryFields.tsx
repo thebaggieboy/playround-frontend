@@ -26,6 +26,10 @@ export function IndustryLibraryFields({
   const scope = `${industry}:${subType}:${domain}`
   const values = formData.industryLibraryInputs?.[scope] || {}
   const updateValue = (id: string, value: string, type: "number" | "select" | "text") => {
+    if (domain === "project" && id === "technologyBusinessModel") {
+      updateFormData("industrySubType", value)
+      return
+    }
     const nextValue = type === "number" && value !== "" ? Number(value) : value
     updateFormData("industryLibraryInputs", {
       ...formData.industryLibraryInputs,

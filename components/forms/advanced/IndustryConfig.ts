@@ -219,6 +219,7 @@ export interface IndustryLibraryField {
 }
 
 export interface IndustryFormCopy {
+  timelinePhaseLabel: string;
   productionHeading: string;
   capacityLabel: string;
   capacityUnitLabel: string;
@@ -238,6 +239,14 @@ export interface IndustryFormCopy {
 
 export function getIndustryFormCopy(industry: string, subType: string): IndustryFormCopy {
   const profile = {
+    timelinePhaseLabel: ({
+      Technology: "Development",
+      Healthcare: "Facility Development",
+      Agriculture: "Farm Development",
+      "Mining and Natural Resources": "Mine Development",
+      "Oil & Gas": subType.includes("Upstream") ? "Field Development" : "Asset Development",
+      "Energy & Power": "Project Development",
+    } as Record<string, string>)[industry] || "Construction",
     productionHeading: "Capacity & Production Details",
     capacityLabel: "Total Plant/Factory Capacity",
     capacityUnitLabel: "Capacity Unit",

@@ -392,6 +392,7 @@ interface FormData {
   constructionLoanInterestRate?: any;
   contingency?: any;
   daysInYear?: any;
+  hoursInYear?: any;
   discountRateForNpv?: any;
   dividendPaymentFrequency?: any;
   dividendPayoutRatio?: any;
@@ -525,6 +526,9 @@ export default function InputModelPage() {
     projectCommencementDate: "2026-07-01",
     constructionStartDate: "2026-07-01",
     constructionDurationMonths: 36,
+    daysInYear: 365,
+    hoursInDay: 24,
+    hoursInYear: 8760,
     operationsStartDate: "2029-07-01",
     operationsDurationYears: 10,
     totalCapacity: 100000,
@@ -635,14 +639,58 @@ export default function InputModelPage() {
   const updateFormData = (field: string, value: any) => {
     setFormData(prev => {
       const next = { ...prev, [field]: value }
-      if (field === "constructionStartDate" || field === "constructionDurationMonths") {
-        const startDate = field === "constructionStartDate" ? value : prev.constructionStartDate
+      if (field === "daysInYear" || field === "hoursInDay") {
+        const max = field === "daysInYear" ? 366 : 24
+        const numericValue = Number(value)
+        const boundedValue = Number.isFinite(numericValue)
+          ? Math.min(max, Math.max(1, Math.trunc(numericValue)))
+          : field === "daysInYear" ? 365 : 24
+        if (field === "daysInYear") next.daysInYear = boundedValue
+        else next.hoursInDay = boundedValue
+        next.hoursInYear = next.daysInYear * next.hoursInDay
+      }
+      if (
+        field === "projectCommencementDate"
+        || field === "constructionStartDate"
+        || field === "constructionDurationMonths"
+      ) {
+        const startDate = field === "projectCommencementDate"
+          ? value
+          : field === "constructionStartDate"
+            ? value
+            : prev.constructionStartDate
+        if (field === "projectCommencementDate") {
+          next.constructionStartDate = value
+        }
         const durationMonths = Number(field === "constructionDurationMonths" ? value : prev.constructionDurationMonths)
         const endDate = startDate && Number.isFinite(durationMonths)
           ? calculateConstructionEndDate(startDate, durationMonths)
           : ""
         next.constructionEndDate = endDate
         next.operationsStartDate = endDate
+      }
+      if (field === "industrySubType") {
+        const capacityUnits = getIndustryCapacityUnits(prev.industrySector, value)
+        next.capacityUnit = capacityUnits.includes(prev.capacityUnit)
+          ? prev.capacityUnit
+          : capacityUnits[0]
+        const revenueUnits = getIndustryRevenueUnits(prev.industrySector, value)
+        next.revenueProducts = prev.revenueProducts.map(product => ({
+          ...product,
+          unitOfMeasure: revenueUnits.includes(product.unitOfMeasure)
+            ? product.unitOfMeasure
+            : revenueUnits[0],
+        }))
+        if (prev.industrySector === "Technology") {
+          const scope = `Technology:${value}:project`
+          next.industryLibraryInputs = {
+            ...prev.industryLibraryInputs,
+            [scope]: {
+              ...(prev.industryLibraryInputs?.[scope] || {}),
+              technologyBusinessModel: value,
+            },
+          }
+        }
       }
       return next
     })
@@ -2102,17 +2150,13 @@ function ProjectForm({
 
       <div className="pt-6 border-t border-border">
         <h4 className="text-sm font-semibold text-foreground mb-4">
-          {formData?.industrySector === "Energy & Power"
-            ? "Development, Commissioning & Commercial Operations Timeline"
-            : formData?.industrySector === "Mining and Natural Resources"
-              ? "Mine Development, Commissioning & Operating Life"
-              : `${formData?.industrySubType || formData?.industrySector} Project Development & Operating Timeline`}
+          {`${formData?.industrySubType || formData?.industrySector} ${industryCopy.timelinePhaseLabel} & Operating Timeline`}
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputField label="Project Commencement Date" type="date" value={formData?.projectCommencementDate} tooltip="The date project planning and administrative activities begin." onChange={(value) => updateFormData('projectCommencementDate', value)} defaultValue="2026-07-01" />
-          <InputField label="Construction Start Date" type="date" value={formData?.constructionStartDate} tooltip="The date physical construction on-site is expected to start." onChange={(value) => updateFormData('constructionStartDate', value)} defaultValue="2026-07-01" />
-          <InputField label="Construction Duration" type="number" value={formData?.constructionDurationMonths} onChange={(value) => updateFormData('constructionDurationMonths', value === "" ? "" : Number(value))} suffix="months" defaultValue="36" tooltip="Total time allocated for the construction phase in months." />
-          <InputField label="Construction End Date" type="date" value={formData?.constructionEndDate} tooltip="The calculated date when construction completes." onChange={(value) => updateFormData('constructionEndDate', value)} defaultValue="2029-07-01" calculated />
+          <InputField label={`${industryCopy.timelinePhaseLabel} Start Date`} type="date" value={formData?.constructionStartDate} tooltip={`The date ${industryCopy.timelinePhaseLabel.toLowerCase()} activities are expected to start.`} onChange={(value) => updateFormData('constructionStartDate', value)} defaultValue="2026-07-01" />
+          <InputField label={`${industryCopy.timelinePhaseLabel} Duration`} type="number" value={formData?.constructionDurationMonths} onChange={(value) => updateFormData('constructionDurationMonths', value === "" ? "" : Number(value))} suffix="months" defaultValue="36" tooltip={`Total time allocated for ${industryCopy.timelinePhaseLabel.toLowerCase()}.`} />
+          <InputField label={`${industryCopy.timelinePhaseLabel} Completion Date`} type="date" value={formData?.constructionEndDate} tooltip={`The calculated date when ${industryCopy.timelinePhaseLabel.toLowerCase()} completes.`} onChange={(value) => updateFormData('constructionEndDate', value)} defaultValue="2029-07-01" calculated />
           <InputField label="Operations Start Date" type="date" value={formData?.operationsStartDate} tooltip="Automatically set to the construction end date." defaultValue="2029-07-01" calculated />
           <InputField label="Operations Duration" type="number" value={formData?.operationsDurationYears} suffix="years" onChange={(value) => updateFormData('operationsDurationYears', value === "" ? "" : Number(value))} defaultValue="25" tooltip="The total operational life span of the project used for the model." />
         </div>
@@ -2212,18 +2256,17 @@ function ProjectForm({
             <h4 className="text-sm font-semibold text-foreground mb-4">Time Constraints</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <InputField label="Days in Year" type="number" defaultValue="365" size="sm"
-                tooltip="Number of days in a year used for financial and operational indexing."
+                tooltip="Use 365 days, or 366 for a leap year."
                 value={formData?.daysInYear}
                 onChange={(val) => updateFormData('daysInYear', Number(val))}
               />
               <InputField label="Hours in Day" type="number" defaultValue="24" size="sm"
-                tooltip="Number of operational hours in a standard production day."
+                tooltip="Number of hours in a calendar day; maximum 24."
                 value={formData?.hoursInDay}
                 onChange={(val) => updateFormData('hoursInDay', Number(val))}
               />
               <InputField label="Hours in Year" tooltip="Total hours operating in a standard calendar year." type="number" defaultValue="8760" calculated size="sm"
                 value={formData?.hoursInYear}
-                onChange={(val) => updateFormData('hoursInYear', Number(val))}
               />
             </div>
           </div>
