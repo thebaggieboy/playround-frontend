@@ -283,6 +283,9 @@ interface FormData {
   operationsDurationYears: number
   totalCapacity: number
   capacityUnit: string
+  phase_1_capacity?: number
+  phase_2_capacity?: number
+  lettableArea?: number
   maximumPlantAvailability: number
   availabilityDuringTam: number
   commissioningAvailability: number
@@ -314,7 +317,34 @@ interface FormData {
     unitPriceYear1: number
     volumeGrowthRate: number
     priceEscalationRate: number
-
+    revenueModelType?: string
+    currency?: string
+    capacityFactor?: number
+    tariffRate?: number
+    takeOrPayPct?: number
+    tariffEscalation?: number
+    initialCustomers?: number
+    arpuMonthly?: number
+    customerGrowthRate?: number
+    churnRate?: number
+    numberOfUnits?: number
+    number_of_units?: number
+    rentPerUnit?: number
+    occupancyRate?: number
+    leaseEscalation?: number
+    contractValue?: number
+    contractDuration?: number
+    gbaGrossBuildingArea?: number
+    gba_gross_building_area?: number
+    lettableArea?: number
+    lettable_area?: number
+    sale_price_per_unit?: number
+    receivables_days_dso?: number
+    revenue_rampup_months?: number
+    seasonal_adjustment_factor?: number
+    sales_absorption_period_months?: number
+    presales_offplan_percentage?: number
+    customParameters?: unknown[]
   }>
 
   // Operating Expenses
@@ -480,6 +510,49 @@ interface FormData {
   year1?: any;
   year2?: any;
   year3?: any;
+  property_management_pct?: number
+  tam_cost?: number
+  tam_frequency?: number
+  customOpexItems?: unknown[]
+  customParametersOpex?: unknown[]
+  buildingCivilWorks?: number
+  plantMachineryEquipment?: number
+  ffeFurnitureFixtures?: number
+  vehiclesItEquipment?: number
+  projectContingency?: number
+  preOperatingExpenses?: number
+  carpark_cost?: number
+  amenities_cost?: number
+  apartment_construction_cost?: number
+  hotel_commercial_cost?: number
+  drawdownYear1?: number
+  drawdownYear2?: number
+  drawdownYear3?: number
+  drawdownYear4?: number
+  drawdownYear5?: number
+  replacement_capex_pct_revenue?: number
+  expansion_capex?: number
+  customCapexItems?: unknown[]
+  customParametersCapex?: unknown[]
+  gracePeriodMonths?: number
+  dsraRequirementMonths?: number
+  upfrontFeesPct?: number
+  commitmentFeePct?: number
+  customDebtTranches?: unknown[]
+  customParametersDebt?: unknown[]
+  taxHolidayYears?: number
+  whtDividends?: number
+  whtInterest?: number
+  whtServices?: number
+  whtRent?: number
+  educationTaxPct?: number
+  taxLossCarryforwardYears?: number
+  initialAllowancePct?: number
+  annualAllowancePct?: number
+  customTaxes?: unknown[]
+  customParametersTax?: unknown[]
+  assetClassDepreciation?: unknown[]
+  customParametersDepreciation?: unknown[]
 
 }
 
@@ -805,11 +878,11 @@ export default function InputModelPage() {
         availability_during_tam: formData.availabilityDuringTam,
         commissioning_availability: formData.commissioningAvailability,
         factory_capacity_multiplier: formData.factoryCapacityMultiplier,
-        number_of_phases: formData.numberOfPhases || 1,
-        phase_1_capacity: formData.phase_1_capacity || formData.phaseICapacity,
-        phase_2_capacity: formData.phase_2_capacity || formData.phaseIiCapacity,
-        days_in_year: formData.daysInYear || 365,
-        hours_in_day: formData.hoursInDay || 24,
+        number_of_phases: formData.numberOfPhases ?? 1,
+        phase_1_capacity: formData.phase_1_capacity ?? formData.phaseICapacity,
+        phase_2_capacity: formData.phase_2_capacity ?? formData.phaseIiCapacity,
+        days_in_year: formData.daysInYear ?? 365,
+        hours_in_day: formData.hoursInDay ?? 24,
       },
       macro_assumptions: {
         reporting_currency: (formData.reportingCurrency || 'USD').split(' ')[0],
@@ -824,10 +897,10 @@ export default function InputModelPage() {
         benchmark_rate_type: formData.benchmarkRateType,
         benchmark_rate_value: formData.benchmarkRateValue,
         terminal_growth_rate: formData.terminalGrowthRate,
-        model_tolerance: formData.modelTolerance || 0.001,
-        revenue_opex_escalation_usd: formData.revenueOpexEscalationUsd || 2.5,
-        longterm_target_inflation: formData.longtermTargetInflation || 9.0,
-        contingency_buffer: formData.contingencyBuffer || 4.0,
+        model_tolerance: formData.modelTolerance ?? 0.001,
+        revenue_opex_escalation_usd: formData.revenueOpexEscalationUsd ?? 2.5,
+        longterm_target_inflation: formData.longtermTargetInflation ?? 9.0,
+        contingency_buffer: formData.contingencyBuffer ?? 4.0,
       },
       revenue_products: formData.revenueProducts.map(product => ({
         product_order: product.productOrder,
@@ -847,121 +920,128 @@ export default function InputModelPage() {
         arpu_monthly: product.arpuMonthly,
         customer_growth_rate: product.customerGrowthRate,
         churn_rate: product.churnRate,
-        number_of_units: product.numberOfUnits || product.number_of_units || formData.numberOfUnits,
+        number_of_units: product.numberOfUnits ?? product.number_of_units ?? formData.numberOfUnits,
         rent_per_unit: product.rentPerUnit,
         occupancy_rate: product.occupancyRate,
         lease_escalation: product.leaseEscalation,
         contract_value: product.contractValue,
         contract_duration: product.contractDuration,
-        gba_gross_building_area: product.gbaGrossBuildingArea || product.gba_gross_building_area || formData.gbaGrossBuildingArea,
-        lettable_area: product.lettableArea || product.lettable_area || formData.lettableArea,
-        sale_price_per_unit: product.sale_price_per_unit || formData.salePricePerUnit,
-        receivables_days_dso: product.receivables_days_dso || formData.receivablesDaysDso,
-        revenue_rampup_months: product.revenue_rampup_months || formData.revenueRampUpPeriod,
-        seasonal_adjustment_factor: product.seasonal_adjustment_factor || formData.seasonalAdjustmentFactor || 1.0,
-        sales_absorption_period_months: product.sales_absorption_period_months || formData.salesAbsorptionPeriod,
-        presales_offplan_percentage: product.presales_offplan_percentage || formData.preSalesOffPlanPct || formData.offPlanSalesPreSalesPct,
-        custom_parameters: product.customParameters || []
+        gba_gross_building_area: product.gbaGrossBuildingArea ?? product.gba_gross_building_area ?? formData.gbaGrossBuildingArea,
+        lettable_area: product.lettableArea ?? product.lettable_area ?? formData.lettableArea,
+        sale_price_per_unit: product.sale_price_per_unit ?? formData.salePricePerUnit,
+        receivables_days_dso: product.receivables_days_dso ?? formData.receivablesDaysDso,
+        revenue_rampup_months: product.revenue_rampup_months ?? formData.revenueRampUpPeriod,
+        seasonal_adjustment_factor: product.seasonal_adjustment_factor ?? formData.seasonalAdjustmentFactor ?? 1.0,
+        sales_absorption_period_months: product.sales_absorption_period_months ?? formData.salesAbsorptionPeriod,
+        presales_offplan_percentage: product.presales_offplan_percentage ?? formData.preSalesOffPlanPct ?? formData.offPlanSalesPreSalesPct,
+        custom_parameters: product.customParameters ?? []
       })),
       operating_expenses: {
         total_headcount: formData.totalHeadcount,
         average_annual_salary: formData.averageAnnualSalary,
         salary_escalation_rate: formData.salaryEscalationRate,
-        benefits_payroll_tax_pct: formData.benefitsPayrollTaxPct || formData.benefitsPayrollTax,
-        power_electricity_cost_annual: formData.powerElectricityCostAnnual || formData.powerElectricityCost,
-        water_gas_utilities_annual: formData.waterGasUtilitiesAnnual || formData.waterGasUtilities || 100000,
+        benefits_payroll_tax_pct: formData.benefitsPayrollTaxPct ?? formData.benefitsPayrollTax,
+        power_electricity_cost_annual: formData.powerElectricityCostAnnual ?? formData.powerElectricityCost,
+        water_gas_utilities_annual: formData.waterGasUtilitiesAnnual ?? formData.waterGasUtilities ?? 100000,
         utilities_escalation_rate: formData.utilitiesEscalationRate,
-        property_management_pct: formData.property_management_pct || formData.propertyManagement,
-        regular_maintenance_pct_revenue: formData.regularMaintenancePctRevenue || formData.regularMaintenance,
+        property_management_pct: formData.property_management_pct ?? formData.propertyManagement,
+        regular_maintenance_pct_revenue: formData.regularMaintenancePctRevenue ?? formData.regularMaintenance,
         insurance_annual: formData.insuranceAnnual,
-        tam_cost: formData.turnAroundMaintenanceTamCost || formData.tam_cost,
-        tam_frequency_years: formData.tamFrequency || formData.tam_frequency,
-        marketing_sales_pct_revenue: formData.marketingSalesPctRevenue || formData.marketingSales,
-        administrative_expenses_annual: formData.administrativeExpensesAnnual || formData.administrativeExpenses || 150000,
-        rent_facilities_annual: formData.rentFacilitiesAnnual || formData.rentFacilities || 120000,
-        technology_software_annual: formData.technologySoftwareAnnual || formData.technologySoftware || 50000,
-        professional_fees_annual: formData.professionalFeesAnnual || formData.professionalFees || 75000,
+        tam_cost: formData.turnAroundMaintenanceTamCost ?? formData.tam_cost,
+        tam_frequency_years: formData.tamFrequency ?? formData.tam_frequency,
+        marketing_sales_pct_revenue: formData.marketingSalesPctRevenue ?? formData.marketingSales,
+        administrative_expenses_annual: formData.administrativeExpensesAnnual ?? formData.administrativeExpenses ?? 150000,
+        rent_facilities_annual: formData.rentFacilitiesAnnual ?? formData.rentFacilities ?? 120000,
+        technology_software_annual: formData.technologySoftwareAnnual ?? formData.technologySoftware ?? 50000,
+        professional_fees_annual: formData.professionalFeesAnnual ?? formData.professionalFees ?? 75000,
         payables_days_dpo: formData.payablesDaysDpo,
-        custom_opex_items: formData.customOpexItems || [],
-        custom_parameters_opex: formData.customParametersOpex || [],
-        template_opex: Object.keys(formData).filter(k => k.startsWith('templateOpex_')).reduce((acc, key) => { acc[key] = formData[key]; return acc; }, {})
+        custom_opex_items: formData.customOpexItems ?? [],
+        custom_parameters_opex: formData.customParametersOpex ?? [],
+        template_opex: Object.entries(formData)
+          .filter(([key]) => key.startsWith("templateOpex_"))
+          .reduce<Record<string, unknown>>((acc, [key, value]) => {
+            acc[key] = value
+            return acc
+          }, {})
       },
       capital_expenditure: {
-        land_cost: formData.landCost || formData.landValue,
-        construction_building_cost: formData.constructionBuildingCost || formData.buildingCivilWorks,
-        equipment_machinery_cost: formData.equipmentMachineryCost || formData.plantMachineryEquipment,
-        ffe_cost: formData.ffeCost || formData.ffeFurnitureFixtures,
+        land_cost: formData.landCost ?? formData.landValue,
+        construction_building_cost: formData.constructionBuildingCost ?? formData.buildingCivilWorks,
+        equipment_machinery_cost: formData.equipmentMachineryCost ?? formData.plantMachineryEquipment,
+        ffe_cost: formData.ffeCost ?? formData.ffeFurnitureFixtures,
         vehicles_it_equipment: formData.vehiclesItEquipment,
         project_contingency: formData.projectContingency,
         pre_operating_expenses: formData.preOperatingExpenses,
         initial_working_capital: formData.initialWorkingCapital,
-        carpark_cost: formData.carpark_cost || formData.multiStoreyCarParkCost,
-        amenities_cost: formData.amenities_cost || formData.amenitiesCost,
-        apartment_construction_cost: formData.apartment_construction_cost || formData.apartmentConstruction,
-        hotel_commercial_cost: formData.hotel_commercial_cost || formData.hotelCommercialConstruction,
-        contingency_pct: formData.contingencyPct || formData.contingency,
-        professional_fees_pct: formData.professionalFeesPct || formData.professionalFees,
-        permits_approvals_pct: formData.permitsApprovalsPct || formData.permitsApprovals,
-        vat_on_construction_pct: formData.vatOnConstructionPct || formData.vatOnConstruction,
-        capitalize_interest: formData.capitalizeInterestDuringConstruction || true,
-        construction_loan_interest_rate: formData.constructionLoanInterestRate || 8.5,
-        year_1_drawdown_pct: formData.drawdownYear1 || 60,
-        year_2_drawdown_pct: formData.drawdownYear2 || 30,
-        year_3_drawdown_pct: formData.drawdownYear3 || 10,
-        year_4_drawdown_pct: formData.drawdownYear4 || 0,
-        year_5_drawdown_pct: formData.drawdownYear5 || 0,
-        replacement_capex_pct_revenue: formData.replacement_capex_pct_revenue || formData.replacementCapex || 3.0,
-        expansion_capex: formData.expansion_capex || formData.expansionCapexIfApplicable || 0,
-        custom_capex_items: formData.customCapexItems || [],
-        custom_parameters_capex: formData.customParametersCapex || []
+        carpark_cost: formData.carpark_cost ?? formData.multiStoreyCarParkCost,
+        amenities_cost: formData.amenities_cost ?? formData.amenitiesCost,
+        apartment_construction_cost: formData.apartment_construction_cost ?? formData.apartmentConstruction,
+        hotel_commercial_cost: formData.hotel_commercial_cost ?? formData.hotelCommercialConstruction,
+        contingency_pct: formData.contingencyPct ?? formData.contingency,
+        professional_fees_pct: formData.professionalFeesPct ?? formData.professionalFees,
+        permits_approvals_pct: formData.permitsApprovalsPct ?? formData.permitsApprovals,
+        vat_on_construction_pct: formData.vatOnConstructionPct ?? formData.vatOnConstruction,
+        capitalize_interest: formData.capitalizeInterestDuringConstruction ?? true,
+        construction_loan_interest_rate: formData.constructionLoanInterestRate ?? 8.5,
+        year_1_drawdown_pct: formData.drawdownYear1 ?? 60,
+        year_2_drawdown_pct: formData.drawdownYear2 ?? 30,
+        year_3_drawdown_pct: formData.drawdownYear3 ?? 10,
+        year_4_drawdown_pct: formData.drawdownYear4 ?? 0,
+        year_5_drawdown_pct: formData.drawdownYear5 ?? 0,
+        replacement_capex_pct_revenue: formData.replacement_capex_pct_revenue ?? formData.replacementCapex ?? 3.0,
+        expansion_capex: formData.expansion_capex ?? formData.expansionCapexIfApplicable ?? 0,
+        custom_capex_items: formData.customCapexItems ?? [],
+        custom_parameters_capex: formData.customParametersCapex ?? []
       },
       debt_financing: {
         equity_percentage: formData.equityPercentage,
         debt_percentage: formData.debtPercentage,
-        offplan_presales_percentage: formData.preSalesOffPlanPct || formData.offPlanSalesPreSalesPct || null,
+        offplan_presales_percentage: formData.preSalesOffPlanPct ?? formData.offPlanSalesPreSalesPct ?? null,
         interest_rate_type: formData.interestRateType || "Floating",
         base_rate_type: formData.baseRateType,
         base_rate_value: formData.baseRateValue,
         interest_margin_spread: formData.interestMarginSpread,
         loan_tenor_years: formData.loanTenorYears,
-        grace_period_months: formData.gracePeriodMonths || 36,
+        grace_period_months: formData.gracePeriodMonths ?? 36,
         repayment_type: formData.repaymentType || "Amortizing (Equal Installments)",
-        dsra_requirement_months: formData.dsraRequirementMonths || 6,
+        dsra_requirement_months: formData.dsraRequirementMonths ?? 6,
         dsra_funding_source: formData.dsraFundingSource || "Cash",
-        upfront_fees_pct: formData.upfrontFeesPct || 2.0,
-        commitment_fee_pct: formData.commitmentFeePct || 0.5,
+        upfront_fees_pct: formData.upfrontFeesPct ?? 2.0,
+        commitment_fee_pct: formData.commitmentFeePct ?? 0.5,
         drawdown_linked_to: formData.drawdownLinkedTo || "CAPEX Schedule",
         drawdown_frequency: formData.drawdownFrequency || "Quarterly",
-        custom_debt_tranches: formData.customDebtTranches || [],
-        custom_parameters_debt: formData.customParametersDebt || []
+        custom_debt_tranches: formData.customDebtTranches ?? [],
+        custom_parameters_debt: formData.customParametersDebt ?? []
       },
       tax_assumptions: {
         corporate_income_tax_rate: formData.corporateIncomeTaxRate,
-        tax_holiday_years: formData.taxHolidayYears || 0,
-        minimum_tax_rate: formData.minimumTaxRate || 0.5,
+        tax_holiday_years: formData.taxHolidayYears ?? 0,
+        minimum_tax_rate: formData.minimumTaxRate ?? 0.5,
         vat_sales_tax_rate: formData.vatSalesTaxRate,
-        wht_dividends: formData.whtDividends || 10.0,
-        wht_interest: formData.whtInterest || 10.0,
-        wht_services: formData.whtServices || 5.0,
-        wht_rent: formData.whtRent || 10.0,
-        education_tax_pct: formData.educationTaxPct || 2.5,
-        tax_loss_carryforward_years: formData.taxLossCarryforwardYears || 5,
-        initial_allowance_pct: formData.initialAllowancePct || 25.0,
-        annual_allowance_pct: formData.annualAllowancePct || 20.0,
-        custom_taxes: formData.customTaxes || [],
-        custom_parameters_tax: formData.customParametersTax || []
+        wht_dividends: formData.whtDividends ?? 10.0,
+        wht_interest: formData.whtInterest ?? 10.0,
+        wht_services: formData.whtServices ?? 5.0,
+        wht_rent: formData.whtRent ?? 10.0,
+        education_tax_pct: formData.educationTaxPct ?? 2.5,
+        tax_loss_carryforward_years: formData.taxLossCarryforwardYears ?? 5,
+        initial_allowance_pct: formData.initialAllowancePct ?? 25.0,
+        annual_allowance_pct: formData.annualAllowancePct ?? 20.0,
+        custom_taxes: formData.customTaxes ?? [],
+        custom_parameters_tax: formData.customParametersTax ?? []
       },
       working_capital: {
-        initial_wc_pct_year1_opex: formData.initialWorkingCapital || 30.0,
+        initial_wc_pct_year1_opex: formData.initialWorkingCapital ?? 30.0,
         receivables_days_dso: formData.receivablesDaysDso,
         inventory_days_dio: formData.inventoryDaysDio,
         payables_days_dpo: formData.payablesDaysDpo,
-        wc_pct_revenue: formData.workingCapitalAsPctOfRevenue || 10.0,
-        minimum_cash_balance: formData.minimumCashBalance || 1000000,
+        wc_pct_revenue: formData.workingCapitalAsPctOfRevenue ?? 10.0,
+        minimum_cash_balance: formData.minimumCashBalance ?? 1000000,
         wc_funding_source: formData.workingCapitalFunding || "From Equity",
         wc_reserve_account: formData.wcReserveAccount === "Yes",
       },
-      depreciation_schedules: formData.assetClassDepreciation?.length > 0 ? formData.assetClassDepreciation : [
+      depreciation_schedules: (formData.assetClassDepreciation?.length ?? 0) > 0
+        ? formData.assetClassDepreciation ?? []
+        : [
         {
           asset_category: "land",
           depreciation_method: "straight_line",
@@ -991,34 +1071,34 @@ export default function InputModelPage() {
           residual_value_pct: 0,
         },
       ],
-      custom_parameters_depreciation: formData.customParametersDepreciation || [],
+      custom_parameters_depreciation: formData.customParametersDepreciation ?? [],
       dividend_policy: {
-        dividend_payout_ratio_pct: formData.dividendPayoutRatio || formData.dividendPayoutRatioPct,
+        dividend_payout_ratio_pct: formData.dividendPayoutRatio ?? formData.dividendPayoutRatioPct,
         dividend_payment_frequency: formData.dividendPaymentFrequency || "Annually",
-        minimum_cash_before_dividend: formData.minimumCashBeforeDividend || 5000000,
-        minimum_dscr_for_dividend: formData.minimumDscrForDividend || 1.3,
-        minimum_llcr_for_dividend: formData.minimumLlcrForDividend || 1.5,
-        preferred_dividend_rate_pct: formData.preferredDividendRate || 0,
+        minimum_cash_before_dividend: formData.minimumCashBeforeDividend ?? 5000000,
+        minimum_dscr_for_dividend: formData.minimumDscrForDividend ?? 1.3,
+        minimum_llcr_for_dividend: formData.minimumLlcrForDividend ?? 1.5,
+        preferred_dividend_rate_pct: formData.preferredDividendRate ?? 0,
         share_buyback_provision: formData.shareBuybackProvision === "Yes",
-        dividend_wht_pct: formData.dividendWithholdingTax || 10.0,
+        dividend_wht_pct: formData.dividendWithholdingTax ?? 10.0,
         dividend_reinvestment_option: formData.dividendReinvestmentOption === "Yes",
       },
       exit_valuation: {
         exit_year: formData.exitYear,
         exit_multiple_ev_ebitda: formData.exitMultipleEvEbitda,
-        terminal_growth_rate_pct: formData.terminalGrowthRate || formData.terminalGrowthRatePct,
-        discount_rate_npv_pct: formData.discountRateForNpv || formData.discountRateNpvPct,
-        target_irr_pct: formData.targetIrr || formData.targetIrrPct,
-        pe_multiple: formData.pEMultiple || 12.0,
-        price_book_multiple: formData.priceBookMultiple || 2.5,
-        revenue_multiple: formData.revenueMultiple || 1.5,
-        asset_sale_value: formData.assetSaleValueIfApplicable || 0,
-        transaction_costs_pct: formData.transactionCosts || 3.0,
+        terminal_growth_rate_pct: formData.terminalGrowthRate ?? formData.terminalGrowthRatePct,
+        discount_rate_npv_pct: formData.discountRateForNpv ?? formData.discountRateNpvPct,
+        target_irr_pct: formData.targetIrr ?? formData.targetIrrPct,
+        pe_multiple: formData.pEMultiple ?? 12.0,
+        price_book_multiple: formData.priceBookMultiple ?? 2.5,
+        revenue_multiple: formData.revenueMultiple ?? 1.5,
+        asset_sale_value: formData.assetSaleValueIfApplicable ?? 0,
+        transaction_costs_pct: formData.transactionCosts ?? 3.0,
         valuation_method: formData.valuationMethod || "DCF (Discounted Cash Flow)",
-        target_equity_irr_pct: formData.targetEquityIrr || 20.0,
-        target_project_irr_pct: formData.targetProjectIrr || 15.0,
-        payback_period_target_years: formData.paybackPeriodTarget || 7,
-        minimum_moic: formData.minimumMoic || 2.5,
+        target_equity_irr_pct: formData.targetEquityIrr ?? 20.0,
+        target_project_irr_pct: formData.targetProjectIrr ?? 15.0,
+        payback_period_target_years: formData.paybackPeriodTarget ?? 7,
+        minimum_moic: formData.minimumMoic ?? 2.5,
       }
     }
   }
@@ -1050,7 +1130,6 @@ export default function InputModelPage() {
         "Project information": "project",
         "Project library inputs": "project",
         "Macro assumptions": "macro",
-        "Project information": "project",
         "Macro library inputs": "macro",
         Revenue: "revenue",
         "Revenue library inputs": "revenue",
@@ -1124,16 +1203,19 @@ export default function InputModelPage() {
     }
 
     if (!Number.isFinite(Number(formData.exchangeRate)) || Number(formData.exchangeRate) <= 0) {
-      toast({
-        title: "Exchange rate required",
+      sonnerToast.error("Exchange rate required", {
         description: "Enter a positive manual rate or fetch one from OANDA before generating the model.",
-        variant: "destructive",
       })
       return
     }
 
     setIsGenerating(true)
     setCalcStep(0)
+    setIsCreatedDialogOpen(false)
+    setCreatedModelId(null)
+    setGenerationWarnings([])
+    let generatedModelId = modelId
+    let scenarioInputsSaved = false
 
     const advanceStep = (step: number) => {
       return new Promise<void>(resolve => {
@@ -1166,10 +1248,17 @@ export default function InputModelPage() {
 
         const modelData = await createModelResponse.json()
         currentModelId = modelData.id
+        if (!currentModelId) {
+          throw new Error("The model was created, but the server did not return its ID.")
+        }
+        generatedModelId = currentModelId
         setModelId(currentModelId)
 
-        if (modelData.scenarios && modelData.scenarios.length > 0) {
-          currentScenarioId = modelData.scenarios[0].id
+        if (Array.isArray(modelData.scenarios) && modelData.scenarios.length > 0) {
+          const selectedScenario = modelData.scenarios.find(
+            (scenario: { scenario_type?: string }) => scenario.scenario_type === activeScenario
+          ) ?? modelData.scenarios[0]
+          currentScenarioId = selectedScenario.id
           setScenarioId(currentScenarioId)
         }
       } else {
@@ -1187,7 +1276,9 @@ export default function InputModelPage() {
         });
         
         if (!updateModelResponse.ok) {
-           console.warn('Failed to update financial model metadata');
+          const errorData = await updateModelResponse.json().catch(() => ({}))
+          const detail = errorData.detail || errorData.error || "Failed to update financial model metadata."
+          throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail))
         }
       }
 
@@ -1202,10 +1293,13 @@ export default function InputModelPage() {
         model: currentModelId
       }
 
+      const saveUrl = currentScenarioId
+        ? `${API_BASE_URL}/scenarios/${currentScenarioId}/`
+        : `${API_BASE_URL}/scenarios/`
       const saveResponse = await fetch(
-        `${API_BASE_URL}/scenarios/${currentScenarioId}/`,
+        saveUrl,
         {
-          method: 'PUT',
+          method: currentScenarioId ? 'PATCH' : 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `JWT ${getAuthToken()}`
@@ -1216,7 +1310,19 @@ export default function InputModelPage() {
 
       if (!saveResponse.ok) {
         const errorData = await saveResponse.json().catch(() => ({}))
-        throw new Error(errorData.detail || JSON.stringify(errorData) || "Failed to save scenario data")
+        const detail = errorData.detail || errorData.error || errorData
+        throw new Error(
+          typeof detail === "string" ? detail : JSON.stringify(detail) || "Failed to save scenario data"
+        )
+      }
+      scenarioInputsSaved = true
+      const savedScenario = await saveResponse.json()
+      if (!currentScenarioId) {
+        currentScenarioId = savedScenario.id
+        if (!currentScenarioId) {
+          throw new Error("Scenario inputs were saved, but the server did not return the scenario ID.")
+        }
+        setScenarioId(currentScenarioId)
       }
 
       // Animate through calculation steps while API call runs
@@ -1242,24 +1348,38 @@ export default function InputModelPage() {
 
       const calculateResponse = await calcPromise
 
-      if (!calculateResponse.ok) throw new Error('Failed to calculate model')
+      const result = await calculateResponse.json().catch(() => ({}))
+      if (!calculateResponse.ok) {
+        const detail = result.detail || result.error || result.message || "Failed to calculate the model."
+        throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail))
+      }
 
-      const result = await calculateResponse.json()
-
-      // Check for partial failures in the result
-      const failedSteps = result?.failed_steps || []
+      // Keep the generated model accessible even when one or more scenario calculations need attention.
+      const failedSteps: string[] = Array.isArray(result?.failed_steps) ? result.failed_steps : []
+      const calculationErrors = Object.entries(result?.results ?? {})
+        .filter(([, value]) => typeof value === "object" && value !== null && "error" in value)
+        .map(([scenarioName, value]) => {
+          const error = (value as { error: unknown }).error
+          return `${scenarioName}: ${typeof error === "string" ? error : JSON.stringify(error)}`
+        })
+      if (result?.status === "error" && typeof result.message === "string") {
+        calculationErrors.push(result.message)
+      }
       await advanceStep(11)
       setCreatedModelId(currentModelId)
-      setGenerationWarnings(failedSteps)
+      setGenerationWarnings(calculationErrors.length > 0 ? calculationErrors : failedSteps)
       setIsCreatedDialogOpen(true)
 
     } catch (error) {
       console.error('Generation error:', error)
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to generate model",
-        variant: "destructive"
-      })
+      const errorMessage = error instanceof Error ? error.message : "Failed to generate model"
+      if (generatedModelId && scenarioInputsSaved) {
+        setCreatedModelId(generatedModelId)
+        setGenerationWarnings([errorMessage])
+        setIsCreatedDialogOpen(true)
+      } else {
+        sonnerToast.error("Model generation failed", { description: errorMessage })
+      }
     } finally {
       setIsGenerating(false)
       setTimeout(() => setCalcStep(-1), 2000)
@@ -1738,22 +1858,21 @@ export default function InputModelPage() {
               </div>
               <Button
                 onClick={() => {
-                  const next = !inputMode
+                  const next = inputMode === "essential" ? "expert" : "essential"
                   setInputMode(next)
                   toast({
-                    title: next ? "Detailed Mode" : "Simple Mode",
-                    description: next
+                    title: next === "expert" ? "Detailed Mode" : "Simple Mode",
+                    description: next === "expert"
                       ? "Showing all advanced input fields."
                       : "Showing essential fields only.",
-                    duration: 2000,
                   })
                 }}
                 variant="outline"
                 size="sm"
                 className="gap-2"
               >
-                {inputMode ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                {inputMode ? "Simple" : "Detailed"}
+                {inputMode !== "essential" ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                {inputMode !== "essential" ? "Simple" : "Detailed"}
               </Button>
             </div>
           </Card>
@@ -1979,10 +2098,14 @@ export default function InputModelPage() {
             <div className="mb-1 flex h-11 w-11 items-center justify-center rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">
               <CheckCircle className="h-6 w-6" aria-hidden="true" />
             </div>
-            <DialogTitle className="text-center">Model created successfully</DialogTitle>
+            <DialogTitle className="text-center">
+              {generationWarnings.length > 0
+                ? "Model created with calculation issues"
+                : "Model created successfully"}
+            </DialogTitle>
             <DialogDescription className="text-center">
               {generationWarnings.length > 0
-                ? `Your model was created, but some calculation steps need attention: ${generationWarnings.join(", ")}.`
+                ? `Your model and inputs were saved, but calculation needs attention: ${generationWarnings.join("; ")}. You can still view the model and correct its inputs.`
                 : "Your financial model is ready to view."}
             </DialogDescription>
           </DialogHeader>

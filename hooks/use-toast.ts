@@ -1,10 +1,12 @@
 // hooks/use-toast.ts
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 
 interface ToastProps {
   title: string
-  description?: string
+  description?: ReactNode
   variant?: 'default' | 'destructive'
+  className?: string
+  duration?: number
 }
 
 export function useToast() {
@@ -13,10 +15,10 @@ export function useToast() {
   const toast = (props: ToastProps) => {
     setToasts(prev => [...prev, props])
     
-    // Auto-remove toast after 5 seconds
+    // Auto-remove toast after its requested duration, defaulting to 5 seconds.
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t !== props))
-    }, 5000)
+    }, props.duration ?? 5000)
     
     // For now, also use console
     console.log(`Toast [${props.variant}]: ${props.title} - ${props.description}`)
